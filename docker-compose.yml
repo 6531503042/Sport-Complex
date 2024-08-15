@@ -1,0 +1,10 @@
+version: '3.7'
+
+services:
+  user-service:
+    build:
+      context: ./user-service
+    container_name: user-service
+    restart: always
+    ports:
+      - "3000:3000"
