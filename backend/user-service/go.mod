@@ -2,9 +2,10 @@ module user
 
 go 1.21.5
 
+require github.com/gofiber/fiber/v2 v2.52.5
+
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/gofiber/fiber/v2 v2.52.5 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
