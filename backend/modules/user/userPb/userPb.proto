@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package = "https://github.com/6531503042/Sport-Complex";
+
+message UserProfile {
+    string id = 1;
+    string email = 2;
+    string username = 3;
+    string created_at = 4;
+    string updated_at = 5;
+    int32 roleCode = 6;
+}
+
+message CredentialSearchReq {
+    string email = 1;
+    string password = 2;
+}
+
+service UserGrpcService {
+    rpc GetUser(CredentialSearchReq) returns (UserProfile);
+    rpc CreateUser(UserProfile) returns (UserProfile);
+}
