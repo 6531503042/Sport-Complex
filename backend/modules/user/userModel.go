@@ -2,7 +2,7 @@ package user
 
 import "time"
 
-type PlayerProfile struct {
+type UserProfile struct {
 	Id        string    `json:"id"`
 	Email     string    `json:"email"`
 	Name      string    `json:"name"`
