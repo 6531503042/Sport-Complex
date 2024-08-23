@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"log"
+	"main/modules/user"
 	"main/pkg/utils"
-	"os/user"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,7 +20,7 @@ type (
 		InsertOneUser (pctx context.Context, req * user.User) (primitive.ObjectID, error)
 		IsUniqueUser (pctx context.Context, email, name string) bool
 		FindOneUserCredential (pctx context.Context, email string) (*user.User, error)
-		FindOneUserProfile (pctx context.Context, userId string) (*user.User, error)
+		FindOneUserProfile (pctx context.Context, userId string) (*user.UserProfileBson, error)
 		
 	}
 
@@ -98,14 +98,14 @@ func (r *UserRepository) FindOneUserCredential (pctx context.Context, email stri
 	return result, nil
 }
 
-func (r *UserRepository) FindOneUserProfile(pctx context.Context, userId string) (*user.User, error) {
+func (r *UserRepository) FindOneUserProfile(pctx context.Context, userId string) (*user.UserProfileBson, error) {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
 	db := r.userDbConn(ctx)
 	col := db.Collection("users")
 
-	result := new(user.User)
+	result := new(user.UserProfileBson)
 
 	if err := col.FindOne(
 		ctx,
