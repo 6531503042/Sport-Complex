@@ -14,7 +14,8 @@ import (
 type (
 
 	UserUsecaseService interface {
-        createUser (pctx context.Context, req *user.CreateUserReq) (*user.UserProfile, error)
+        CreateUser (pctx context.Context, req *user.CreateUserReq) (*user.UserProfile, error)
+        FindOneUserProfile (pctx context.Context, userId string) (*user.UserProfile, error)
 	}
 
 	userUsecase struct {
@@ -28,7 +29,7 @@ func NewUserUsecase(userRepository repository.UserRepositoryService) UserUsecase
 	}
 }
 
-func (u *userUsecase) createUser(pctx context.Context, req *user.CreateUserReq) (*user.UserProfile, error) {
+func (u *userUsecase) CreateUser(pctx context.Context, req *user.CreateUserReq) (*user.UserProfile, error) {
     // Check if the user with the given email or name already exists
     if !u.userRepository.IsUniqueUser(pctx, req.Email, req.Name) {
         return nil, errors.New("error: email or name already existing")
