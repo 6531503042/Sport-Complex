@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"log"
+	"main/config"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -10,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-func DbConnect (pctx context.Context, cfg *config,Config) *mongo.Client {
+func DbConn(pctx context.Context, cfg *config.Config) *mongo.Client {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
