@@ -5,6 +5,7 @@ import (
 	"errors"
 	"main/modules/user"
 	"main/modules/user/repository"
+	"main/pkg/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -26,29 +27,32 @@ func NewUserUsecase(userRepository repository.UserRepositoryService) UserUsecase
 	}
 }
 
-func (u *userUsecase) createUser (pctx context.Context, req *user.CreateUserReq) (*user.PlayerProfile, error) {
-	if !u.userRepository.IsUniqueUser(pctx, req.Email, req.Name) {
-		return nil, errors.New("email or name is already exist")
-	}
+func (u *userUsecase) createUser(pctx context.Context, req *user.CreateUserReq) (*user.UserProfile, error) {
+    // Check if the user with the given email or name already exists
+    if !u.userRepository.IsUniqueUser(pctx, req.Email, req.Name) {
+        return nil, errors.New("error: email or name already existing")
+    }
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, errors.New("error: failed to hash password")
-	}
+    // Hash the password
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+    if err != nil {
+        return nil, errors.New("Error: failed to hash password")
+    }
 
-	//Insert one user
-	userId, err := u.userRepository.InsertOneUser(pctx, &user.User{
-		Email:    req.Email,
-		Name:     req.Name,
-		Password: string(hashedPassword),
-		// CreatedAt: utils.Lo,
-		UserRole: []user.UserRole{
-			{
-				RoleTitle: "user",
-				RoleCode:  0,
-			}
-		}
+    // Insert the new user
+    userId, err := u.userRepository.InsertOneUser(pctx, &user.User{
+        Email:     req.Email,
+        Name:      req.Name,
+        Password:  string(hashedPassword),
+        CreatedAt: utils.LocalTime(),
+        UpdatedAt: utils.LocalTime(),
+        UserRoles: []user.UserRole{
+            {
+                RoleTitle: "user",
+                RoleCode:  0,
+            },
+        },
 	})
-	}) 
 
+	return u.userRepository.FindOneUserProfile(pctx, userId.Hex())
 }
