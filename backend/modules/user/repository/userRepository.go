@@ -20,6 +20,7 @@ type (
 		InsertOneUser (pctx context.Context, req * user.User) (primitive.ObjectID, error)
 		IsUniqueUser (pctx context.Context, email, name string) bool
 		FindOneUserCredential (pctx context.Context, email string) (*user.User, error)
+		FindOneUserProfile (pctx context.Context, userId string) (*user.User, error)
 		
 	}
 
@@ -33,7 +34,7 @@ func NewUserRepository(db *mongo.Client) UserRepositoryService {
 }
 
 func (r *UserRepository) userDbConn(pctx context.Context) *mongo.Database {
-	return r.db.Database("user")
+	return r.db.Database("user_db")
 }
 
 func (r *UserRepository) InsertOneUser (pctx context.Context, req * user.User) (primitive.ObjectID, error) {
@@ -43,13 +44,17 @@ func (r *UserRepository) InsertOneUser (pctx context.Context, req * user.User) (
 	db := r.userDbConn(ctx)
 	col := db.Collection("users")
 
-	userId, err := col.InsertOne(ctx, req)
+	result, err := col.InsertOne(ctx, req)
 	if err != nil {
 		log.Printf("Error: InsertOneUser: %s", err.Error())
-		return primitive.NilObjectID, errors.New("Error: Insert One User Failed")
+		return primitive.NilObjectID, errors.New("error: insert one user failed")
 	}
 
-	return userId.InsertedID.(primitive.ObjectID), nil
+	userId, ok := result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return primitive.NilObjectID, errors.New("error: insert one user failed")
+	}
+	return userId, nil
 }
 
 func (r * UserRepository) IsUniqueUser (pctx context.Context, email, name string) bool {
@@ -59,16 +64,22 @@ func (r * UserRepository) IsUniqueUser (pctx context.Context, email, name string
 	db := r.userDbConn(ctx)
 	col := db.Collection("users")
 
-	user := new(user.User)
-	if err := col.FindOne(
-		ctx,
-		bson.M{"email": email, "name": name},
-	).Decode(user); err != nil {
-		log.Printf("Error: IsUniqueUser: %s", err.Error())
-		return false
-	}
+	// Check for user by email
+    emailCount, err := col.CountDocuments(ctx, bson.M{"email": email})
+    if err != nil {
+        log.Printf("Error: IsUniqueUser - Failed to count documents by email: %s", err.Error())
+        return false
+    }
 
-	return false
+    // Check for user by name
+    nameCount, err := col.CountDocuments(ctx, bson.M{"name": name})
+    if err != nil {
+        log.Printf("Error: IsUniqueUser - Failed to count documents by name: %s", err.Error())
+        return false
+    }
+
+    // If either count is greater than 0, the user is not unique
+    return emailCount == 0 && nameCount == 0
 }
 
 func (r *UserRepository) FindOneUserCredential (pctx context.Context, email string) (*user.User, error) {
