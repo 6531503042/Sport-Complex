@@ -1,4 +1,4 @@
-package userhandler
+package handlers
 
 // type (
 // 	PlayerHttpHandlerService interface {
