@@ -6,6 +6,7 @@ import (
 	"main/modules/user"
 	"main/modules/user/repository"
 	"main/pkg/utils"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -13,7 +14,7 @@ import (
 type (
 
 	UserUsecaseService interface {
-		
+        createUser (pctx context.Context, req *user.CreateUserReq) (*user.UserProfile, error)
 	}
 
 	userUsecase struct {
@@ -53,6 +54,26 @@ func (u *userUsecase) createUser(pctx context.Context, req *user.CreateUserReq) 
             },
         },
 	})
+    if err != nil {
+        return nil, errors.New("Error: failed to create user")
+    }
 
-	return u.userRepository.FindOneUserProfile(pctx, userId.Hex())
+    return u.FindOneUserProfile(pctx, userId.Hex())
+}
+
+func (u * userUsecase) FindOneUserProfile (pctx context.Context, userId string) (*user.UserProfile, error) {
+    result, err := u.userRepository.FindOneUserProfile(pctx, userId)
+    if err != nil {
+        return nil, err
+    }
+
+    loc, _ := time.LoadLocation("Asia/Bangkok")
+
+    return &user.UserProfile{
+        Id:        result.Id.Hex(),
+        Email:     result.Email,
+        Name:      result.Name,
+        CreatedAt: result.CreatedAt.In(loc),
+        UpdatedAt: result.UpdatedAt.In(loc),
+    }, nil
 }
