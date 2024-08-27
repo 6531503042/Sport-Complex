@@ -15,7 +15,8 @@ import (
 
 type (
 	PlayerHttpHandlerService interface {
-
+		CreateUser (c echo.Context) error
+		FindOneUserProfile (c echo.Context) error
 	}
 
 	userHttpHandler struct {
@@ -30,7 +31,7 @@ func NewUserHttpHandler(cfg *config.Config, userUsecase usecase.UserUsecaseServi
 	}
 }
 
-func (h *userHttpHandler) createUser(c echo.Context) error {
+func (h *userHttpHandler) CreateUser(c echo.Context) error {
 	ctx := context.Background()
 
 	// Use the custom binding
