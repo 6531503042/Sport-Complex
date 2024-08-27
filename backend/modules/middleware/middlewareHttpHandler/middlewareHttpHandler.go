@@ -13,5 +13,5 @@ type (
 )
 
 func NewMiddlewareUsecase(middlewareUsecase middlewareusecase.MiddlewareUsecaseService) middlewareHttpHandlerService {
-	return &middlewareHttpHandler{middlewareUsecase: }
+	return &middlewareHttpHandler{middlewareUsecase}
 }
