@@ -28,14 +28,15 @@ type (
 )
 
 // newMiddleware initializes your custom middleware service
-func newMiddleware(cfg *config.Config) middlewarehttphandler.middlewareHttpHandlerService {
+func newMiddleware(cfg *config.Config) middlewarehttphandler.MiddlewareHttpHandlerService {
 	repo := middlewarerepository.NewMiddlewareRepository()
 	usecase := middlewareusecase.NewMiddlewareUsecase(repo)
 	return middlewarehttphandler.NewMiddlewareUsecase(usecase)
 }
 
 func (s *server) httpListening() {
-	if err := s.app(s.cfg.App.Url); err != nil && err != http.ErrServerClosed {
+	err := s.app.Start(s.cfg.App.Url)
+	if err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Shutting down the server due to error: %v", err)
 	}
 }
@@ -79,7 +80,7 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 
 	// Start the server in a separate goroutine
 	go func() {
-		address := fmt.Sprintf(":%d", cfg.Server.Port) // Ensure cfg.Server.Port is defined
+		address := fmt.Sprintf(":%d", cfg.Server.Port)
 		if err := s.app.Start(address); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Shutting down the server due to error: %v", err)
 		}
