@@ -1,5 +1,12 @@
 package config
 
+import (
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+)
+
 type (
 
 	Config struct {
@@ -28,3 +35,20 @@ type (
 		PaymentUrl string
 	}
 )
+
+func LoadConfig(path string) Config {
+	if err := godotenv.Load(path); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	return Config {
+		App : App {
+			Name : os.Getenv("APP_NAME"),
+			Url : os.Getenv("APP_URL"),
+			Stage : os.Getenv("APP_STAGE"),
+		},
+		Db : Db {
+			Url : os.Getenv("DB_URL"),
+		},
+	}
+}
