@@ -7,11 +7,11 @@ type (
 
 	}
 
-	middlewareHttpHandler struct {
+	MiddlewareHttpHandler struct {
 		middlewareUsecase middlewareusecase.MiddlewareUsecaseService
 	}
 )
 
-func NewMiddlewareUsecase(middlewareUsecase middlewareusecase.MiddlewareUsecaseService) middlewareHttpHandlerService {
-	return &middlewareHttpHandler{middlewareUsecase}
+func NewMiddlewareUsecase(middlewareUsecase middlewareusecase.MiddlewareUsecaseService) MiddlewareHttpHandlerService {
+	return &MiddlewareHttpHandler{middlewareUsecase}
 }
