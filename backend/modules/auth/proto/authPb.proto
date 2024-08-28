@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "https://github.com/6531503042/Sport-Complex";
+
+message AccessTokenSearchReq {
+    string accessToken = 1;
+}
+
+message AccessTokenSearchRes {
+    bool isValid = 1;
+}
+
+message RoleCountReq {}
+
+message RoleCountRes {
+    int64 count = 1 
+}
