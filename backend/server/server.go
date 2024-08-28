@@ -41,17 +41,17 @@ func (s *server) httpListening() {
 	}
 }
 
-func (s *server) gracefulShutdown(pctx context.Context, quit <- chan os.Signal) {
+func (s *server) gracefulShutdown(pctx context.Context, quit <-chan os.Signal) {
 	log.Printf("Start service: %s", s.cfg.App.Name)
 
 	<-quit
-	log.Printf("Shutting down service: %s", pctx, 10*time.Second)
+	log.Printf("Shutting down service: %s", s.cfg.App.Name)
 
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
 	if err := s.app.Shutdown(ctx); err != nil {
-		log.Fatalf("Error: %v", err)
+		log.Fatalf("Error during shutdown: %v", err)
 	}
 }
 
@@ -92,24 +92,10 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 	switch s.cfg.App.Name {
 	case "user":
 		s.userService()
-
-	// Wait for complete service module
-	// case "auth":
-	// 	s.authService()
-	// case "gym":
-	// 	s.gymService()
-	// case "swimming":
-	// 	s.swimmingService()
-	// case "badminton":
-	// 	s.badmintonService()
-	// case "football":
-	// 	s.footballService()
-	// case "payment":
-	// 	s.paymentService()
-
+	// Add other service cases here
 	}
 
-	//Graceful Shutdown
+	// Graceful Shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
@@ -117,7 +103,6 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 
 	go s.gracefulShutdown(pctx, quit)
 
-	//Listening
+	// Listening
 	s.httpListening()
 }
-
