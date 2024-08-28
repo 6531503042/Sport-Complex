@@ -13,6 +13,11 @@ type (
 		App App
 		Db   Db
 		Grpc Grpc
+		Server ServerConfig
+	}
+
+	ServerConfig struct {
+		Port int
 	}
 
 	App struct {
