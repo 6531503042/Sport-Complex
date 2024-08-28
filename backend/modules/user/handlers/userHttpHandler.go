@@ -11,22 +11,23 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-) 
+)
 
 type (
-	PlayerHttpHandlerService interface {
-		CreateUser (c echo.Context) error
-		FindOneUserProfile (c echo.Context) error
+	userHttpHandlerService interface {
+		CreateUser(c echo.Context) error
+		FindOneUserProfile(c echo.Context) error
 	}
 
 	userHttpHandler struct {
-		cfg		*config.Config
+		cfg        *config.Config
 		userUsecase usecase.UserUsecaseService
 	}
 )
 
-func NewUserHttpHandler(cfg *config.Config, userUsecase usecase.UserUsecaseService) PlayerHttpHandlerService {
+func NewUserHttpHandler(cfg *config.Config, userUsecase usecase.UserUsecaseService) userHttpHandlerService {
 	return &userHttpHandler{
+		cfg:        cfg,
 		userUsecase: userUsecase,
 	}
 }
