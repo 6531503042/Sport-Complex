@@ -15,7 +15,7 @@ func (s *server) userService() {
 	// user.GET("", s.healthCheckService)
 
 	// User endpoints
-	user.POST("/users/register", httpHandler.CreateUser)
-	user.GET("/users/:user_id", httpHandler.FindOneUserProfile)
+	user.POST("/users/register", httpHandler.CreateUser())
+	user.GET("/users/:user_id", httpHandler.FindOneUserProfile())
 }
 
