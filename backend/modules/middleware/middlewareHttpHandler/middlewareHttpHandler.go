@@ -3,7 +3,7 @@ package middlewarehttphandler
 import middlewareusecase "main/modules/middleware/middlewareUsecase"
 
 type (
-	middlewareHttpHandlerService interface {
+	MiddlewareHttpHandlerService interface {
 
 	}
 
