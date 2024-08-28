@@ -1,39 +1,34 @@
 package handlers
 
 import (
-	"context"
 	"main/config"
 	"main/modules/user"
 	"main/modules/user/usecase"
 	"main/pkg/request"
 	"main/pkg/response"
 	"net/http"
-	"strings"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type (
-	userHttpHandlerService interface {
-		CreateUser(c echo.Context) error
-		FindOneUserProfile(c echo.Context) error
-	}
-
 	userHttpHandler struct {
-		cfg        *config.Config
+		cfg         *config.Config
 		userUsecase usecase.UserUsecaseService
 	}
 )
 
-func NewUserHttpHandler(cfg *config.Config, userUsecase usecase.UserUsecaseService) userHttpHandlerService {
+// NewUserHttpHandler initializes and returns a userHttpHandler
+func NewUserHttpHandler(cfg *config.Config, userUsecase usecase.UserUsecaseService) *userHttpHandler {
 	return &userHttpHandler{
-		cfg:        cfg,
+		cfg:         cfg,
 		userUsecase: userUsecase,
 	}
 }
 
 func (h *userHttpHandler) CreateUser(c echo.Context) error {
-	ctx := context.Background()
+	// Use the context from the request
+	ctx := c.Request().Context()
 
 	// Use the custom binding
 	wrapper := request.ContextWrapper(c)
@@ -58,8 +53,8 @@ func (h *userHttpHandler) FindOneUserProfile(c echo.Context) error {
 	// Use the context from the request
 	ctx := c.Request().Context()
 
-	// Extract and sanitize the user ID from the URL parameter
-	userId := strings.TrimPrefix(c.Param("user_id"), "users:")
+	// Extract the user ID from the URL parameter
+	userId := c.Param("user_id")
 
 	// Fetch the user profile
 	res, err := h.userUsecase.FindOneUserProfile(ctx, userId)

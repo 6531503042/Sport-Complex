@@ -4,7 +4,7 @@ import (
 	"main/pkg/response"
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type healthCheck struct {
