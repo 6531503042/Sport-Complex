@@ -25,20 +25,24 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          **/go.sum
-          **/go.mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          backend/pkg/mod
+          backend/go.sum
+          backend/go.mod
+        key: ${{ runner.os }}-go-${{ hashFiles('backend/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
 
     - name: Install dependencies
+      working-directory: backend
       run: go mod download
 
     - name: Clean and Build
+      working-directory: backend
       run: |
         go fmt ./...  # Format code
         go vet ./...  # Run go vet
         go build -v ./...
 
     - name: Run Tests
+      working-directory: backend
       run: go test -v ./...
