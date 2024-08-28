@@ -7,16 +7,14 @@ import (
 	"github.com/labstack/echo"
 )
 
-type (
-	healthCheck struct {
-		App string `json:"app"`
-		Status string `json:"status"`
-	}
-)
+type healthCheck struct {
+	App    string `json:"app"`
+	Status string `json:"status"`
+}
 
-func (s *server) healthCheckService (c echo.Context) error {
+func (s *server) healthCheckService(c echo.Context) error {
 	return response.SuccessResponse(c, http.StatusOK, &healthCheck{
-		App: s.cfg.App.Name,
+		App:    s.cfg.App.Name,
 		Status: "OK",
 	})
 }
