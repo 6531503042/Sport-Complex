@@ -26,8 +26,8 @@ func UserMigrate(pctx context.Context, cfg *config.Config) {
 
 	//set indexing
 	indexs, _ := col.Indexes().CreateMany(pctx, []mongo.IndexModel{
-		{Keys: bson.D{{"_id", 1}}},
-		{Keys: bson.D{{"user_id", 1}}},
+		{Keys: bson.D{{Key: "_id", Value: 1}}},
+		{Keys: bson.D{{Key: "user_id", Value: 1}}},
 	})
 	log.Println(indexs)
 
@@ -35,8 +35,8 @@ func UserMigrate(pctx context.Context, cfg *config.Config) {
 
 	//set indexing
 	indexs, _ = col.Indexes().CreateMany(pctx, []mongo.IndexModel{
-		{Keys: bson.D{{"_id", 1}}},
-		{Keys: bson.D{{"email", 1}}},
+		{Keys: bson.D{{Key: "_id", Value: 1}}},
+		{Keys: bson.D{{Key: "email", Value: 1}}},
 	})
 	log.Println(indexs)
 
