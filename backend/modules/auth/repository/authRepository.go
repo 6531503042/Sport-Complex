@@ -52,3 +52,5 @@ func (r * authRepository) InsertOneUserCredential (pctx context.Context, req *au
 	}
 	return userId, nil
 }
+
+// func (r * authRepository) CredentialSearch(pctx context.Context, grpc)
