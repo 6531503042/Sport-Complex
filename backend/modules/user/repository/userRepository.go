@@ -21,7 +21,7 @@ type (
 		IsUniqueUser (pctx context.Context, email, name string) bool
 		FindOneUserCredential (pctx context.Context, email string) (*user.User, error)
 		FindOneUserProfile (pctx context.Context, userId string) (*user.UserProfileBson, error)
-		
+		FindOneUserProfileRefresh (pctx context.Context, userId string) (*user.User, error)
 	}
 
 	UserRepository struct {
@@ -123,5 +123,22 @@ func (r *UserRepository) FindOneUserProfile(pctx context.Context, userId string)
 		log.Printf("Error: FindOneUserProfile: %s", err.Error())
 		return nil, errors.New("error: user not found")
 	}
+	return result, nil
+}
+
+func (r *UserRepository) FindOneUserProfileRefresh(pctx context.Context, userId string) (*user.User, error) {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	defer cancel()
+
+	db := r.userDbConn(ctx)
+	col := db.Collection("users")
+
+	result := new(user.User)
+
+	if err := col.FindOne(ctx, bson.M{"_id": utils.ConvertToObjectId(userId)}).Decode(result); err != nil {
+		log.Printf("Error: FindOneUserProfileToRefresh: %s", err.Error())
+		return nil, errors.New("error: user profile not found")
+	}
+
 	return result, nil
 }
