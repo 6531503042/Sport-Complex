@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserGrpcServiceClient interface {
 	CredentialSearch(ctx context.Context, in *CredentialSearchReq, opts ...grpc.CallOption) (*UserProfile, error)
-	FindOnePlayerProfileToRefresh(ctx context.Context, in *FindOnePlayerProfileToRefreshReq, opts ...grpc.CallOption) (*UserProfile, error)
+	FindOnePlayerProfileToRefresh(ctx context.Context, in *FindOneUserProfileToRefreshReq, opts ...grpc.CallOption) (*UserProfile, error)
 }
 
 type userGrpcServiceClient struct {
@@ -48,7 +48,7 @@ func (c *userGrpcServiceClient) CredentialSearch(ctx context.Context, in *Creden
 	return out, nil
 }
 
-func (c *userGrpcServiceClient) FindOnePlayerProfileToRefresh(ctx context.Context, in *FindOnePlayerProfileToRefreshReq, opts ...grpc.CallOption) (*UserProfile, error) {
+func (c *userGrpcServiceClient) FindOnePlayerProfileToRefresh(ctx context.Context, in *FindOneUserProfileToRefreshReq, opts ...grpc.CallOption) (*UserProfile, error) {
 	out := new(UserProfile)
 	err := c.cc.Invoke(ctx, UserGrpcService_FindOnePlayerProfileToRefresh_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -62,7 +62,7 @@ func (c *userGrpcServiceClient) FindOnePlayerProfileToRefresh(ctx context.Contex
 // for forward compatibility
 type UserGrpcServiceServer interface {
 	CredentialSearch(context.Context, *CredentialSearchReq) (*UserProfile, error)
-	FindOnePlayerProfileToRefresh(context.Context, *FindOnePlayerProfileToRefreshReq) (*UserProfile, error)
+	FindOnePlayerProfileToRefresh(context.Context, *FindOneUserProfileToRefreshReq) (*UserProfile, error)
 	mustEmbedUnimplementedUserGrpcServiceServer()
 }
 
@@ -73,7 +73,7 @@ type UnimplementedUserGrpcServiceServer struct {
 func (UnimplementedUserGrpcServiceServer) CredentialSearch(context.Context, *CredentialSearchReq) (*UserProfile, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CredentialSearch not implemented")
 }
-func (UnimplementedUserGrpcServiceServer) FindOnePlayerProfileToRefresh(context.Context, *FindOnePlayerProfileToRefreshReq) (*UserProfile, error) {
+func (UnimplementedUserGrpcServiceServer) FindOnePlayerProfileToRefresh(context.Context, *FindOneUserProfileToRefreshReq) (*UserProfile, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindOnePlayerProfileToRefresh not implemented")
 }
 func (UnimplementedUserGrpcServiceServer) mustEmbedUnimplementedUserGrpcServiceServer() {}
@@ -108,7 +108,7 @@ func _UserGrpcService_CredentialSearch_Handler(srv interface{}, ctx context.Cont
 }
 
 func _UserGrpcService_FindOnePlayerProfileToRefresh_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FindOnePlayerProfileToRefreshReq)
+	in := new(FindOneUserProfileToRefreshReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func _UserGrpcService_FindOnePlayerProfileToRefresh_Handler(srv interface{}, ctx
 		FullMethod: UserGrpcService_FindOnePlayerProfileToRefresh_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserGrpcServiceServer).FindOnePlayerProfileToRefresh(ctx, req.(*FindOnePlayerProfileToRefreshReq))
+		return srv.(UserGrpcServiceServer).FindOnePlayerProfileToRefresh(ctx, req.(*FindOneUserProfileToRefreshReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }

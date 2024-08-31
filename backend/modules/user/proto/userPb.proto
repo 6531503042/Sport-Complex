@@ -11,8 +11,8 @@ message UserProfile {
     int32 roleCode = 6;
 }
 
-message FindOnePlayerProfileToRefreshReq {
-    string playerId = 1;
+message FindOneUserProfileToRefreshReq {
+    string userId = 1;
 }
 
 message CredentialSearchReq {
@@ -22,5 +22,5 @@ message CredentialSearchReq {
 
 service UserGrpcService {
     rpc CredentialSearch(CredentialSearchReq) returns (UserProfile);
-    rpc FindOnePlayerProfileToRefresh (FindOnePlayerProfileToRefreshReq) returns (UserProfile);
+    rpc FindOnePlayerProfileToRefresh (FindOneUserProfileToRefreshReq) returns (UserProfile);
 }
