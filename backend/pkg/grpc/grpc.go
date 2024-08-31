@@ -5,6 +5,8 @@ import (
 	"errors"
 	"log"
 	"main/config"
+	authPb "main/modules/auth/proto"
+	userPb "main/modules/user/proto"
 	"main/pkg/jwt"
 	"net"
 
@@ -15,7 +17,8 @@ import (
 
 type (
 	GrpcClientFactoryHandler interface {
-		
+		User() userPb.UserGrpcServiceClient
+		Auth() authPb.AuthGrpcServiceClient
 	}
 
 	grpcClientFactory struct {
@@ -26,6 +29,14 @@ type (
 		secretKey string
 	}
 )
+
+func (g *grpcClientFactory) User() userPb.UserGrpcServiceClient {
+	return userPb.NewUserGrpcServiceClient(g.client)
+}
+
+func (g *grpcClientFactory) Auth() authPb.AuthGrpcServiceClient {
+	return authPb.NewAuthGrpcServiceClient(g.client)
+}
 
 func NewGrpcClient(host string) (GrpcClientFactoryHandler, error) {
     opts := make([]grpc.DialOption, 0)
