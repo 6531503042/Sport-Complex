@@ -4,15 +4,18 @@ import (
 	"context"
 	"errors"
 	"log"
+	"main/config"
 	"main/pkg/jwt"
+	"net"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/internal/metadata"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 type (
-	GrpcClientFactoryHndler interface {
-
+	GrpcClientFactoryHandler interface {
+		
 	}
 
 	grpcClientFactory struct {
@@ -23,6 +26,41 @@ type (
 		secretKey string
 	}
 )
+
+func NewGrpcClient(host string) (GrpcClientFactoryHandler, error) {
+    opts := make([]grpc.DialOption, 0)
+
+    opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+    ClientConn, err := grpc.NewClient(host, opts...)
+    if err != nil {
+        log.Printf("Error: Grpc Client connection failed %s", err.Error())
+        return nil, errors.New("error: grpc client connection failed")
+    }
+
+    return &grpcClientFactory{
+        client: ClientConn,
+    }, nil
+}
+
+func NewGrpcServer(cfg *config.Jwt, host string) (*grpc.Server, net.Listener) {
+	opts := make([]grpc.ServerOption, 0)
+
+	grpcAuth := &grpcAuth{
+		secretKey: cfg.AccessSecretKey,
+	}
+
+	opts = append(opts, grpc.UnaryInterceptor(grpcAuth.unaryAuthorization))
+
+	grpcServer := grpc.NewServer(opts...)
+
+	lis, err := net.Listen("tcp", host)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	return grpcServer, lis
+}
 
 func (g *grpcAuth) unaryAuthorization (ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
@@ -50,3 +88,5 @@ func (g *grpcAuth) unaryAuthorization (ctx context.Context, req any, info *grpc.
 	log.Printf("claims: %v", claims)
 	return handler(ctx, req)
 }
+
+
