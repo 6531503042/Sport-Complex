@@ -1,9 +1,7 @@
 package usecase
 
 import (
-	"context"
-	"main/config"
-	"main/modules/auth"
+	"main/modules/auth/repository"
 )
 
 type AuthUsecaseService interface {
@@ -11,13 +9,9 @@ type AuthUsecaseService interface {
 }
 
 type authUsecase struct {
-	authRepository authRepository.AuthRepositoryService
+	authRepository repository.AuthRepositoryService
 }
 
-func NewAuthUsecase(authRepository authRepository.AuthRepositoryService) AuthUsecaseService {
-	return &AuthUsecase{authRepository}
-}
-
-func (u * authUsecase) Login(pctx context.Context, cfg *config.Config, req*auth,UserLoginReq) (*auth.ProfileIntercepter, error) {
-	profile, err := u.authRepository.Credential
+func NewAuthUsecase(authRepository repository.AuthRepositoryService) AuthUsecaseService {
+	return &authUsecase{authRepository}
 }
