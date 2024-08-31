@@ -10,8 +10,13 @@ message AccessTokenSearchRes {
     bool isValid = 1;
 }
 
-message RoleCountReq {}
+message RolesCountReq {}
 
-message RoleCountRes {
-    int64 count = 1 
+message RolesCountRes {
+    int64 count = 1;
+}
+
+service AuthGrpcService {
+    rpc AccessTokenSearch(AccessTokenSearchReq) returns (AccessTokenSearchRes);
+    rpc RolesCount(RolesCountReq) returns (RolesCountRes);
 }
