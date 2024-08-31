@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -14,6 +15,7 @@ type (
 		Db   Db
 		Grpc Grpc
 		Server ServerConfig
+		Jwt Jwt
 	}
 
 	ServerConfig struct {
@@ -28,6 +30,15 @@ type (
 
 	Db struct {
 		Url string
+	}
+
+	Jwt struct {
+		AccessSecretKey string
+		RefreshSecretKey string
+		ApiSecretKey string
+		AccessDuration int64
+		RefreshDuration int64
+		ApiDuration int64
 	}
 
 	Grpc struct {
@@ -54,6 +65,25 @@ func LoadConfig(path string) Config {
 		},
 		Db : Db {
 			Url : os.Getenv("DB_URL"),
+		},
+		Jwt: Jwt{
+			AccessSecretKey:  os.Getenv("JWT_ACCESS_SECRET_KEY"),
+			RefreshSecretKey: os.Getenv("JWT_REFRESH_SECRET_KEY"),
+			ApiSecretKey:     os.Getenv("JWT_API_SECRET_KEY"),
+			AccessDuration: func() int64 {
+				result, err := strconv.ParseInt(os.Getenv("JWT_ACCESS_DURATION"), 10, 64)
+				if err != nil {
+					log.Fatal("Error loading access duration failed")
+				}
+				return result
+			}(),
+			RefreshDuration: func() int64 {
+				result, err := strconv.ParseInt(os.Getenv("JWT_REFRESH_DURATION"), 10, 64)
+				if err != nil {
+					log.Fatal("Error loading refresh duration failed")
+				}
+				return result
+			}(),
 		},
 	}
 }
