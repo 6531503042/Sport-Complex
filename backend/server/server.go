@@ -8,6 +8,7 @@ import (
 	middlewarehttphandler "main/modules/middleware/middlewareHttpHandler"
 	middlewarerepository "main/modules/middleware/middlewareRepository"
 	middlewareusecase "main/modules/middleware/middlewareUsecase"
+	"main/pkg/jwt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,6 +25,7 @@ type (
 		app *echo.Echo
 		db  *mongo.Client
 		cfg *config.Config
+		middleware middlewarehttphandler.MiddlewareHttpHandlerService
 	}
 )
 
@@ -31,7 +33,7 @@ type (
 func newMiddleware(cfg *config.Config) middlewarehttphandler.MiddlewareHttpHandlerService {
 	repo := middlewarerepository.NewMiddlewareRepository()
 	usecase := middlewareusecase.NewMiddlewareUsecase(repo)
-	return middlewarehttphandler.NewMiddlewareUsecase(usecase)
+	return middlewarehttphandler.NewMiddlewareHttpHandler(usecase)
 }
 
 func (s *server) httpListening() {
@@ -61,7 +63,10 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 		app: echo.New(),
 		db:  db,
 		cfg: cfg,
+		middleware: newMiddleware(cfg),
 	}
+
+	jwt.SetApiKey(cfg.Jwt.ApiSecretKey)
 
 	// Basic Middleware
 	// Request Timeout
@@ -92,6 +97,8 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 	switch s.cfg.App.Name {
 	case "user":
 		s.userService()
+	case "auth" :
+		s.authService()
 	// Add other service cases here
 	}
 
