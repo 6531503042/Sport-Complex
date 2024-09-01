@@ -62,6 +62,14 @@ func AuthMigrate(pctx context.Context, cfg *config.Config) {
 				Title: "admin",
 				Code:  1,
 			},
+			{
+				Title: "insider",
+				Code:  2,
+			},
+			{
+				Title: "outsider",
+				Code:  3,
+			},
 		}
 
 		docs := make([]any, 0)
@@ -77,3 +85,4 @@ func AuthMigrate(pctx context.Context, cfg *config.Config) {
 	}
 	log.Println("Migrate auth completed: ", results)
 }
+
