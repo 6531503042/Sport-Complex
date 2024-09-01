@@ -25,7 +25,7 @@ func (s *server) userService() {
 
 		userPb.RegisterUserGrpcServiceServer(grpcServer, grpcHandler)
 
-		log.Printf("Player gRPC server listening on %s", s.cfg.Grpc.UserUrl)
+		log.Printf("User gRPC server listening on %s", s.cfg.Grpc.UserUrl)
 		grpcServer.Serve(lis)
 	}()
 
