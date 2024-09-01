@@ -26,7 +26,4 @@ func main() {
 
 	//Start server
 	server.Start(ctx, &cfg, db)
-
-	
-	
 }
