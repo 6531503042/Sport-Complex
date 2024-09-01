@@ -22,5 +22,5 @@ message CredentialSearchReq {
 
 service UserGrpcService {
     rpc CredentialSearch(CredentialSearchReq) returns (UserProfile);
-    rpc FindOnePlayerProfileToRefresh (FindOneUserProfileToRefreshReq) returns (UserProfile);
+    rpc FindOneUserProfileToRefresh (FindOneUserProfileToRefreshReq) returns (UserProfile);
 }
