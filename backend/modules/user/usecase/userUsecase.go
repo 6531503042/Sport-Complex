@@ -42,7 +42,7 @@ func (u *userUsecase) CreateUser(pctx context.Context, req *user.CreateUserReq) 
     // Hash the password
     hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
     if err != nil {
-        return nil, errors.New("Error: failed to hash password")
+        return nil, errors.New("error: failed to hash password")
     }
 
     // Insert the new user
