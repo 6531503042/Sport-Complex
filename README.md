@@ -6,7 +6,7 @@ This project aims to redesign the existing sport complex system to improve its s
 
 ## Features
 
-- **User Management**: Register and manage users, including guests and different roles (e.g., campus users, outsiders).
+- **User Management**: Register and manage users, including guests and different roles (e.g., campus users, outsiders, guest).
 - **Activity Booking**: Book activities such as gym sessions, swimming, and badminton courts.
 - **Dynamic Pricing**: Support for different pricing based on user roles (insiders, outsiders) and activities.
 - **Scalability**: Designed to scale with Kubernetes for handling large numbers of concurrent users.
@@ -18,8 +18,7 @@ This project aims to redesign the existing sport complex system to improve its s
 - **Backend**: Golang, Echo framework, gRPC
 - **Message Broker**: Apache Kafka
 - **Container Orchestration**: Kubernetes (K8s)
-- **Database**: [Your choice of database, e.g., PostgreSQL, MySQL, etc.]
-- **API Documentation**: Swagger/OpenAPI
+- **Database**: MongoDB
 
 ## Architecture
 ![alt text](<assets/Screenshot 2567-09-01 at 21.57.59.png>)
@@ -37,11 +36,11 @@ The architecture should include the following components:
 
 ### Prerequisites
 
-- Golang 1.XX+
+- Golang 1.23.0
 - Docker
 - Kubernetes (Minikube or a K8s cluster)
 - Apache Kafka
-- PostgreSQL or another relational database
+- MongoDB
 
 ### Installation
 
