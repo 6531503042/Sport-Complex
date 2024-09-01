@@ -55,10 +55,6 @@ func AuthMigrate(pctx context.Context, cfg *config.Config) {
 	documents := func() []any {
 		roles := []*auth.Role{
 			{
-				Title: "player",
-				Code:  0,
-			},
-			{
 				Title: "admin",
 				Code:  1,
 			},
@@ -69,6 +65,10 @@ func AuthMigrate(pctx context.Context, cfg *config.Config) {
 			{
 				Title: "outsider",
 				Code:  3,
+			},
+			{
+				Title: "guest",
+				Code:  4,
 			},
 		}
 
