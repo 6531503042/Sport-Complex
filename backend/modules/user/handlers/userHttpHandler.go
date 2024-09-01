@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"main/config"
 	"main/modules/user"
 	"main/modules/user/usecase"
@@ -27,6 +28,8 @@ func NewUserHttpHandler(cfg *config.Config, userUsecase usecase.UserUsecaseServi
 }
 
 func (h *userHttpHandler) CreateUser(c echo.Context) error {
+
+	log.Println("Received request to create user")
 	// Use the context from the request
 	ctx := c.Request().Context()
 
