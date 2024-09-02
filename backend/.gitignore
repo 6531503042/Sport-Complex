@@ -9,7 +9,6 @@ node_modules/
 public/assets/
 .vscode/
 .grifter/
-.env
 **/.DS_Store
 *.pid
 coverage
@@ -30,11 +29,3 @@ generated/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-
-# dotenv environment variable files
-env
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
