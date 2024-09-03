@@ -37,79 +37,75 @@ func newMiddleware(cfg *config.Config) middlewarehttphandler.MiddlewareHttpHandl
 }
 
 func (s *server) httpListening() {
-	err := s.app.Start(s.cfg.App.Url)
-	if err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Shutting down the server due to error: %v", err)
-	}
+    log.Printf("Starting HTTP server on %s", s.cfg.App.Url)
+    err := s.app.Start(s.cfg.App.Url)
+    if err != nil && err != http.ErrServerClosed {
+        log.Fatalf("HTTP server error: %v", err)
+    }
 }
+
 
 func (s *server) gracefulShutdown(pctx context.Context, quit <-chan os.Signal) {
-	log.Printf("Start service: %s", s.cfg.App.Name)
+    log.Printf("Starting graceful shutdown for service: %s", s.cfg.App.Name)
 
-	<-quit
-	log.Printf("Shutting down service: %s", s.cfg.App.Name)
+    <-quit
+    log.Printf("Received shutdown signal, initiating shutdown...")
 
-	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+    defer cancel()
 
-	if err := s.app.Shutdown(ctx); err != nil {
-		log.Fatalf("Error during shutdown: %v", err)
-	}
+    if err := s.app.Shutdown(ctx); err != nil {
+        log.Fatalf("Error during shutdown: %v", err)
+    }
+
+    log.Printf("Shutdown completed for service: %s", s.cfg.App.Name)
 }
 
+
 func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
-	// Initialize the server struct
-	s := &server{
-		app: echo.New(),
-		db:  db,
-		cfg: cfg,
-		middleware: newMiddleware(cfg),
-	}
+    s := &server{
+        app: echo.New(),
+        db:  db,
+        cfg: cfg,
+        middleware: newMiddleware(cfg),
+    }
 
-	jwt.SetApiKey(cfg.Jwt.ApiSecretKey)
+    jwt.SetApiKey(cfg.Jwt.ApiSecretKey)
 
-	// Basic Middleware
-	// Request Timeout
-	s.app.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
-		Skipper:      middleware.DefaultSkipper,
-		ErrorMessage: "Error: Request Timeout",
-		Timeout:      30 * time.Second,
-	}))
+    s.app.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
+        Skipper:      middleware.DefaultSkipper,
+        ErrorMessage: "Error: Request Timeout",
+        Timeout:      30 * time.Second,
+    }))
 
-	// CORS
-	s.app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		Skipper: middleware.DefaultSkipper,
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.PATCH, echo.DELETE},
-	}))
+    s.app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+        Skipper: middleware.DefaultSkipper,
+        AllowOrigins: []string{"*"},
+        AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.PATCH, echo.DELETE},
+    }))
 
-	// Start the server in a separate goroutine
-	go func() {
-		address := fmt.Sprintf(":%d", cfg.Server.Port)
-		if err := s.app.Start(address); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Shutting down the server due to error: %v", err)
-		}
-	}()
+    go func() {
+        address := fmt.Sprintf(":%d", cfg.Server.Port)
+        log.Printf("Starting HTTP server on %s", address)
+        if err := s.app.Start(address); err != nil && err != http.ErrServerClosed {
+            log.Fatalf("HTTP server error: %v", err)
+        }
+    }()
 
-	// Body Limit
-	s.app.Use(middleware.BodyLimit("10M"))
+    switch s.cfg.App.Name {
+    case "user":
+        s.userService()
+    case "auth":
+        s.authService()
+    // Add other service cases here
+    }
 
-	switch s.cfg.App.Name {
-	case "user":
-		s.userService()
-	case "auth" :
-		s.authService()
-	// Add other service cases here
-	}
+    quit := make(chan os.Signal, 1)
+    signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-	// Graceful Shutdown
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+    s.app.Use(middleware.Logger())
 
-	s.app.Use(middleware.Logger())
+    go s.gracefulShutdown(pctx, quit)
 
-	go s.gracefulShutdown(pctx, quit)
-
-	// Listening
-	s.httpListening()
+    s.httpListening()
 }
