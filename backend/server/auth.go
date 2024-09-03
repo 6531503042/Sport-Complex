@@ -11,11 +11,13 @@ import (
 
 
 func (s *server) authService() {
+    // Initialize repository, usecase, and handlers
     repo := repository.NewAuthRepository(s.db)
     usecase := usecase.NewAuthUsecase(repo)
-    httpHandler := handlers.NewAuthHttpHandler(s.cfg, usecase)
     grpcHandler := handlers.NewAuthGrpcpHandler(usecase)
+    httpHandler := handlers.NewAuthHttpHandler(s.cfg, usecase)
 
+    // Start the gRPC server in a new goroutine
     go func() {
         grpcServer, lis := grpc.NewGrpcServer(&s.cfg.Jwt, s.cfg.Grpc.AuthUrl)
         authPb.RegisterAuthGrpcServiceServer(grpcServer, grpcHandler)
@@ -25,9 +27,10 @@ func (s *server) authService() {
         }
     }()
 
+    // Fiber routes
     auth := s.app.Group("/auth_v1")
-    auth.GET("", s.healthCheckService)
-    auth.POST("/auth/login", httpHandler.Login)
-    auth.POST("/auth/refresh-token", httpHandler.RefreshToken)
-    auth.POST("/auth/logout", httpHandler.Logout)
+    auth.Get("/check", s.healthCheckService)
+    auth.Post("/login", httpHandler.Login)
+    auth.Post("/refresh-token", httpHandler.RefreshToken)
+    auth.Post("/logout", httpHandler.Logout)
 }
