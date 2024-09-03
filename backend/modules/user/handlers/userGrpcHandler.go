@@ -7,20 +7,20 @@ import (
 )
 
 type (
-	userGrpcHandler struct {
-		userUsecase usecase.UserUsecaseService
-		userPb.UnimplementedUserGrpcServiceServer
-	}
+    userGrpcHandler struct {
+        userUsecase usecase.UserUsecaseService
+        userPb.UnimplementedUserGrpcServiceServer
+    }
 )
 
 func NewUserGrpcHandler(userUsecase usecase.UserUsecaseService) *userGrpcHandler {
-	return &userGrpcHandler{userUsecase: userUsecase}
+    return &userGrpcHandler{userUsecase: userUsecase}
 }
 
-func (g *userGrpcHandler) CredentialSearch (ctx context.Context, req *userPb.CredentialSearchReq) (*userPb.UserProfile, error) {
-	return g.userUsecase.FindOneUserCredential(ctx, req.Password, req.Email)
+func (g *userGrpcHandler) CredentialSearch(ctx context.Context, req *userPb.CredentialSearchReq) (*userPb.UserProfile, error) {
+    return g.userUsecase.FindOneUserCredential(ctx, req.Password, req.Email)
 }
 
-func (g *userGrpcHandler) FindOneUserProfileRefresh (ctx context.Context, req *userPb.FindOneUserProfileToRefreshReq) (*userPb.UserProfile, error) {
-	return g.userUsecase.FindOneUserProfileToRefresh(ctx, req.UserId)
+func (g *userGrpcHandler) FindOneUserProfileRefresh(ctx context.Context, req *userPb.FindOneUserProfileToRefreshReq) (*userPb.UserProfile, error) {
+    return g.userUsecase.FindOneUserProfileToRefresh(ctx, req.UserId)
 }
