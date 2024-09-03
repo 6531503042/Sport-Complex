@@ -8,31 +8,32 @@ import (
 	"main/modules/auth/usecase"
 	"main/pkg/request"
 	"main/pkg/response"
-	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 )
 
 type (
-
 	AuthHttpHandlerService interface {
-		// Blank\
-		Login (c echo.Context) error 
-		RefreshToken (c echo.Context) error
-		Logout (c echo.Context) error
+		Login(c *fiber.Ctx) error
+		RefreshToken(c *fiber.Ctx) error
+		Logout(c *fiber.Ctx) error
 	}
 
 	authHttpHandler struct {
-		cfg *config.Config
+		cfg         *config.Config
 		authUsecase usecase.AuthUsecaseService
 	}
 )
 
+// NewAuthHttpHandler initializes and returns an AuthHttpHandlerService
 func NewAuthHttpHandler(cfg *config.Config, authUsecase usecase.AuthUsecaseService) AuthHttpHandlerService {
-	return &authHttpHandler{cfg, authUsecase}
+	return &authHttpHandler{
+		cfg:         cfg,
+		authUsecase: authUsecase,
+	}
 }
 
-func (h *authHttpHandler) Login (c echo.Context) error {
+func (h *authHttpHandler) Login(c *fiber.Ctx) error {
 	ctx := context.Background()
 
 	wrapper := request.ContextWrapper(c)
@@ -40,18 +41,18 @@ func (h *authHttpHandler) Login (c echo.Context) error {
 	req := new(auth.UserLoginReq)
 
 	if err := wrapper.Bind(req); err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+		return response.ErrResponse(c, fiber.StatusBadRequest, err.Error())
 	}
 
 	res, err := h.authUsecase.Login(ctx, h.cfg, req)
 	if err != nil {
-		return response.ErrResponse(c, http.StatusUnauthorized, err.Error())
+		return response.ErrResponse(c, fiber.StatusUnauthorized, err.Error())
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, res)
+	return response.SuccessResponse(c, fiber.StatusOK, res)
 }
 
-func (h *authHttpHandler) RefreshToken (c echo.Context) error {
+func (h *authHttpHandler) RefreshToken(c *fiber.Ctx) error {
 	ctx := context.Background()
 
 	wrapper := request.ContextWrapper(c)
@@ -59,18 +60,18 @@ func (h *authHttpHandler) RefreshToken (c echo.Context) error {
 	req := new(auth.RefreshTokenReq)
 
 	if err := wrapper.Bind(req); err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+		return response.ErrResponse(c, fiber.StatusBadRequest, err.Error())
 	}
 
 	res, err := h.authUsecase.RefreshToken(ctx, h.cfg, req)
 	if err != nil {
-		return response.ErrResponse(c, http.StatusUnauthorized, err.Error())
+		return response.ErrResponse(c, fiber.StatusUnauthorized, err.Error())
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, res)
+	return response.SuccessResponse(c, fiber.StatusOK, res)
 }
 
-func (h *authHttpHandler) Logout (c echo.Context) error {
+func (h *authHttpHandler) Logout(c *fiber.Ctx) error {
 	ctx := context.Background()
 
 	wrapper := request.ContextWrapper(c)
@@ -78,15 +79,15 @@ func (h *authHttpHandler) Logout (c echo.Context) error {
 	req := new(auth.LogoutReq)
 
 	if err := wrapper.Bind(req); err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+		return response.ErrResponse(c, fiber.StatusBadRequest, err.Error())
 	}
 
 	res, err := h.authUsecase.Logout(ctx, req.CredentialId)
 	if err != nil {
-		return response.ErrResponse(c, http.StatusUnauthorized, err.Error())
+		return response.ErrResponse(c, fiber.StatusUnauthorized, err.Error())
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, &response.MsgResponse{
+	return response.SuccessResponse(c, fiber.StatusOK, &response.MsgResponse{
 		Message: fmt.Sprintf("Deleted count: %d", res),
 	})
 }

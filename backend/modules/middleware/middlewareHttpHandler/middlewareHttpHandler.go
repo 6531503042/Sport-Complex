@@ -5,14 +5,14 @@ import (
 	middlewareusecase "main/modules/middleware/middlewareUsecase"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 )
 
 type (
 	MiddlewareHttpHandlerService interface {
-		JwtAuthorizationMiddleware(cfg *config.Config) echo.MiddlewareFunc
-		RbacAuthorizationMiddleware(cfg *config.Config, expected []int) echo.MiddlewareFunc
-		UserIdParamValidationMiddleware() echo.MiddlewareFunc
+		JwtAuthorizationMiddleware(cfg *config.Config) fiber.Handler
+		RbacAuthorizationMiddleware(cfg *config.Config, expected []int) fiber.Handler
+		UserIdParamValidationMiddleware() fiber.Handler
 	}
 
 	MiddlewareHttpHandler struct {
@@ -24,46 +24,40 @@ func NewMiddlewareHttpHandler(middlewareUsecase middlewareusecase.MiddlewareUsec
 	return &MiddlewareHttpHandler{middlewareUsecase}
 }
 
-func (m *MiddlewareHttpHandler) JwtAuthorizationMiddleware(cfg *config.Config) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			accessToken := c.Request().Header.Get("Authorization")
-			if accessToken == "" {
-				return echo.NewHTTPError(http.StatusUnauthorized, "missing access token")
-			}
-
-			_, err := m.middlewareUsecase.JwtAuthorization(c, cfg, accessToken)
-			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
-			}
-
-			return next(c)
+func (m *MiddlewareHttpHandler) JwtAuthorizationMiddleware(cfg *config.Config) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		accessToken := c.Get("Authorization")
+		if accessToken == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "missing access token"})
 		}
+
+		_, err := m.middlewareUsecase.JwtAuthorization(c, cfg, accessToken)
+		if err != nil {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		return c.Next()
 	}
 }
 
-func (m *MiddlewareHttpHandler) RbacAuthorizationMiddleware(cfg *config.Config, expected []int) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			_, err := m.middlewareUsecase.RbacAuthorization(c, cfg, expected)
-			if err != nil {
-				return echo.NewHTTPError(http.StatusForbidden, err.Error())
-			}
-
-			return next(c)
+func (m *MiddlewareHttpHandler) RbacAuthorizationMiddleware(cfg *config.Config, expected []int) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		_, err := m.middlewareUsecase.RbacAuthorization(c, cfg, expected)
+		if err != nil {
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
 		}
+
+		return c.Next()
 	}
 }
 
-func (m *MiddlewareHttpHandler) UserIdParamValidationMiddleware() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			_, err := m.middlewareUsecase.UserIdParamValidation(c)
-			if err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-			}
-
-			return next(c)
+func (m *MiddlewareHttpHandler) UserIdParamValidationMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		_, err := m.middlewareUsecase.UserIdParamValidation(c)
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
+
+		return c.Next()
 	}
 }

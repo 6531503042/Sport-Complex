@@ -30,5 +30,5 @@ func main() {
 	// migration.UserMigrate(ctx, &cfg)
 
 	// Start the server
-	server.Start(ctx, &cfg, db)
+	server.Start(&cfg, db)
 }

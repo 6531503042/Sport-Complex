@@ -8,14 +8,14 @@ import (
 	"main/pkg/jwt"
 	"main/pkg/rbac"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 )
 
 type (
 	MiddlewareUsecaseService interface {
-		JwtAuthorization(c echo.Context, cfg *config.Config, accessToken string) (echo.Context, error)
-		RbacAuthorization(c echo.Context, cfg *config.Config, expected []int) (echo.Context, error)
-		UserIdParamValidation(c echo.Context) (echo.Context, error)
+		JwtAuthorization(c *fiber.Ctx, cfg *config.Config, accessToken string) (*fiber.Ctx, error)
+		RbacAuthorization(c *fiber.Ctx, cfg *config.Config, expected []int) (*fiber.Ctx, error)
+		UserIdParamValidation(c *fiber.Ctx) (*fiber.Ctx, error)
 	}
 
 	middlewareUsecase struct {
@@ -27,28 +27,28 @@ func NewMiddlewareUsecase(middlewareRepository middlewareRepository.MiddlewareRe
 	return &middlewareUsecase{middlewareRepository}
 }
 
-func (u *middlewareUsecase) JwtAuthorization(c echo.Context, cfg *config.Config, accessToken string) (echo.Context, error) {
-	ctx := c.Request().Context()
+func (u *middlewareUsecase) JwtAuthorization(c *fiber.Ctx, cfg *config.Config, accessToken string) (*fiber.Ctx, error) {
 	claims, err := jwt.ParseToken(cfg.Jwt.AccessSecretKey, accessToken)
 	if err != nil {
 		return nil, err
 	}
 
+	ctx := c.Context() // This is *fasthttp.RequestCtx
 	if err := u.middlewareRepository.AccessTokenSearch(ctx, cfg.Grpc.AuthUrl, accessToken); err != nil {
 		return nil, err
 	}
 
-	c.Set("user_id", claims.UserId)
-	c.Set("role_code", claims.RoleCode)
+	c.Locals("user_id", claims.UserId)
+	c.Locals("role_code", claims.RoleCode)
 
 	return c, nil
 }
 
-//Set authorization for rbac.
-func (u *middlewareUsecase) RbacAuthorization(c echo.Context, cfg *config.Config, expected []int) (echo.Context, error) {
-	ctx := c.Request().Context()
+// Set authorization for RBAC
+func (u *middlewareUsecase) RbacAuthorization(c *fiber.Ctx, cfg *config.Config, expected []int) (*fiber.Ctx, error) {
+	ctx := c.Context() // This is *fasthttp.RequestCtx
 
-	userRoleCode := c.Get("role_code").(int)
+	userRoleCode := c.Locals("role_code").(int)
 
 	rolesCount, err := u.middlewareRepository.RolesCount(ctx, cfg.Grpc.AuthUrl)
 	if err != nil {
@@ -66,9 +66,9 @@ func (u *middlewareUsecase) RbacAuthorization(c echo.Context, cfg *config.Config
 	return nil, errors.New("error: permission denied")
 }
 
-func (u *middlewareUsecase) UserIdParamValidation(c echo.Context) (echo.Context, error) {
-	userIdReq := c.Param("user_id")
-	userIdToken := c.Get("user_id")
+func (u *middlewareUsecase) UserIdParamValidation(c *fiber.Ctx) (*fiber.Ctx, error) {
+	userIdReq := c.Params("user_id")
+	userIdToken := c.Locals("user_id")
 
 	if userIdToken == nil {
 		log.Printf("Error: user_id not found")
