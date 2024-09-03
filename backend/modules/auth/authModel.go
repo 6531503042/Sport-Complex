@@ -1,6 +1,9 @@
 package auth
 
-import "time"
+import (
+	"main/modules/user"
+	"time"
+)
 
 type (
 	UserLoginReq struct {
@@ -32,10 +35,25 @@ type (
 		Role  []int `json:"role_code" validate:"required"`
 	}
 
-	// ProfileIntercepter struct {
-	// 	*user.UserProfile
+	ProfileIntercepter struct {
+		*user.UserProfile
+		Credential *CredentialRes `json:"credential"`
 
-	// }
+	}
+
+	CredentialRes struct {
+		Id           string    `json:"_id"`
+		UserId string `json:"user_id"`
+		RoleCode     int       `json:"role_code"`
+		AccessToken  string    `json:"access_token"`
+		RefreshToken string    `json:"refresh_token"`
+		CreatedAt    time.Time `json:"created_at"`
+		UpdatedAt    time.Time `json:"updated_at"`
+	}
+
+	LogoutReq struct {
+		CredentialId string `json:"credential_id" form:"credential_id" validate:"required,max=64"`
+	}
 
 
 )
