@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 )
 
 type (
@@ -13,12 +13,12 @@ type (
 	}
 
 	contextWrapper struct {
-		Context   echo.Context
+		Context   *fiber.Ctx
 		validator *validator.Validate
 	}
 )
 
-func ContextWrapper(ctx echo.Context) contextWrapperService {
+func ContextWrapper(ctx *fiber.Ctx) contextWrapperService {
 	return &contextWrapper{
 		Context:   ctx,
 		validator: validator.New(),
@@ -26,8 +26,8 @@ func ContextWrapper(ctx echo.Context) contextWrapperService {
 }
 
 func (c *contextWrapper) Bind(data any) error {
-	if err := c.Context.Bind(data); err != nil {
-		log.Printf("Error: Bind: %s", err.Error())
+	if err := c.Context.BodyParser(data); err != nil {
+		log.Printf("Error: BodyParser: %s", err.Error())
 		return err
 	}
 
