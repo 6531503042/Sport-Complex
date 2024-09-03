@@ -15,21 +15,20 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type (
 	server struct {
-		app *echo.Echo
-		db  *mongo.Client
-		cfg *config.Config
+		app        *fiber.App
+		cfg        *config.Config
+		db         *mongo.Client
 		middleware middlewarehttphandler.MiddlewareHttpHandlerService
 	}
 )
 
-// newMiddleware initializes your custom middleware service
 func newMiddleware(cfg *config.Config) middlewarehttphandler.MiddlewareHttpHandlerService {
 	repo := middlewarerepository.NewMiddlewareRepository()
 	usecase := middlewareusecase.NewMiddlewareUsecase(repo)
@@ -37,75 +36,90 @@ func newMiddleware(cfg *config.Config) middlewarehttphandler.MiddlewareHttpHandl
 }
 
 func (s *server) httpListening() {
-    log.Printf("Starting HTTP server on %s", s.cfg.App.Url)
-    err := s.app.Start(s.cfg.App.Url)
-    if err != nil && err != http.ErrServerClosed {
-        log.Fatalf("HTTP server error: %v", err)
-    }
+	log.Printf("Starting HTTP server on %s", s.cfg.App.Url)
+	if err := s.app.Listen(s.cfg.App.Url); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("HTTP server error: %v", err)
+	}
 }
 
+func (s *server) gracefulShutdown(quit <-chan os.Signal) {
+	log.Printf("Starting graceful shutdown for service: %s", s.cfg.App.Name)
 
-func (s *server) gracefulShutdown(pctx context.Context, quit <-chan os.Signal) {
-    log.Printf("Starting graceful shutdown for service: %s", s.cfg.App.Name)
+	<-quit
+	log.Printf("Received shutdown signal, initiating shutdown...")
 
-    <-quit
-    log.Printf("Received shutdown signal, initiating shutdown...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-    ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
-    defer cancel()
+	go func() {
+		<-ctx.Done()
+		log.Println("Shutdown timed out")
+		// Handle the timeout scenario here, if needed
+	}()
 
-    if err := s.app.Shutdown(ctx); err != nil {
-        log.Fatalf("Error during shutdown: %v", err)
-    }
+	if err := s.app.Shutdown(); err != nil {
+		log.Fatalf("Error during shutdown: %v", err)
+	}
 
-    log.Printf("Shutdown completed for service: %s", s.cfg.App.Name)
+	log.Printf("Shutdown completed for service: %s", s.cfg.App.Name)
 }
 
+func Start(cfg *config.Config, db *mongo.Client) {
+	s := &server{
+		app:        fiber.New(),
+		cfg:        cfg,
+		db:         db,
+		middleware: newMiddleware(cfg),
+	}
 
-func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
-    s := &server{
-        app: echo.New(),
-        db:  db,
-        cfg: cfg,
-        middleware: newMiddleware(cfg),
-    }
+	// Middleware for CORS
+	s.app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "GET,POST,PUT,PATCH,DELETE",
+	}))
 
-    jwt.SetApiKey(cfg.Jwt.ApiSecretKey)
+	// Middleware for request timeout using a custom handler
+	s.app.Use(func(c *fiber.Ctx) error {
+		timeout := 30 * time.Second
+		ctx, cancel := context.WithTimeout(c.Context(), timeout)
+		defer cancel()
 
-    s.app.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
-        Skipper:      middleware.DefaultSkipper,
-        ErrorMessage: "Error: Request Timeout",
-        Timeout:      30 * time.Second,
-    }))
+		// Wrap the request context with the timeout context
+		c.SetUserContext(ctx)
 
-    s.app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-        Skipper: middleware.DefaultSkipper,
-        AllowOrigins: []string{"*"},
-        AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.PATCH, echo.DELETE},
-    }))
+		// Continue processing the request
+		return c.Next()
+	})
 
-    go func() {
-        address := fmt.Sprintf(":%d", cfg.Server.Port)
-        log.Printf("Starting HTTP server on %s", address)
-        if err := s.app.Start(address); err != nil && err != http.ErrServerClosed {
-            log.Fatalf("HTTP server error: %v", err)
-        }
-    }()
+	jwt.SetApiKey(cfg.Jwt.ApiSecretKey)
 
-    switch s.cfg.App.Name {
-    case "user":
-        s.userService()
-    case "auth":
-        s.authService()
-    // Add other service cases here
-    }
+	go func() {
+		address := fmt.Sprintf(":%d", cfg.Server.Port)
+		log.Printf("Starting HTTP server on %s", address)
+		if err := s.app.Listen(address); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("HTTP server error: %v", err)
+		}
+	}()
 
-    quit := make(chan os.Signal, 1)
-    signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	// Add service-specific routes here
+	switch cfg.App.Name {
+	case "user":
+		s.userService()
+	case "auth":
+		s.authService()
+	// Add other service cases here
+	}
 
-    s.app.Use(middleware.Logger())
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-    go s.gracefulShutdown(pctx, quit)
+	// Middleware for logging
+	s.app.Use(func(c *fiber.Ctx) error {
+		log.Printf("[%s] %s %s %s", c.IP(), c.Method(), c.Path(), c.Get("User-Agent"))
+		return c.Next()
+	})
 
-    s.httpListening()
+	go s.gracefulShutdown(quit)
+
+	s.httpListening()
 }
