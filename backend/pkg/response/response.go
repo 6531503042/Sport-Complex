@@ -1,9 +1,9 @@
 package response
 
 import (
-	"net/http"
+	"log"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 )
 
 type (
@@ -12,15 +12,21 @@ type (
 	}
 )
 
-func ErrResponse(c echo.Context, statusCode int, message string) error {
-	if statusCode == http.StatusInternalServerError {
-		// log error
-		c.Logger().Errorf("error: %s", message)
-	}
-
-	return c.JSON(statusCode, &MsgResponse{Message: message})
+// Custom logging function, or replace with your preferred logger
+func logError(message string) {
+	logger := log.New(log.Writer(), "[ERROR] ", log.Ldate|log.Ltime|log.Lshortfile)
+	logger.Println(message)
 }
 
-func SuccessResponse(c echo.Context, statusCode int, data any) error {
-	return c.JSON(statusCode, data)
+func ErrResponse(c *fiber.Ctx, statusCode int, message string) error {
+	if statusCode == fiber.StatusInternalServerError {
+		// log error
+		logError(message)
+	}
+
+	return c.Status(statusCode).JSON(&MsgResponse{Message: message})
+}
+
+func SuccessResponse(c *fiber.Ctx, statusCode int, data any) error {
+	return c.Status(statusCode).JSON(data)
 }
