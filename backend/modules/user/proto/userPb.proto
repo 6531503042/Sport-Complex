@@ -11,12 +11,16 @@ message UserProfile {
     int32 roleCode = 6;
 }
 
+message FindOneUserProfileToRefreshReq {
+    string userId = 1;
+}
+
 message CredentialSearchReq {
     string email = 1;
     string password = 2;
 }
 
 service UserGrpcService {
-    rpc GetUser(CredentialSearchReq) returns (UserProfile);
-    rpc CreateUser(UserProfile) returns (UserProfile);
+    rpc CredentialSearch(CredentialSearchReq) returns (UserProfile);
+    rpc FindOneUserProfileToRefresh (FindOneUserProfileToRefreshReq) returns (UserProfile);
 }
