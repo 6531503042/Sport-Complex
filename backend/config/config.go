@@ -8,63 +8,67 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type (
+// Config represents the application configuration.
+type Config struct {
+	App App
+	Db   Db
+	Grpc Grpc
+	Server ServerConfig
+	Jwt Jwt
+}
 
-	Config struct {
-		App App
-		Db   Db
-		Grpc Grpc
-		Server ServerConfig
-		Jwt Jwt
-	}
+// ServerConfig represents the server configuration.
+type ServerConfig struct {
+	Port int
+}
 
-	ServerConfig struct {
-		Port int
-	}
+// App represents the application configuration.
+type App struct {
+	Name string
+	Url string
+	Stage string
+}
 
-	App struct {
-		Name string
-		Url string
-		Stage string
-	}
+// Db represents the database configuration.
+type Db struct {
+	Url string
+}
 
-	Db struct {
-		Url string
-	}
+// Jwt represents the JWT configuration.
+type Jwt struct {
+	AccessSecretKey string
+	RefreshSecretKey string
+	ApiSecretKey string
+	AccessDuration int64
+	RefreshDuration int64
+	ApiDuration int64
+}
 
-	Jwt struct {
-		AccessSecretKey string
-		RefreshSecretKey string
-		ApiSecretKey string
-		AccessDuration int64
-		RefreshDuration int64
-		ApiDuration int64
-	}
+// Grpc represents the gRPC configuration.
+type Grpc struct {
+	AuthUrl string
+	UserUrl string
+	GymUrl string
+	BadmintonUrl string
+	SwimmingUrl string
+	FootballUrl string
+	PaymentUrl string
+}
 
-	Grpc struct {
-		AuthUrl string
-		UserUrl string
-		GymUrl string
-		BadmintonUrl string
-		SwimmingUrl string
-		FootballUrl string
-		PaymentUrl string
-	}
-)
-
+// LoadConfig loads the configuration from the given .env file.
 func LoadConfig(path string) Config {
 	if err := godotenv.Load(path); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	return Config {
-		App : App {
-			Name : os.Getenv("APP_NAME"),
-			Url : os.Getenv("APP_URL"),
-			Stage : os.Getenv("APP_STAGE"),
+	return Config{
+		App: App{
+			Name: os.Getenv("APP_NAME"),
+			Url:  os.Getenv("APP_URL"),
+			Stage: os.Getenv("APP_STAGE"),
 		},
-		Db : Db {
-			Url : os.Getenv("DB_URL"),
+		Db: Db{
+			Url: os.Getenv("DB_URL"),
 		},
 		Jwt: Jwt{
 			AccessSecretKey:  os.Getenv("JWT_ACCESS_SECRET_KEY"),
@@ -73,17 +77,18 @@ func LoadConfig(path string) Config {
 			AccessDuration: func() int64 {
 				result, err := strconv.ParseInt(os.Getenv("JWT_ACCESS_DURATION"), 10, 64)
 				if err != nil {
-					log.Fatal("Error loading access duration failed")
+					log.Fatalf("Error loading access duration failed: %v", err)
 				}
 				return result
 			}(),
 			RefreshDuration: func() int64 {
 				result, err := strconv.ParseInt(os.Getenv("JWT_REFRESH_DURATION"), 10, 64)
 				if err != nil {
-					log.Fatal("Error loading refresh duration failed")
+					log.Fatalf("Error loading refresh duration failed: %v", err)
 				}
 				return result
 			}(),
 		},
 	}
 }
+
