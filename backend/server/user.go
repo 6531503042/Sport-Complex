@@ -30,7 +30,7 @@ func (s *server) userService() {
 
     // HTTP Endpoints
     user := s.app.Group("/user_v1")
-    user.GET("/check", s.healthCheckService)
-    user.POST("/users/register", httpHandler.CreateUser) 
-    user.GET("/users/:user_id", httpHandler.FindOneUserProfile)
+    user.Get("/check", s.healthCheckService)
+    user.Post("/users/register", httpHandler.CreateUser) 
+    user.Get("/users/:user_id", httpHandler.FindOneUserProfile)
 }
