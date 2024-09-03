@@ -10,30 +10,27 @@ import (
 )
 
 func (s *server) userService() {
-	// Initialize the repository, usecase, and HTTP handler
-	repo := repository.NewUserRepository(s.db)
-	userUsecase := usecase.NewUserUsecase(repo)
-	grpcHandler := handlers.NewUserGrpcHandler(userUsecase)
-	httpHandler := handlers.NewUserHttpHandler(s.cfg, userUsecase)
+    // Initialize repository, usecase, and handlers
+    repo := repository.NewUserRepository(s.db)
+    userUsecase := usecase.NewUserUsecase(repo)
+    grpcHandler := handlers.NewUserGrpcHandler(userUsecase)
+    httpHandler := handlers.NewUserHttpHandler(s.cfg, userUsecase)
 
-	// Define a route group for user-related endpoints
-	user := s.app.Group("/user_v1")
+    // gRPC Server
+    go func() {
+        grpcServer, lis := grpc.NewGrpcServer(&s.cfg.Jwt, s.cfg.Grpc.UserUrl)
 
-	// gRPC
-	go func() {
-		grpcServer, lis := grpc.NewGrpcServer(&s.cfg.Jwt, s.cfg.Grpc.UserUrl)
+        userPb.RegisterUserGrpcServiceServer(grpcServer, grpcHandler)
 
-		userPb.RegisterUserGrpcServiceServer(grpcServer, grpcHandler)
+        log.Printf("User gRPC server listening on %s", s.cfg.Grpc.UserUrl)
+        if err := grpcServer.Serve(lis); err != nil {
+            log.Fatalf("gRPC server error: %v", err)
+        }
+    }()
 
-		log.Printf("User gRPC server listening on %s", s.cfg.Grpc.UserUrl)
-		grpcServer.Serve(lis)
-	}()
-
-
-	// Health check endpoint (uncomment and implement if needed)
-	user.GET("", s.healthCheckService)
-
-	// User endpoints
-	user.POST("/users/register", httpHandler.CreateUser) 
-	user.GET("/users/:user_id", httpHandler.FindOneUserProfile) 
+    // HTTP Endpoints
+    user := s.app.Group("/user_v1")
+    user.GET("/check", s.healthCheckService)
+    user.POST("/users/register", httpHandler.CreateUser) 
+    user.GET("/users/:user_id", httpHandler.FindOneUserProfile)
 }
