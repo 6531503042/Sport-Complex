@@ -1,10 +1,9 @@
 package server
 
 import (
-	"main/pkg/response"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 )
 
 type healthCheck struct {
@@ -12,8 +11,9 @@ type healthCheck struct {
 	Status string `json:"status"`
 }
 
-func (s *server) healthCheckService(c echo.Context) error {
-	return response.SuccessResponse(c, http.StatusOK, &healthCheck{
+func (s *server) healthCheckService(c *fiber.Ctx) error {
+	c.Status(http.StatusOK)
+	return c.JSON(&healthCheck{
 		App:    s.cfg.App.Name,
 		Status: "OK",
 	})
