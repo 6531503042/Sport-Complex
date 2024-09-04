@@ -15,7 +15,7 @@ This project aims to redesign the existing sport complex system to improve its s
 
 ## Technology Stack
 
-- **Backend**: Golang, Echo framework, gRPC
+- **Backend**: Golang, fiber framework, gRPC
 - **Message Broker**: Apache Kafka
 - **Container Orchestration**: Kubernetes (K8s)
 - **Database**: MongoDB
@@ -47,5 +47,5 @@ The architecture should include the following components:
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/yourusername/sports-complex-management-system.git
-   cd sports-complex-management-system
+   git clone https://github.com/6531503042/Sport-Complex.git
+   cd sport complex
