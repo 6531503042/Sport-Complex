@@ -14,6 +14,8 @@ import (
 	"main/pkg/utils"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthUsecaseService interface {
@@ -32,81 +34,75 @@ func NewAuthUsecase(authRepository repository.AuthRepositoryService) AuthUsecase
 	return &authUsecase{authRepository}
 }
 
+// ComparePasswords compares a bcrypt hashed password with its possible plaintext equivalent.
+func ComparePasswords(hashedPassword, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
+
+// Login handles the user login process
 func (u *authUsecase) Login(pctx context.Context, cfg *config.Config, req *auth.UserLoginReq) (*auth.ProfileIntercepter, error) {
-    log.Printf("Attempting login for email: %s", req.Email)
+	profile, err := u.authRepository.CredentialSearch(pctx, cfg.Grpc.UserUrl, &userPb.CredentialSearchReq{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		log.Printf("Error during credential search: %v", err)
+		return nil, err
+	}
 
-    // Call to CredentialSearch gRPC method
-    profile, err := u.authRepository.CredentialSearch(pctx, cfg.Grpc.UserUrl, &userPb.CredentialSearchReq{
-        Email:    req.Email,
-        Password: req.Password,
-    })
-    if err != nil {
-        log.Printf("Error during credential search: %v", err)
-        return nil, err
-    }
+	accessToken, err := u.authRepository.AccessToken(cfg, &jwt.Claim{
+		UserId:   profile.Id,
+		RoleCode: int(profile.RoleCode),
+	})
+	if err != nil {
+		return nil, err
+	}
 
-    log.Printf("Received profile: %+v", profile)
-    profile.Id = "user:" + profile.Id
+	refreshToken, err := u.authRepository.RefreshToken(cfg, &jwt.Claim{
+		UserId:   profile.Id,
+		RoleCode: int(profile.RoleCode),
+	})
+	if err != nil {
+		return nil, err
+	}
 
-    // Generate tokens
-    accessToken, err := u.authRepository.AccessToken(cfg, &jwt.Claim{
-        UserId:   profile.Id,
-        RoleCode: int(profile.RoleCode),
-    })
-    if err != nil {
-        log.Printf("Error generating access token: %v", err)
-        return nil, err
-    }
+	credentialId, err := u.authRepository.InsertOneUserCredential(pctx, &auth.Credential{
+		UserId:      profile.Id,
+		RoleCode:    int(profile.RoleCode),
+		AccessToken: accessToken,
+		RefreshToken: refreshToken,
+		CreatedAt:   utils.LocalTime(),
+		UpdatedAt:   utils.LocalTime(),
+	})
+	if err != nil {
+		return nil, err
+	}
 
-    refreshToken, err := u.authRepository.RefreshToken(cfg, &jwt.Claim{
-        UserId:   profile.Id,
-        RoleCode: int(profile.RoleCode),
-    })
-    if err != nil {
-        log.Printf("Error generating refresh token: %v", err)
-        return nil, err
-    }
+	credential, err := u.authRepository.FindOneUserCredential(pctx, credentialId.Hex())
+	if err != nil {
+		return nil, err
+	}
 
-    log.Printf("Generated AccessToken: [REDACTED], RefreshToken: [REDACTED]")
+	loc, _ := time.LoadLocation("Asia/Bangkok")
 
-    // Prepare credential object
-    credential := &auth.Credential{
-        UserId:      profile.Id,
-        RoleCode:    int(profile.RoleCode),
-        AccessToken: accessToken,
-        RefreshToken: refreshToken,
-        CreatedAt:   utils.LocalTime(),
-        UpdatedAt:   utils.LocalTime(),
-    }
-
-    // Insert credential into database
-    credentialId, err := u.authRepository.InsertOneUserCredential(pctx, credential)
-    if err != nil {
-        log.Printf("Error inserting credential: %v", err)
-        return nil, err
-    }
-
-    log.Printf("Credential inserted with ID: %s", credentialId.Hex())
-
-    loc, _ := time.LoadLocation("Asia/Bangkok")
-    return &auth.ProfileIntercepter{
-        UserProfile: &user.UserProfile{
-            Id:        profile.Id,
-            Email:     profile.Email,
-            Name:      profile.Name,
-            CreatedAt: utils.ConvertStringTimeToTime(profile.CreatedAt).In(loc),
-            UpdatedAt: utils.ConvertStringTimeToTime(profile.UpdatedAt).In(loc),
-        },
-        Credential: &auth.CredentialRes{
-            Id:           credentialId.Hex(),
-            UserId:       credential.UserId,
-            RoleCode:     credential.RoleCode,
-            AccessToken:  accessToken,
-            RefreshToken: refreshToken,
-            CreatedAt:    credential.CreatedAt.In(loc),
-            UpdatedAt:    credential.UpdatedAt.In(loc),
-        },
-    }, nil
+	return &auth.ProfileIntercepter{
+		UserProfile: &user.UserProfile{
+			Id:        profile.Id,
+			Email:     profile.Email,
+			Name:      profile.Name,
+			CreatedAt: utils.ConvertStringTimeToTime(profile.CreatedAt).In(loc),
+			UpdatedAt: utils.ConvertStringTimeToTime(profile.UpdatedAt).In(loc),
+		},
+		Credential: &auth.CredentialRes{
+			Id:           credentialId.Hex(),
+			UserId:       credential.UserId,
+			RoleCode:     credential.RoleCode,
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+			CreatedAt:    credential.CreatedAt.In(loc),
+			UpdatedAt:    credential.UpdatedAt.In(loc),
+		},
+	}, nil
 }
 
 
