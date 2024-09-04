@@ -70,34 +70,34 @@ func NewGrpcServer(cfg *config.Jwt, host string) (*grpc.Server, net.Listener) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	log.Printf("gRPC server listening on %s", host)
 	return grpcServer, lis
 }
 
-func (g *grpcAuth) unaryAuthorization (ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+func (g *grpcAuth) unaryAuthorization(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		log.Printf("Error: Metadata not found")
-		return nil, errors.New("metadata not found")
+		return nil, errors.New("error: metadata not found")
 	}
 
 	authHeader, ok := md["auth"]
 	if !ok {
-		log.Printf("Error: Auth header not found")
-		return nil, errors.New("auth header not found")
+		log.Printf("Error: Metadata not found")
+		return nil, errors.New("error: metadata not found")
 	}
 
 	if len(authHeader) == 0 {
-		log.Printf("Error: Auth header not found")
-		return nil, errors.New("auth header not found")
+		log.Printf("Error: Metadata not found")
+		return nil, errors.New("error: metadata not found")
 	}
 
 	claims, err := jwt.ParseToken(g.secretKey, string(authHeader[0]))
 	if err != nil {
-		log.Printf("Error: ParseToken: %s", err.Error())
-		return nil, errors.New("parse token failed")
+		log.Printf("Error: Parse token failed: %s", err.Error())
+		return nil, errors.New("error: token is invalid")
 	}
 	log.Printf("claims: %v", claims)
+
 	return handler(ctx, req)
 }
-
-
