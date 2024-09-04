@@ -79,16 +79,16 @@ func (r *authRepository) CredentialSearch(pctx context.Context, grpcUrl string, 
 	jwt.SetApiKeyInContext(&ctx)
 	conn, err := grpc.NewGrpcClient(grpcUrl)
 	if err != nil {
-		log.Printf("Error: gRPC connection failed: %s", err.Error())
+		log.Printf("error: gRPC connection failed: %s", err.Error())
 		return nil, errors.New("error: gRPC connection failed")
 	}
 
+	log.Printf("requesting crednetials search for email: %s", req.Email)
 	result, err := conn.User().CredentialSearch(ctx, req)
 	if err != nil {
-		log.Printf("Error: CredentialSearch failed: %s", err.Error())
+		log.Printf("error: CredentialSearch failed: %s", err.Error())
 		return nil, errors.New("error: email or password is incorrect")
 	}
-
 	return result, nil
 }
 
