@@ -65,8 +65,7 @@ func (u *userUsecase) CreateUser(pctx context.Context, req *user.CreateUserReq) 
 
     return u.FindOneUserProfile(pctx, userId.Hex())
 }
-
-func (u * userUsecase) FindOneUserProfile (pctx context.Context, userId string) (*user.UserProfile, error) {
+func (u *userUsecase) FindOneUserProfile(pctx context.Context, userId string) (*user.UserProfile, error) {
     result, err := u.userRepository.FindOneUserProfile(pctx, userId)
     if err != nil {
         return nil, err
