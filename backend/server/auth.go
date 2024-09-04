@@ -7,6 +7,8 @@ import (
 	"main/modules/auth/repository"
 	"main/modules/auth/usecase"
 	"main/pkg/grpc"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 
@@ -29,8 +31,17 @@ func (s *server) authService() {
 
     // Fiber routes
     auth := s.app.Group("/auth_v1")
-    auth.Get("/check", s.healthCheckService)
-    auth.Post("/login", httpHandler.Login)
-    auth.Post("/refresh-token", httpHandler.RefreshToken)
-    auth.Post("/logout", httpHandler.Logout)
+
+    // Route to handle GET /auth_v1/ and return a JSON response
+    auth.Get("/", func(c *fiber.Ctx) error {
+        return c.Status(fiber.StatusOK).JSON(fiber.Map{
+            "message": "Auth Service v1 - Available endpoints: /check, /auth/login, /auth/refresh-token, /auth/logout",
+        })
+    })
+
+    // Other routes
+    auth.Get("/check", s.healthCheckService)  // Health check route for /auth_v1/check
+    auth.Post("/auth/login", httpHandler.Login)
+    auth.Post("/auth/refresh-token", httpHandler.RefreshToken)
+    auth.Post("/auth/logout", httpHandler.Logout)
 }
