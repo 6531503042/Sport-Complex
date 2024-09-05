@@ -17,7 +17,7 @@ type (
 	}
 
 	Claims struct {
-		UserId   string `json:"user_Id"`
+		UserId   string `json:"user_id"`
 		RoleCode int    `json:"role_code"`
 	}
 
@@ -69,9 +69,9 @@ func NewAccessToken(secret string, expiredAt int64, claims *Claims) AuthFactory 
 			Claims: &AuthMapClaims{
 				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
-					Issuer:    "hellosekai.com",
-					Subject:   "access-token",
-					Audience:  []string{"hellosekai.com"},
+					Issuer:    "bengi.com",
+					Subject:    "bengi.com",
+					Audience:  []string{"bengi.com"},
 					ExpiresAt: jwtTimeDurationCal(expiredAt),
 					NotBefore: jwt.NewNumericDate(now()),
 					IssuedAt:  jwt.NewNumericDate(now()),
@@ -88,9 +88,9 @@ func NewRefreshToken(secret string, expiredAt int64, claims *Claims) AuthFactory
 			Claims: &AuthMapClaims{
 				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
-					Issuer:    "hellosekai.com",
+					Issuer:    "bengi.com",
 					Subject:   "refresh-token",
-					Audience:  []string{"hellosekai.com"},
+					Audience:  []string{"bengi.com"},
 					ExpiresAt: jwtTimeDurationCal(expiredAt),
 					NotBefore: jwt.NewNumericDate(now()),
 					IssuedAt:  jwt.NewNumericDate(now()),
@@ -107,9 +107,9 @@ func ReloadToken(secret string, expiredAt int64, claims *Claims) string {
 			Claims: &AuthMapClaims{
 				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
-					Issuer:    "hellosekai.com",
+					Issuer:    "bengi.com",
 					Subject:   "refresh-token",
-					Audience:  []string{"hellosekai.com"},
+					Audience:  []string{"bengi.com"},
 					ExpiresAt: jwtTimeRepeatAdapter(expiredAt),
 					NotBefore: jwt.NewNumericDate(now()),
 					IssuedAt:  jwt.NewNumericDate(now()),
@@ -128,9 +128,9 @@ func NewApiKey(secret string) AuthFactory {
 			Claims: &AuthMapClaims{
 				Claims: &Claims{},
 				RegisteredClaims: jwt.RegisteredClaims{
-					Issuer:    "hellosekai.com",
+					Issuer:    "bengi.com",
 					Subject:   "api-key",
-					Audience:  []string{"hellosekai.com"},
+					Audience:  []string{"bengi.com"},
 					ExpiresAt: jwtTimeDurationCal(31560000),
 					NotBefore: jwt.NewNumericDate(now()),
 					IssuedAt:  jwt.NewNumericDate(now()),
