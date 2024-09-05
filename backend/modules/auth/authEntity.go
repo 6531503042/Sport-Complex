@@ -24,7 +24,7 @@ type (
 	}
 
 	UpdateRefreshTokenReq struct {
-		UserId string `bson:"user_id"`
+		UserId     string    `bson:"user_id"`
 		AccessToken string `bson:"access_token"`
 		RefreshToken string `bson:"refresh_token"`
 		UpdatedAt time.Time `json:"updated_at"`
