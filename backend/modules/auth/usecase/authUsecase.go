@@ -43,34 +43,26 @@ func (u *authUsecase) Login (pctx context.Context, cfg *config.Config, req *auth
 
 	profile.Id = "user:" + profile.Id
 
-	accessToken, err := u.authRepository.AccessToken(cfg, &jwt.Claim{
+	accessToken := u.authRepository.AccessToken(cfg, &jwt.Claims{
 		UserId: profile.Id,
 		RoleCode: int(profile.RoleCode),
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	refreshToken, err := u.authRepository.RefreshToken(cfg, &jwt.Claim{
+	refreshToken := u.authRepository.RefreshToken(cfg, &jwt.Claims{
 		UserId: profile.Id,
 		RoleCode: int(profile.RoleCode),
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	loc, _ := time.LoadLocation("Asia/Bangkok")
 
-	credential := &auth.Credential{
+	credentialId, err := u.authRepository.InsertOneUserCredential(pctx, &auth.Credential{
 		UserId: profile.Id,
-		RoleCode: int(profile.RoleCode),
-		AccessToken: accessToken,
+		RoleCode:     int(profile.RoleCode),
+		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		CreatedAt: utils.LocalTime(),
-		UpdatedAt: utils.LocalTime(),
-	}
+	})
 
-	credentialId, err := u.authRepository.InsertOneUserCredential(pctx, credential)
+	credential, err := u.authRepository.FindOneUserCredential(pctx, credentialId.Hex())
 	if err != nil {
 		return nil, err
 	}
@@ -112,21 +104,15 @@ func (u *authUsecase) RefreshToken(pctx context.Context, cfg *config.Config, req
     }
 
     // Generate new access and refresh tokens
-    accessToken, err := jwt.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwt.Claim{
-        UserId:   profile.Id,
-        RoleCode: int(profile.RoleCode),
-    }).SignToken()
-    if err != nil {
-        return nil, err
-    }
+    accessToken := jwt.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwt.Claims{
+		UserId: profile.Id,
+		RoleCode: int(profile.RoleCode),
+	}).SignToken()
 
-    refreshToken, err := jwt.NewRefreshToken(cfg.Jwt.RefreshSecretKey, cfg.Jwt.RefreshDuration, &jwt.Claim{
-        UserId:   profile.Id,
-        RoleCode: int(profile.RoleCode),
-    }).SignToken()
-    if err != nil {
-        return nil, err
-    }
+	refreshToken := jwt.ReloadToken(cfg.Jwt.RefreshSecretKey, claims.ExpiresAt.Unix(), &jwt.Claims{
+		UserId: profile.Id,
+		RoleCode: int(profile.RoleCode),
+	})
 
     // Update the user credential with the new tokens
     if err := u.authRepository.UpdateOneUserCredential(pctx, req.CredentialId, &auth.UpdateRefreshTokenReq{
