@@ -114,7 +114,7 @@ func (r *UserRepository) FindOneUserProfile(pctx context.Context, userId string)
 			bson.M{
 				"_id":        1,
 				"email":      1,
-				"username":   1,
+				"name":   1,
 				"created_at": 1,
 				"updated_at": 1,
 			},
