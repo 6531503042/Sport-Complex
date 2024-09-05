@@ -15,16 +15,20 @@ type (
 		UserIdParamValidationMiddleware() echo.MiddlewareFunc
 	}
 
-	MiddlewareHttpHandler struct {
+	middlewareHandler struct {
+		cfg               *config.Config
 		middlewareUsecase middlewareusecase.MiddlewareUsecaseService
 	}
 )
 
-func NewMiddlewareHttpHandler(middlewareUsecase middlewareusecase.MiddlewareUsecaseService) MiddlewareHttpHandlerService {
-	return &MiddlewareHttpHandler{middlewareUsecase}
+func NewMiddlewareHttpHandler(cfg *config.Config, middlewareUsecase middlewareusecase.MiddlewareUsecaseService) MiddlewareHttpHandlerService {
+	return &middlewareHandler{
+		cfg:               cfg,
+		middlewareUsecase: middlewareUsecase,
+	}
 }
 
-func (m *MiddlewareHttpHandler) JwtAuthorizationMiddleware(cfg *config.Config) echo.MiddlewareFunc {
+func (m *middlewareHandler) JwtAuthorizationMiddleware(cfg *config.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			accessToken := c.Request().Header.Get("Authorization")
@@ -42,7 +46,7 @@ func (m *MiddlewareHttpHandler) JwtAuthorizationMiddleware(cfg *config.Config) e
 	}
 }
 
-func (m *MiddlewareHttpHandler) RbacAuthorizationMiddleware(cfg *config.Config, expected []int) echo.MiddlewareFunc {
+func (m *middlewareHandler) RbacAuthorizationMiddleware(cfg *config.Config, expected []int) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			_, err := m.middlewareUsecase.RbacAuthorization(c, cfg, expected)
@@ -55,7 +59,7 @@ func (m *MiddlewareHttpHandler) RbacAuthorizationMiddleware(cfg *config.Config, 
 	}
 }
 
-func (m *MiddlewareHttpHandler) UserIdParamValidationMiddleware() echo.MiddlewareFunc {
+func (m *middlewareHandler) UserIdParamValidationMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			_, err := m.middlewareUsecase.UserIdParamValidation(c)
