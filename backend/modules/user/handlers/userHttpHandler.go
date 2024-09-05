@@ -25,10 +25,10 @@ type (
 )
 
 // NewUserHttpHandler initializes and returns a userHttpHandler
-func NewUserHttpHandler(cfg *config.Config, userUsecase usecase.UserUsecaseService) userHttpHandler {
-	return &userHttpHandler{userUsecase: userUsecase}
-}
 
+func NewUserHttpHandler(cfg *config.Config, userUsecase usecase.UserUsecaseService) NewUserHttpHandlerService {
+	return &userHttpHandler{cfg: cfg, userUsecase: userUsecase}
+}
 func (h *userHttpHandler) CreateUser(c echo.Context) error {
 
 	log.Println("Received request to create user")
