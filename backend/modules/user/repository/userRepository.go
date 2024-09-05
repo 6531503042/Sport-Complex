@@ -112,17 +112,18 @@ func (r *UserRepository) FindOneUserProfile(pctx context.Context, userId string)
 		bson.M{"_id": utils.ConvertToObjectId(userId)},
 		options.FindOne().SetProjection(
 			bson.M{
-				"_id":		1,
-				"email":	1,
-				"name":		1,
-				"created_at": 	1,
-				"updated_at": 	1,
+				"_id":        1,
+				"email":      1,
+				"username":   1,
+				"created_at": 1,
+				"updated_at": 1,
 			},
 		),
 	).Decode(result); err != nil {
-		log.Printf("Error: FindOneUserProfile: %s", err.Error())
-		return nil, errors.New("error: user not found")
+		log.Printf("Error: FindOnePlayerProfile: %s", err.Error())
+		return nil, errors.New("error: player profile not found")
 	}
+
 	return result, nil
 }
 
