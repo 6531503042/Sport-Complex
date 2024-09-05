@@ -16,13 +16,13 @@ type (
 		SignToken() (string, error)
 	}
 
-	Claim struct {
-		UserId   string `json:"userId"`
+	Claims struct {
+		UserId   string `json:"user_Id"`
 		RoleCode int    `json:"role_code"`
 	}
 
 	AuthMapClaims struct {
-		*Claim
+		*Claims
 		jwt.RegisteredClaims
 	}
 
@@ -62,12 +62,12 @@ func jwtTimeRepeatAdapter(t int64) *jwt.NumericDate {
 	return jwt.NewNumericDate(time.Unix(t, 0))
 }
 
-func NewAccessToken(secret string, expiredAt int64, claim *Claim) AuthFactory {
+func NewAccessToken(secret string, expiredAt int64, claim *Claims) AuthFactory {
 	return &accessToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
-				Claim: claim,
+				Claims: claim,
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
 					Subject:   "access-token",
@@ -81,12 +81,12 @@ func NewAccessToken(secret string, expiredAt int64, claim *Claim) AuthFactory {
 	}
 }
 
-func NewRefreshToken(secret string, expiredAt int64, claim *Claim) AuthFactory {
+func NewRefreshToken(secret string, expiredAt int64, claim *Claims) AuthFactory {
 	return &refreshToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
-				Claim: claim,
+				Claims: claim,
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
 					Subject:   "refresh-token",
@@ -100,12 +100,12 @@ func NewRefreshToken(secret string, expiredAt int64, claim *Claim) AuthFactory {
 	}
 }
 
-func ReloadToken(secret string, expiredAt int64, claim *Claim) string {
+func ReloadToken(secret string, expiredAt int64, claim *Claims) string {
 	obj := &refreshToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
-				Claim: claim,
+				Claims: claim,
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
 					Subject:   "refresh-token",
