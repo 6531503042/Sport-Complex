@@ -13,11 +13,11 @@ import (
 
 type (
 	AuthFactory interface {
-		SignToken() (string, error)
+		SignToken() string
 	}
 
 	Claims struct {
-		UserId   string `json:"user_Id"`
+		UserId   string `json:"user_id"`
 		RoleCode int    `json:"role_code"`
 	}
 
@@ -31,22 +31,15 @@ type (
 		Claims *AuthMapClaims `json:"claims"`
 	}
 
-	accessToken struct {
-		*authConcrete
-	}
-
-	refreshToken struct {
-		*authConcrete
-	}
-
-	apiKey struct {
-		*authConcrete
-	}
+	accessToken  struct{ *authConcrete }
+	refreshToken struct{ *authConcrete }
+	apiKey       struct{ *authConcrete }
 )
 
-func (a *authConcrete) SignToken() (string, error) {
+func (a *authConcrete) SignToken() string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, a.Claims)
-	return token.SignedString(a.Secret)
+	ss, _ := token.SignedString(a.Secret)
+	return ss
 }
 
 func now() time.Time {
@@ -62,12 +55,12 @@ func jwtTimeRepeatAdapter(t int64) *jwt.NumericDate {
 	return jwt.NewNumericDate(time.Unix(t, 0))
 }
 
-func NewAccessToken(secret string, expiredAt int64, claim *Claims) AuthFactory {
+func NewAccessToken(secret string, expiredAt int64, claims *Claims) AuthFactory {
 	return &accessToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
-				Claims: claim,
+				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
 					Subject:   "access-token",
@@ -81,12 +74,12 @@ func NewAccessToken(secret string, expiredAt int64, claim *Claims) AuthFactory {
 	}
 }
 
-func NewRefreshToken(secret string, expiredAt int64, claim *Claims) AuthFactory {
+func NewRefreshToken(secret string, expiredAt int64, claims *Claims) AuthFactory {
 	return &refreshToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
-				Claims: claim,
+				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
 					Subject:   "refresh-token",
@@ -117,12 +110,7 @@ func ReloadToken(secret string, expiredAt int64, claim *Claims) string {
 			},
 		},
 	}
-
-	tokenString, err := obj.SignToken()
-	if err != nil {
-		return ""
-	}
-	return tokenString
+	return obj.SignToken()
 }
 
 func NewApiKey(secret string) AuthFactory {
@@ -170,12 +158,12 @@ func ParseToken(secret string, tokenString string) (*AuthMapClaims, error) {
 var apiKeyInstant string
 var once sync.Once
 
+
 func SetApiKey(secret string) {
 	once.Do(func() {
-		apiKeyInstant, _ = NewApiKey(secret).SignToken()
+		apiKeyInstant = NewApiKey(secret).SignToken()
 	})
 }
-
 func SetApiKeyInContext(pctx *context.Context) {
 	*pctx = metadata.NewOutgoingContext(*pctx, metadata.Pairs("auth", apiKeyInstant))
 }
