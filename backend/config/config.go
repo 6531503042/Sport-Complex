@@ -89,6 +89,15 @@ func LoadConfig(path string) Config {
 				return result
 			}(),
 		},
+		Grpc: Grpc{
+			AuthUrl: os.Getenv("GRPC_AUTH_URL"),
+			UserUrl: os.Getenv("GRPC_USER_URL"),
+			GymUrl: os.Getenv("GRPC_GYM_URL"),
+			BadmintonUrl: os.Getenv("GRPC_BADMINTON_URL"),
+			SwimmingUrl: os.Getenv("GRPC_SWIMMING_URL"),
+			FootballUrl: os.Getenv("GRPC_FOOTBALL_URL"),
+			PaymentUrl: os.Getenv("GRPC_PAYMENT_URL"),
+		},
 	}
 }
 
