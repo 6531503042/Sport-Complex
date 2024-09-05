@@ -50,29 +50,23 @@ func (u *authUsecase) Login(pctx context.Context, cfg *config.Config, req *auth.
 		return nil, err
 	}
 
-	accessToken, err := u.authRepository.AccessToken(cfg, &jwt.Claim{
-		UserId:   profile.Id,
-		RoleCode: int(profile.RoleCode),
-	})
-	if err != nil {
-		return nil, err
-	}
+	profile.Id = "user:" + profile.Id
 
-	refreshToken, err := u.authRepository.RefreshToken(cfg, &jwt.Claim{
+	accessToken := u.authRepository.AccessToken(cfg, &jwt.Claims{
 		UserId:   profile.Id,
 		RoleCode: int(profile.RoleCode),
 	})
-	if err != nil {
-		return nil, err
-	}
+
+	refreshToken := u.authRepository.RefreshToken(cfg, &jwt.Claims{
+		UserId:   profile.Id,
+		RoleCode: int(profile.RoleCode),
+	})
 
 	credentialId, err := u.authRepository.InsertOneUserCredential(pctx, &auth.Credential{
 		UserId:      profile.Id,
 		RoleCode:    int(profile.RoleCode),
 		AccessToken: accessToken,
 		RefreshToken: refreshToken,
-		CreatedAt:   utils.LocalTime(),
-		UpdatedAt:   utils.LocalTime(),
 	})
 	if err != nil {
 		return nil, err
@@ -109,62 +103,57 @@ func (u *authUsecase) Login(pctx context.Context, cfg *config.Config, req *auth.
 func (u *authUsecase) RefreshToken(pctx context.Context, cfg *config.Config, req *auth.RefreshTokenReq) (*auth.ProfileIntercepter, error) {
 	claims, err := jwt.ParseToken(cfg.Jwt.RefreshSecretKey, req.RefreshToken)
 	if err != nil {
-		log.Printf("Error: RefreshToken : %s", err.Error())
-		return nil, errors.New("failed to parse refresh token")
+		log.Printf("Error: RefreshToken: %s", err.Error())
+		return nil, errors.New(err.Error())
 	}
 
 	profile, err := u.authRepository.FindOneUserProfileToRefresh(pctx, cfg.Grpc.UserUrl, &userPb.FindOneUserProfileToRefreshReq{
 		UserId: strings.TrimPrefix(claims.UserId, "user:"),
 	})
 	if err != nil {
-		return nil, errors.New("failed to fetch user profile")
-	}
-
-	accessToken, err := jwt.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwt.Claim{
-		UserId:   profile.Id,
-		RoleCode: int(profile.RoleCode),
-	}).SignToken()
-	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := jwt.NewRefreshToken(cfg.Jwt.RefreshSecretKey, cfg.Jwt.RefreshDuration, &jwt.Claim{
-		UserId:   profile.Id,
+	accessToken := jwt.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwt.Claims{
+		UserId: profile.Id,
 		RoleCode: int(profile.RoleCode),
 	}).SignToken()
-	if err != nil {
-		return nil, err
-	}
+
+	refreshToken := jwt.ReloadToken(cfg.Jwt.RefreshSecretKey, claims.ExpiresAt.Unix(), &jwt.Claims{
+		UserId: profile.Id,
+		RoleCode: int(profile.RoleCode),
+	})
 
 	if err := u.authRepository.UpdateOneUserCredential(pctx, req.CredentialId, &auth.UpdateRefreshTokenReq{
-		UserId:       profile.Id,
+		UserId: profile.Id,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		UpdatedAt:    utils.LocalTime(),
 	}); err != nil {
-		return nil, errors.New("failed to update user credentials")
+		return nil, err
 	}
 
 	credential, err := u.authRepository.FindOneUserCredential(pctx, req.CredentialId)
 	if err != nil {
-		return nil, errors.New("failed to fetch updated user credential")
+		return nil, err
 	}
 
 	loc, _ := time.LoadLocation("Asia/Bangkok")
+
 	return &auth.ProfileIntercepter{
 		UserProfile: &user.UserProfile{
-			Id:        profile.Id,
+			Id:        "player:" + profile.Id,
 			Email:     profile.Email,
-			Name:      profile.Name,
-			CreatedAt: utils.ConvertStringTimeToTime(profile.CreatedAt).In(loc),
-			UpdatedAt: utils.ConvertStringTimeToTime(profile.UpdatedAt).In(loc),
+			Name:  profile.Name,
+			CreatedAt: utils.ConvertStringTimeToTime(profile.CreatedAt),
+			UpdatedAt: utils.ConvertStringTimeToTime(profile.UpdatedAt),
 		},
 		Credential: &auth.CredentialRes{
 			Id:           credential.Id.Hex(),
-			UserId:       profile.Id,
-			RoleCode:     int(profile.RoleCode),
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
+			UserId:     credential.UserId,
+			RoleCode:     credential.RoleCode,
+			AccessToken:  credential.AccessToken,
+			RefreshToken: credential.RefreshToken,
 			CreatedAt:    credential.CreatedAt.In(loc),
 			UpdatedAt:    credential.UpdatedAt.In(loc),
 		},
