@@ -27,8 +27,8 @@ type AuthRepositoryService interface {
 	DeleteOneUserCredential(pctx context.Context, credentialId string) (int64, error)
 	FindOneAccessToken(pctx context.Context, accessToken string) (*auth.Credential, error)
 	RolesCount(pctx context.Context) (int64, error)
-	AccessToken(cfg *config.Config, claims *jwt.Claim) (string, error)
-	RefreshToken(cfg *config.Config, claims *jwt.Claim) (string, error)
+	AccessToken(cfg *config.Config, claims *jwt.Claims) string
+	RefreshToken(cfg *config.Config, claims *jwt.Claims) string
 	FindOneUserProfileToRefresh(pctx context.Context, grpcUrl string, req *userPb.FindOneUserProfileToRefreshReq) (*userPb.UserProfile, error)
 }
 
@@ -211,19 +211,17 @@ func (r *authRepository) RolesCount(pctx context.Context) (int64, error) {
 }
 
 // AccessToken generates a new access token.
-func (r *authRepository) AccessToken(cfg *config.Config, claims *jwt.Claim) (string, error) {
-	token, err := jwt.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwt.Claim{
-		UserId:   claims.UserId,
-		RoleCode: claims.RoleCode,
+func (r *authRepository) AccessToken(cfg *config.Config, claims *jwt.Claims) string {
+	return jwt.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwt.Claims{
+		UserId: claims.UserId,
+		RoleCode: int(claims.RoleCode),
 	}).SignToken()
-	return token, err
 }
 
 // RefreshToken generates a new refresh token.
-func (r *authRepository) RefreshToken(cfg *config.Config, claims *jwt.Claim) (string, error) {
-	token, err := jwt.NewRefreshToken(cfg.Jwt.RefreshSecretKey, cfg.Jwt.RefreshDuration, &jwt.Claim{
-		UserId:   claims.UserId,
-		RoleCode: claims.RoleCode,
+func (r *authRepository) RefreshToken(cfg *config.Config, claims *jwt.Claims) string {
+	return jwt.NewRefreshToken(cfg.Jwt.RefreshSecretKey, cfg.Jwt.RefreshDuration, &jwt.Claims{
+		UserId: claims.UserId,
+		RoleCode: int(claims.RoleCode),
 	}).SignToken()
-	return token, err
 }
