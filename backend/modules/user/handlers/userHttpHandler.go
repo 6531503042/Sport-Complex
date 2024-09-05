@@ -13,6 +13,11 @@ import (
 )
 
 type (
+	NewUserHttpHandlerService interface{
+		CreateUser(c echo.Context) error
+		FindOneUserProfile(c echo.Context) error
+	}
+
 	userHttpHandler struct {
 		cfg         *config.Config
 		userUsecase usecase.UserUsecaseService
@@ -20,11 +25,8 @@ type (
 )
 
 // NewUserHttpHandler initializes and returns a userHttpHandler
-func NewUserHttpHandler(cfg *config.Config, userUsecase usecase.UserUsecaseService) *userHttpHandler {
-	return &userHttpHandler{
-		cfg:         cfg,
-		userUsecase: userUsecase,
-	}
+func NewUserHttpHandler(cfg *config.Config, userUsecase usecase.UserUsecaseService) userHttpHandler {
+	return &userHttpHandler{userUsecase: userUsecase}
 }
 
 func (h *userHttpHandler) CreateUser(c echo.Context) error {
