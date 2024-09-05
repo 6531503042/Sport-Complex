@@ -13,16 +13,16 @@ import (
 
 type (
 	AuthFactory interface {
-		SignToken() (string, error)
+		SignToken() string
 	}
 
-	Claim struct {
-		UserId   string `json:"userId"`
+	Claims struct {
+		UserId   string `json:"user_Id"`
 		RoleCode int    `json:"role_code"`
 	}
 
 	AuthMapClaims struct {
-		*Claim
+		*Claims
 		jwt.RegisteredClaims
 	}
 
@@ -44,9 +44,10 @@ type (
 	}
 )
 
-func (a *authConcrete) SignToken() (string, error) {
+func (a *authConcrete) SignToken() string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, a.Claims)
-	return token.SignedString(a.Secret)
+	ss, _ := token.SignedString(a.Secret)
+	return ss
 }
 
 func now() time.Time {
@@ -61,17 +62,16 @@ func jwtTimeDurationCal(t int64) *jwt.NumericDate {
 func jwtTimeRepeatAdapter(t int64) *jwt.NumericDate {
 	return jwt.NewNumericDate(time.Unix(t, 0))
 }
-
-func NewAccessToken(secret string, expiredAt int64, claim *Claim) AuthFactory {
+func NewAccessToken(secret string, expiredAt int64, claims *Claims) AuthFactory {
 	return &accessToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
-				Claim: claim,
+				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
-					Issuer:    "bengi.com",
+					Issuer:    "hellosekai.com",
 					Subject:   "access-token",
-					Audience:  []string{"bengi.com"},
+					Audience:  []string{"hellosekai.com"},
 					ExpiresAt: jwtTimeDurationCal(expiredAt),
 					NotBefore: jwt.NewNumericDate(now()),
 					IssuedAt:  jwt.NewNumericDate(now()),
@@ -81,16 +81,16 @@ func NewAccessToken(secret string, expiredAt int64, claim *Claim) AuthFactory {
 	}
 }
 
-func NewRefreshToken(secret string, expiredAt int64, claim *Claim) AuthFactory {
+func NewRefreshToken(secret string, expiredAt int64, claims *Claims) AuthFactory {
 	return &refreshToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
-				Claim: claim,
+				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
-					Issuer:    "bengi.com",
+					Issuer:    "hellosekai.com",
 					Subject:   "refresh-token",
-					Audience:  []string{"bengi.com"},
+					Audience:  []string{"hellosekai.com"},
 					ExpiresAt: jwtTimeDurationCal(expiredAt),
 					NotBefore: jwt.NewNumericDate(now()),
 					IssuedAt:  jwt.NewNumericDate(now()),
@@ -100,16 +100,16 @@ func NewRefreshToken(secret string, expiredAt int64, claim *Claim) AuthFactory {
 	}
 }
 
-func ReloadToken(secret string, expiredAt int64, claim *Claim) string {
+func ReloadToken(secret string, expiredAt int64, claims *Claims) string {
 	obj := &refreshToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
-				Claim: claim,
+				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
-					Issuer:    "bengi.com",
+					Issuer:    "hellosekai.com",
 					Subject:   "refresh-token",
-					Audience:  []string{"bengi.com"},
+					Audience:  []string{"hellosekai.com"},
 					ExpiresAt: jwtTimeRepeatAdapter(expiredAt),
 					NotBefore: jwt.NewNumericDate(now()),
 					IssuedAt:  jwt.NewNumericDate(now()),
@@ -118,11 +118,7 @@ func ReloadToken(secret string, expiredAt int64, claim *Claim) string {
 		},
 	}
 
-	tokenString, err := obj.SignToken()
-	if err != nil {
-		return ""
-	}
-	return tokenString
+	return obj.SignToken()
 }
 
 func NewApiKey(secret string) AuthFactory {
@@ -130,10 +126,11 @@ func NewApiKey(secret string) AuthFactory {
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
+				Claims: &Claims{},
 				RegisteredClaims: jwt.RegisteredClaims{
-					Issuer:    "bengi.com",
+					Issuer:    "hellosekai.com",
 					Subject:   "api-key",
-					Audience:  []string{"bengi.com"},
+					Audience:  []string{"hellosekai.com"},
 					ExpiresAt: jwtTimeDurationCal(31560000),
 					NotBefore: jwt.NewNumericDate(now()),
 					IssuedAt:  jwt.NewNumericDate(now()),
@@ -167,16 +164,16 @@ func ParseToken(secret string, tokenString string) (*AuthMapClaims, error) {
 	}
 }
 
+// Apikey  generator
 var apiKeyInstant string
 var once sync.Once
 
 func SetApiKey(secret string) {
 	once.Do(func() {
-		apiKeyInstant, _ = NewApiKey(secret).SignToken()
+		apiKeyInstant = NewApiKey(secret).SignToken()
 	})
 }
 
 func SetApiKeyInContext(pctx *context.Context) {
 	*pctx = metadata.NewOutgoingContext(*pctx, metadata.Pairs("auth", apiKeyInstant))
 }
-
