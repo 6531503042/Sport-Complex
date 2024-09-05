@@ -20,16 +20,6 @@ type (
 		RefreshToken string `json:"refresh_token" form:"refresh_token" validate:"required,max=500"`
 	}
 
-	RefreshTokenRes struct {
-		Id 	string `json:"_id"`
-		UserId string `json:"user_id"`
-		RoleCode []int `json:"role_code"`
-		RefreshToken string `json:"refresh_token"`
-		AccessToken string `json:"access_token" validate:"required"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-	}
-
 	InsertUserRole struct {
 		UserId string `json:"user_id" validate:"required"`
 		RoleCode []int  `json:"role_id" validate:"required"`
@@ -38,12 +28,11 @@ type (
 	ProfileIntercepter struct {
 		*user.UserProfile
 		Credential *CredentialRes `json:"credential"`
-
 	}
 
 	CredentialRes struct {
 		Id           string    `json:"_id"`
-		UserId string `json:"user_id"`
+		UserId 		 string  	`json:"user_id"`
 		RoleCode     int       `json:"role_code"`
 		AccessToken  string    `json:"access_token"`
 		RefreshToken string    `json:"refresh_token"`
