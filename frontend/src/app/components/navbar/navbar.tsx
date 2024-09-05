@@ -6,9 +6,14 @@ import Logo from "../../assets/Logo.png";
 import SideBar from "../sidebar/sidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faBars,
   faBasketball,
+  faCheck,
   faClipboard,
+  faFootball,
+  faFootballBall,
   faFutbol,
+  faScaleBalanced,
   faSwimmer,
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
@@ -25,7 +30,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
         return "bg-red-500";
       case "swimming":
         return "bg-blue-500";
-      case "batminton":
+      case "basketball":
         return "bg-yellow-500";
       case "soccer":
         return "bg-green-500";
@@ -55,7 +60,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
             <span className="text-zinc-900">Complex</span>
           </span>
         </Link>
-        <ul className="inline-flex flex-row flex-none w-8/12 justify-between font-semibold pt-6">
+        <ul className="inline-flex flex-row flex-none w-9/12 gap-12 justify-start font-semibold pt-6">
           <li className={getActiveClass("gym")}>
             <Link
               href="/pages/gym"
@@ -74,13 +79,13 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
               Swimming Booking
             </Link>
           </li>
-          <li className={getActiveClass("batminton")}>
+          <li className={getActiveClass("basketball")}>
             <Link
-              href="/pages/batminton"
+              href="/pages/basketball"
               className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
             >
               <FontAwesomeIcon icon={faBasketball} className="mx-2.5" />
-              Batminton Booking
+              Basketball Booking
             </Link>
           </li>
           <li className={getActiveClass("soccer")}>
@@ -111,10 +116,11 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
             </Link>
           </li>
         </ul>
-        <aside className="flex-none w-2/12 justify-center flex">
+        <aside className="flex-none w-1/12 flex justify-center border-b-4 border-transparent">
           <nav className="inline-flex flex-row">
             <div className="text-white hover:text-gray-400 cursor-pointer">
-              <Link href="/pages/registration">login</Link>
+              <Link href="/pages/registration">
+              login</Link>
             </div>
           </nav>
         </aside>

@@ -4,9 +4,9 @@ import NavBar from '../../components/navbar/navbar'
 const page = () => {
   return (
     <div>
-        <NavBar activePage="batminton"/>
+        <NavBar activePage="basketball"/>
         <div className=''>
-          batminton
+          basketball
         </div>
     </div>
   )

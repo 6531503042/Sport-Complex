@@ -11,7 +11,7 @@ const sidebar: React.FC = () => {
   };
 
   return (
-    <div className="flex-none">
+    <div className="flex-none border-b-4 border-transparent">
       <div
         className="text-white hover:text-gray-400 cursor-pointer"
         onClick={toggleSidebar}
@@ -19,9 +19,9 @@ const sidebar: React.FC = () => {
         <FontAwesomeIcon icon={faBars} />
       </div>
       <div
-        className={`fixed top-0 right-0 h-full bg-gradient-to-tl from-red-400 to-red-600 border-l border-slate-200 text-white transform ${
+        className={`fixed top-0 right-0 h-full bg-gray-800 text-white transform ${
           isSidebarOpen ? "translate-x-0" : "translate-x-full"
-        } transition-transform duration-100 ease-in-out w-64`}
+        } transition-transform duration-300 ease-in-out w-64`}
       >
         <div className="p-4">
           <button
@@ -42,7 +42,7 @@ const sidebar: React.FC = () => {
           </li>
           <li className="hover:text-gray-400 cursor-pointer">
             <Link href="/pages/basketball"><FontAwesomeIcon icon={faBasketball} className="mx-3.5" />
-            Batminton Booking</Link>
+            Basketball Booking</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer">
             <Link href="/pages/soccer"><FontAwesomeIcon icon={faFutbol} className="mx-3.5" />
