@@ -1,10 +1,6 @@
 package response
 
-import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
-)
+import "github.com/labstack/echo/v4"
 
 type (
 	MsgResponse struct {
@@ -13,11 +9,6 @@ type (
 )
 
 func ErrResponse(c echo.Context, statusCode int, message string) error {
-	if statusCode == http.StatusInternalServerError {
-		// log error
-		c.Logger().Errorf("error: %s", message)
-	}
-
 	return c.JSON(statusCode, &MsgResponse{Message: message})
 }
 
