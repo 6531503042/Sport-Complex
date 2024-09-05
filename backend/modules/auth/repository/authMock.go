@@ -27,12 +27,12 @@ func (m *AuthRepositoryMock) InsertOneUserCredential(pctx context.Context, req *
 	return args.Get(0).(primitive.ObjectID), args.Error(1)
 } 
 
-func (m *AuthRepositoryMock) AccessToken(cfg *config.Config, claims *jwt.Claim) string {
+func (m *AuthRepositoryMock) AccessToken(cfg *config.Config, claims *jwt.Claims) string {
 	args := m.Called(cfg, claims)
 	return args.String(0)
 }
 
-func (m *AuthRepositoryMock) RefreshToken(cfg *config.Config, claims *jwt.Claim) string {
+func (m *AuthRepositoryMock) RefreshToken(cfg *config.Config, claims *jwt.Claims) string {
 	args := m.Called(cfg, claims)
 	return args.String(0)
 }
