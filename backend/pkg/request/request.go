@@ -27,13 +27,11 @@ func ContextWrapper(ctx echo.Context) contextWrapperService {
 
 func (c *contextWrapper) Bind(data any) error {
 	if err := c.Context.Bind(data); err != nil {
-		log.Printf("Error: Bind: %s", err.Error())
-		return err
+		log.Printf("Error: Bind data failed: %s", err.Error())
 	}
 
 	if err := c.validator.Struct(data); err != nil {
-		log.Printf("Error: Struct: %s", err.Error())
-		return err
+		log.Printf("Error: Validate data failed: %s", err.Error())
 	}
 
 	return nil
