@@ -33,4 +33,12 @@ func (s *server) userService() {
     user.GET("/check", s.healthCheckService)
     user.POST("/users/register", httpHandler.CreateUser) 
     user.GET("/users/:user_id", httpHandler.FindOneUserProfile)
+    
+
+    // Admin-only route example
+    userAdmin := user.Group("/admin")
+    userAdmin.Use(s.middleware.IsAdminRoleMiddleware(s.cfg, 1)) 
+    userAdmin.PATCH("/users/:user_id", httpHandler.UpdateUser)
+    userAdmin.DELETE("/users/:user_id", httpHandler.DeleteUser)
+    // userAdmin.GET("/admin-only", httpHandler.AdminOnlyHandler) 
 }
