@@ -20,6 +20,9 @@ type (
         FindOneUserProfile (pctx context.Context, userId string) (*user.UserProfile, error)
         FindOneUserCredential(pctx context.Context, password, email string) (*userPb.UserProfile, error)
 		FindOneUserProfileToRefresh(pctx context.Context, userId string) (*userPb.UserProfile, error)
+        UpdateOneUser(ctx context.Context, userId string, updateFields map[string]interface{}) error
+        FindManyUser(pctx context.Context) ([]user.UserProfile, error)
+        DeleteUser(ctx context.Context, userId string) error
 	}
 
 	userUsecase struct {
@@ -60,10 +63,31 @@ func (u *userUsecase) CreateUser(pctx context.Context, req *user.CreateUserReq) 
         },
 	})
     if err != nil {
-        return nil, errors.New("Error: failed to create user")
+        return nil, errors.New("error: failed to create user")
     }
 
     return u.FindOneUserProfile(pctx, userId.Hex())
+}
+
+func (u *userUsecase) UpdateOneUser(ctx context.Context, userId string, updateFields map[string]interface{}) error {
+    // Ensure that the user exists before attempting to update
+    if _, err := u.userRepository.FindOneUserProfile(ctx, userId); err != nil {
+        return err
+    }
+
+    // Update the user information
+    updateFields["updated_at"] = utils.LocalTime().Format(time.RFC3339)
+    return u.userRepository.UpdateOneUser(ctx, userId, updateFields)
+}
+
+func (u *userUsecase) DeleteUser(ctx context.Context, userId string) error {
+	// Ensure that the user exists before attempting to delete
+	_, err := u.userRepository.FindOneUserProfile(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	return u.userRepository.DeleteOneUser(ctx, userId)
 }
 
 func (u * userUsecase) FindOneUserProfile (pctx context.Context, userId string) (*user.UserProfile, error) {
@@ -134,3 +158,22 @@ func (u *userUsecase) FindOneUserProfileToRefresh(pctx context.Context, userId s
     }, nil
 }
 
+func (u *userUsecase) FindManyUser(pctx context.Context) ([]user.UserProfile, error) {
+    results, err := u.userRepository.FindManyUser(pctx)
+    if err != nil {
+        return nil, err
+    }
+
+    var userProfiles []user.UserProfile
+    for _, result := range results {
+        userProfiles = append(userProfiles, user.UserProfile{
+            Id:        result.Id.Hex(),
+            Email:     result.Email,
+            Name:      result.Name,
+            CreatedAt: result.CreatedAt,
+            UpdatedAt: result.UpdatedAt,
+        })
+    }
+
+    return userProfiles, nil
+}
