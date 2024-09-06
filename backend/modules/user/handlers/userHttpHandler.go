@@ -16,6 +16,9 @@ type (
 	NewUserHttpHandlerService interface{
 		CreateUser(c echo.Context) error
 		FindOneUserProfile(c echo.Context) error
+		FindManyUser (c echo.Context) error
+		DeleteUser(c echo.Context) error
+		UpdateUser(c echo.Context) error
 	}
 
 	userHttpHandler struct {
@@ -70,4 +73,44 @@ func (h *userHttpHandler) FindOneUserProfile(c echo.Context) error {
 
 	// Return a successful response with the user profile
 	return response.SuccessResponse(c, http.StatusOK, res)
+}
+
+func (h *userHttpHandler) FindManyUser (c echo.Context) error {
+	ctx := c.Request().Context()
+
+	users, err := h.userUsecase.FindManyUser(ctx)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, users)
+}
+
+func (h *userHttpHandler) UpdateUser(c echo.Context) error {
+	ctx := c.Request().Context()
+	userId := c.Param("user_id")
+
+	var updateReq map[string]interface{}
+	if err := c.Bind(&updateReq); err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
+	}
+
+	err := h.userUsecase.UpdateOneUser(ctx, userId, updateReq)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, "User updated successfully")
+}
+
+func (h *userHttpHandler) DeleteUser(c echo.Context) error {
+	ctx := c.Request().Context()
+	userId := c.Param("user_id")
+
+	err := h.userUsecase.DeleteUser(ctx, userId)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, "User deleted successfully")
 }
