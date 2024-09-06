@@ -15,6 +15,7 @@ type (
 	MiddlewareUsecaseService interface {
 		JwtAuthorization(c echo.Context, cfg *config.Config, accessToken string) (echo.Context, error)
 		RbacAuthorization(c echo.Context, cfg *config.Config, expected []int) (echo.Context, error)
+		IsAdminRole(c echo.Context, cfg *config.Config, roleCode int) (int64, error)
 		UserIdParamValidation(c echo.Context) (echo.Context, error)
 	}
 
@@ -82,4 +83,9 @@ func (u *middlewareUsecase) UserIdParamValidation(c echo.Context) (echo.Context,
 	}
 
 	return c, nil
+}
+
+func (u *middlewareUsecase) IsAdminRole(c echo.Context, cfg *config.Config, roleCode int) (int64, error) {
+	ctx := c.Request().Context()
+	return u.middlewareRepository.IsAdminRole(ctx, cfg.Grpc.AuthUrl, roleCode)
 }
