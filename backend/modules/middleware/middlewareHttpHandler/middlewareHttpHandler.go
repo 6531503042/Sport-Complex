@@ -13,6 +13,7 @@ type (
 		JwtAuthorizationMiddleware(cfg *config.Config) echo.MiddlewareFunc
 		RbacAuthorizationMiddleware(cfg *config.Config, expected []int) echo.MiddlewareFunc
 		UserIdParamValidationMiddleware() echo.MiddlewareFunc
+		IsAdminRoleMiddleware(cfg *config.Config, roleCode int) echo.MiddlewareFunc
 	}
 
 	middlewareHandler struct {
@@ -65,6 +66,19 @@ func (m *middlewareHandler) UserIdParamValidationMiddleware() echo.MiddlewareFun
 			_, err := m.middlewareUsecase.UserIdParamValidation(c)
 			if err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			}
+
+			return next(c)
+		}
+	}
+}
+
+func (m *middlewareHandler) IsAdminRoleMiddleware(cfg *config.Config, roleCode int) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			admin, err := m.middlewareUsecase.IsAdminRole(c, cfg, roleCode)
+			if err != nil || admin == -1 {
+				return echo.NewHTTPError(http.StatusForbidden, err.Error())
 			}
 
 			return next(c)
