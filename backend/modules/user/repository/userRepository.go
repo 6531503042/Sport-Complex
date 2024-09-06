@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"main/modules/user"
 	"main/pkg/utils"
@@ -22,6 +23,9 @@ type (
 		FindOneUserCredential (pctx context.Context, email string) (*user.User, error)
 		FindOneUserProfile (pctx context.Context, userId string) (*user.UserProfileBson, error)
 		FindOneUserProfileRefresh (pctx context.Context, userId string) (*user.User, error)
+		UpdateOneUser (pctx context.Context, userId string, updateFields bson.M) error
+		DeleteOneUser (pctx context.Context, userId string) error
+		FindManyUser (pctx context.Context) ([]user.UserProfileBson, error)
 	}
 
 	UserRepository struct {
@@ -55,6 +59,55 @@ func (r *UserRepository) InsertOneUser (pctx context.Context, req * user.User) (
 		return primitive.NilObjectID, errors.New("error: insert one user failed")
 	}
 	return userId, nil
+}
+
+func (r *UserRepository) UpdateOneUser (pctx context.Context, userId string, updateFields bson.M) error {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	defer cancel()
+
+	db := r.userDbConn(ctx)
+	col := db.Collection("users")
+
+	updateResult, err := col.UpdateOne(
+		ctx,
+		bson.M{"_id": utils.ConvertToObjectId(userId)},
+		bson.M{"$set": updateFields},
+	)
+	if err != nil {
+		log.Printf("Error: UpdateOneUser: %s", err.Error())
+		return errors.New("error: update one user failed")
+	}
+
+	if updateResult.MatchedCount == 0 {
+		return errors.New("error: user not found")
+	}
+
+	if updateResult.ModifiedCount == 0 {
+		return errors.New("error: nothing to update")
+	}
+
+	return nil
+}
+
+func (r *UserRepository) DeleteOneUser (pctx context.Context, userId string) error {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	defer cancel()
+
+	db := r.userDbConn(ctx)
+	col := db.Collection("users")
+
+	result, err := col.DeleteOne(ctx, bson.M{"_id": utils.ConvertToObjectId(userId)})
+
+	if err != nil {
+		log.Printf("Error: DeleteOneUser: %s", err.Error())
+		return fmt.Errorf("error: delete one user failed: %w", err)
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("error: user %s not found", userId)
+	}
+
+	return nil
 }
 
 func (r * UserRepository) IsUniqueUser (pctx context.Context, email, name string) bool {
@@ -142,4 +195,38 @@ func (r *UserRepository) FindOneUserProfileRefresh(pctx context.Context, userId 
 	}
 
 	return result, nil
+}
+
+func (r *UserRepository) FindManyUser (pctx context.Context) ([]user.UserProfileBson, error) {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	defer cancel()
+
+	db := r.userDbConn(ctx)
+	col := db.Collection("users")
+
+	cursor, err := col.Find(ctx, bson.M{}, options.Find().SetProjection(bson.M{
+		"_id":        1,
+		"email":      1,
+		"name":   1,
+		"created_at": 1,
+		"updated_at": 1,
+
+	}))
+	if err != nil {
+        log.Printf("Error: FindManyUser: %s", err.Error())
+        return nil, fmt.Errorf("error: failed to fetch users: %w", err)
+    }
+    defer func() {
+        if err := cursor.Close(ctx); err != nil {
+            log.Printf("Error: FindManyUser - failed to close cursor: %s", err.Error())
+        }
+    }()
+
+	var users []user.UserProfileBson
+    if err = cursor.All(ctx, &users); err != nil {
+        log.Printf("Error: FindManyUser: %s", err.Error())
+        return nil, fmt.Errorf("error: failed to decode users: %w", err)
+    }
+
+    return users, nil
 }
