@@ -41,7 +41,7 @@ func (u *authUsecase) Login(pctx context.Context, cfg *config.Config, req *auth.
 		return nil, err
 	}
 
-	profile.Id = "player:" + profile.Id
+	profile.Id = "user:" + profile.Id
 
 	accessToken := u.authRepository.AccessToken(cfg, &jwt.Claims{
 		UserId: profile.Id,
@@ -95,7 +95,7 @@ func (u *authUsecase) RefreshToken(pctx context.Context, cfg *config.Config, req
 	}
 
 	profile, err := u.authRepository.FindOneUserProfileToRefresh(pctx, cfg.Grpc.UserUrl, &userPb.FindOneUserProfileToRefreshReq{
-		UserId: strings.TrimPrefix(claims.UserId, "player:"),
+		UserId: strings.TrimPrefix(claims.UserId, "user:"),
 	})
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (u *authUsecase) RefreshToken(pctx context.Context, cfg *config.Config, req
 
 	return &auth.ProfileIntercepter{
 		UserProfile: &user.UserProfile{
-			Id:        "player:" + profile.Id,
+			Id:        "user:" + profile.Id,
 			Email:     profile.Email,
 			Name:  profile.Name,
 			CreatedAt: utils.ConvertStringTimeToTime(profile.CreatedAt),

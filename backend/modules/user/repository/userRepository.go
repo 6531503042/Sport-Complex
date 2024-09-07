@@ -173,8 +173,8 @@ func (r *UserRepository) FindOneUserProfile(pctx context.Context, userId string)
 			},
 		),
 	).Decode(result); err != nil {
-		log.Printf("Error: FindOnePlayerProfile: %s", err.Error())
-		return nil, errors.New("error: player profile not found")
+		log.Printf("Error: FindOneUserProfile: %s", err.Error())
+		return nil, errors.New("error: user profile not found")
 	}
 
 	return result, nil
