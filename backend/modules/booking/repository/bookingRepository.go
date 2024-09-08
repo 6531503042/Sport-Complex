@@ -19,6 +19,7 @@ type (
 		UpdateBooking (ctx context.Context, booking *booking.Booking) (*booking.Booking, error)
 		FindBooking(ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error)
+		FindOneSlotBooking(ctx context.Context, slotId string) (*booking.Booking, error)
 	}
 
 	bookingRepository struct {
@@ -118,4 +119,24 @@ func (r*bookingRepository) FindOneUserBooking (ctx context.Context, userId strin
 	}
 
 	return result, nil
+}
+
+func (r *bookingRepository) FindOneSlotBooking(ctx context.Context, slotId string) (*booking.Booking, error) {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
+
+    db := r.bookingDbConn(ctx)
+    col := db.Collection("bookings")
+
+    var booking booking.Booking
+    err := col.FindOne(ctx, bson.M{"slotId": slotId}).Decode(&booking)
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            return nil, fmt.Errorf("error: slot %s does not exist", slotId)
+        }
+        log.Printf("Error: FindOneSlotBooking: %s", err.Error())
+        return nil, fmt.Errorf("error: failed to find slot booking: %w", err)
+    }
+
+    return &booking, nil
 }
