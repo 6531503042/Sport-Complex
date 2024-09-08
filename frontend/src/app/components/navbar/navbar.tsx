@@ -131,11 +131,3 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 };
 
 export default NavBar;
-{
-  /* <Link href="/pages/gym">GYM</Link>
-            <Link href="/pages/swimming">SWIMMING</Link>
-            <Link href="/pages/basketball">BASKETBALL</Link>
-            <Link href="/pages/soccer">SOCCER</Link>
-            <Link href="/pages/rule">RULE</Link>
-            <Link href="/pages/payment">PAYMENT</Link> */
-}
