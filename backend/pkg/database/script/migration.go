@@ -24,6 +24,8 @@ func main() {
 		migration.UserMigrate(ctx, &cfg)
 	case "auth" :
 		migration.AuthMigrate(ctx, &cfg)
+	// case "booking" :
+	// 	migration.BookingMigrate(ctx, &cfg)
 	//other migration db script
 	}
 }
