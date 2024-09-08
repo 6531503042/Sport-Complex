@@ -8,7 +8,7 @@ import (
 
 type (
 	CreateBookingReq struct {
-		Userid string `json:"user_id" validate:"required,max=64"`
+		UserId string `json:"user_id" validate:"required,max=64"`
 		SlotId   string `json:"slot_id" validate:"required,max=64"`
 	}
 
@@ -31,8 +31,11 @@ type (
     }
 
 	BookingUpdateReq struct {
-        Status int `json:"status" validate:"required"`
-    }
+        Status  string `json:"status,omitempty"`  // The new status of the booking (e.g., confirmed, canceled)
+		SlotId  int64  `json:"slot_id,omitempty"` // The slot ID for rescheduling (if allowed)
+		StartAt string `json:"start_at,omitempty"` // New start time for rescheduling
+		EndAt   string `json:"end_at,omitempty"`   // New end time for rescheduling
+	}
 
     EnableOrDisableBookingReq struct {
         Status int `json:"status" validate:"required"`
