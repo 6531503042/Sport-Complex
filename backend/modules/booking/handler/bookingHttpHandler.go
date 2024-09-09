@@ -14,19 +14,19 @@ import (
 
 type (
 	NewBookingHttpHandlerService interface {
-		InsertBooking (c echo.Context) error
+		InsertBooking(c echo.Context) error
 		UpdateBooking(c echo.Context) error
-		FindBooking (c echo.Context) error
-		FindOneUserBooking (c echo.Context) error
+		FindBooking(c echo.Context) error
+		FindOneUserBooking(c echo.Context) error
 	}
 
 	bookingHttpHandler struct {
-		cfg         *config.Config
+		cfg            *config.Config
 		bookingUsecase usecase.BookingUsecaseService
 	}
 )
 
-func newBookingHttpHandler(cfg *config.Config, bookingUsecase usecase.BookingUsecaseService) NewBookingHttpHandlerService {
+func NewBookingHttpHandler(cfg *config.Config, bookingUsecase usecase.BookingUsecaseService) NewBookingHttpHandlerService {
 	return &bookingHttpHandler{cfg: cfg, bookingUsecase: bookingUsecase}
 }
 
@@ -53,43 +53,43 @@ func (h *bookingHttpHandler) InsertBooking(c echo.Context) error {
 }
 
 func (h *bookingHttpHandler) UpdateBooking(c echo.Context) error {
-    log.Println("Received request to update booking")
+	log.Println("Received request to update booking")
 
-    ctx := c.Request().Context()
-    bookingId := c.Param("booking_id")
+	ctx := c.Request().Context()
+	bookingId := c.Param("booking_id")
 
-    // Bind the request to the UpdateBookingReq struct
-    req := new(booking.BookingUpdateReq)
+	// Bind the request to the UpdateBookingReq struct
+	req := new(booking.BookingUpdateReq)
 
-    if err := c.Bind(req); err != nil {
-        return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
-    }
+	if err := c.Bind(req); err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
+	}
 
-    // Call the usecase with the required parameters
-    updatedBooking, err := h.bookingUsecase.UpdateBooking(ctx, bookingId, int(req.SlotId))
-    if err != nil {
-        return response.ErrResponse(c, http.StatusBadRequest, err.Error())
-    }
+	// Call the usecase with the required parameters
+	updatedBooking, err := h.bookingUsecase.UpdateBooking(ctx, bookingId, int(req.SlotId))
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
 
-    return response.SuccessResponse(c, http.StatusOK, updatedBooking)
+	return response.SuccessResponse(c, http.StatusOK, updatedBooking)
 }
 
-func (h *bookingHttpHandler) FindBooking (c echo.Context) error {
-	bookingId := c.Param("id")
-    booking, err := h.bookingUsecase.FindBooking(c.Request().Context(), bookingId)
-    if err != nil {
-        return err
-    }
+func (h *bookingHttpHandler) FindBooking(c echo.Context) error {
+	bookingId := c.Param("booking_id") // Ensure the same parameter name as UpdateBooking
+	booking, err := h.bookingUsecase.FindBooking(c.Request().Context(), bookingId)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
 
-    return c.JSON(http.StatusOK, booking)
+	return response.SuccessResponse(c, http.StatusOK, booking)
 }
 
-func (h *bookingHttpHandler) FindOneUserBooking (c echo.Context) error {
+func (h *bookingHttpHandler) FindOneUserBooking(c echo.Context) error {
 	userId := c.Param("user_id")
-    bookings, err := h.bookingUsecase.FindOneUserBooking(c.Request().Context(), userId)
-    if err != nil {
-        return err
-    }
+	bookings, err := h.bookingUsecase.FindOneUserBooking(c.Request().Context(), userId)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
 
-    return c.JSON(http.StatusOK, bookings)
+	return response.SuccessResponse(c, http.StatusOK, bookings)
 }
