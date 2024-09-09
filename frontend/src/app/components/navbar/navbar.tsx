@@ -38,6 +38,8 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
         return "bg-purple-500";
       case "payment":
         return "bg-orange-500";
+      case "homepage":
+        return "bg-red-400";
       default:
         return "bg-red-500";
     }
@@ -51,7 +53,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
     <div className={`${getBackgroundColor()} px-8`}>
       <div className="flex flex-row items-center ">
         <Link
-          href="/"
+          href="/pages/homepage"
           className="inline-flex flex-row items-center flex-none w-2/12 gap-3.5"
         >
           <img src={Logo.src} alt="Logo" className="w-7" />
