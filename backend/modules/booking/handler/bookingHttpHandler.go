@@ -18,7 +18,6 @@ type (
 		UpdateBooking(c echo.Context) error
 		FindBooking(c echo.Context) error
 		FindOneUserBooking(c echo.Context) error
-		InsertSlot(c echo.Context) error
 	}
 
 	bookingHttpHandler struct {
@@ -94,23 +93,3 @@ func (h *bookingHttpHandler) FindOneUserBooking(c echo.Context) error {
 
 	return response.SuccessResponse(c, http.StatusOK, bookings)
 }
-
-func (h *bookingHttpHandler) InsertSlot(c echo.Context) error {
-	log.Println("Received request to create slot")
-
-	ctx := c.Request().Context()
-
-	req := new(booking.Slot)
-	if err := c.Bind(req); err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
-	}
-
-	// Use the usecase to insert a new slot
-	res, err := h.bookingUsecase.InsertSlot(ctx, req.StartTime, req.EndTime)
-	if err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
-	}
-
-	return response.SuccessResponse(c, http.StatusCreated, res)
-}
-
