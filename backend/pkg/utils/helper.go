@@ -25,3 +25,9 @@ func ConvertStringTimeToTime(t string) time.Time {
 	}
 	return result
 }
+
+func ParseTimeOnly(t string) time.Time {
+	layout := "15:04" // HH:mm format for time
+	parsedTime, _ := time.Parse(layout, t)
+	return parsedTime
+}
