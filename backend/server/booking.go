@@ -8,15 +8,28 @@ import (
 
 func (s *server) bookingService() {
 	// Initialize repository, usecase, and handlers
-	repo := repository.NewBookingRepository(s.db)
-	bookingUsecase := usecase.NewBookingUsecase(repo)
-	httpHandler := handler.NewBookingHttpHandler(s.cfg, bookingUsecase)  // Call the correct constructor function
+	bookingRepo := repository.NewBookingRepository(s.db)
+	slotRepo := repository.NewSlotRepository(s.db)
+	slotUsecase := usecase.NewSlotUsecase(slotRepo)
+	bookingUsecase := usecase.NewBookingUsecase(bookingRepo)
 
-	// Setup the booking routes
+	// Initialize the booking HTTP handler
+	slotHttpHandler := handler.NewSlotHttpHandler(s.cfg, slotUsecase)
+	bookingHttpHandler := handler.NewBookingHttpHandler(s.cfg, bookingUsecase)
+
+
+	//Booking Route
 	booking := s.app.Group("/booking_v1")
-	booking.POST("/bookings", httpHandler.InsertBooking)
-	booking.POST("/slots", httpHandler.InsertSlot)
-	booking.GET("/bookings/:booking_id", httpHandler.FindBooking)
-	booking.GET("/bookings/user/:user_id", httpHandler.FindOneUserBooking)
-	booking.PUT("/bookings/:id", httpHandler.UpdateBooking)
+	booking.POST("/bookings", bookingHttpHandler.InsertBooking)
+	booking.POST("/slots", bookingHttpHandler.InsertSlot)
+	booking.GET("/bookings/:booking_id", bookingHttpHandler.FindBooking)
+	booking.GET("/bookings/user/:user_id", bookingHttpHandler.FindOneUserBooking)
+	booking.PUT("/bookings/:id", bookingHttpHandler.UpdateBooking)
+
+	//Slot Route
+	slots := s.app.Group("/slots_v1")
+	slots.POST("/slots/slots", slotHttpHandler.InsertSlot)
+	slots.PUT("/slots/:slot_id", slotHttpHandler.UpdateSlot)
+	slots.GET("/slots", slotHttpHandler.FindAllSlots)
+	slots.GET("/slots/:slot_id", slotHttpHandler.FindSlot)
 }
