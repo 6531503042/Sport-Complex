@@ -6,6 +6,7 @@ import (
 	"main/modules/booking"
 	"main/modules/booking/repository"
 	"main/pkg/utils"
+	"time"
 )
 
 type(
@@ -14,6 +15,7 @@ type(
 		UpdateBooking (ctx context.Context, bookingId string, status int) (*booking.Booking, error)
 		FindBooking (ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking(ctx context.Context, userId string) ([]booking.Booking, error)
+		InsertSlot(ctx context.Context, startTime, endTime time.Time) (*booking.Slot, error)
 	}
 
 	bookingUsecase struct {
@@ -79,3 +81,20 @@ func (u *bookingUsecase) FindBooking (ctx context.Context, bookingId string) (*b
 func (u * bookingUsecase) FindOneUserBooking(ctx context.Context, userId string) ([]booking.Booking, error) {
 	return u.bookingRepository.FindOneUserBooking(ctx, userId)
 }
+
+func (u *bookingUsecase) InsertSlot(ctx context.Context, startTime, endTime time.Time) (*booking.Slot, error) {
+	newSlot := &booking.Slot{
+		StartTime: startTime,
+		EndTime:   endTime,
+		CreatedAt: utils.LocalTime(),
+		UpdatedAt: utils.LocalTime(),
+	}
+
+	createdSlot, err := u.bookingRepository.InsertSlot(ctx, newSlot)
+	if err != nil {
+		return nil, fmt.Errorf("error: failed to create slot: %w", err)
+	}
+
+	return createdSlot, nil
+}
+
