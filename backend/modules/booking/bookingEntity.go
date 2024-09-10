@@ -1,6 +1,7 @@
 package booking
 
 import (
+	"main/pkg/utils"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,8 +19,8 @@ type (
 
 	Slot struct {
 		Id        primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
-		StartTime time.Time          `bson:"start_time" json:"start_time"`
-		EndTime   time.Time          `bson:"end_time" json:"end_time"`
+		StartTime utils.CustomTime   `bson:"start_time" json:"start_time"`
+		EndTime   utils.CustomTime   `bson:"end_time" json:"end_time"`
 		Status    int                `bson:"status" json:"status"`
 		CreatedAt time.Time          `bson:"created_at" json:"created_at"`
 		UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
