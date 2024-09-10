@@ -32,6 +32,7 @@ func NewSlotHttpHandler(cfg *config.Config, slotUsecase usecase.SlotUsecaseServi
 	return &slotsHttpHandler{cfg: cfg, slotsUsecase: slotUsecase}
 }
 
+
 func (h *slotsHttpHandler) InsertSlot(c echo.Context) error {
 	log.Println("Received request to create slot")
 
@@ -43,13 +44,29 @@ func (h *slotsHttpHandler) InsertSlot(c echo.Context) error {
 		return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
 	}
 
-	slot, err := h.slotsUsecase.InsertSlot(ctx, req.StartTime.Format("15:04"), req.EndTime.Format("15:04"))
+	// Convert CustomTime to time.Time
+	startTime := req.StartTime.ToTime()
+	endTime := req.EndTime.ToTime()
+
+	// Check if the times are valid
+	if startTime.IsZero() || endTime.IsZero() {
+		return response.ErrResponse(c, http.StatusBadRequest, "Invalid start or end time")
+	}
+
+	// Pass time.Time values to the usecase
+	slot, err := h.slotsUsecase.InsertSlot(ctx, startTime, endTime)
 	if err != nil {
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
 
 	return response.SuccessResponse(c, http.StatusCreated, slot)
 }
+
+
+
+
+
+
 
 func (h *slotsHttpHandler) UpdateSlot(c echo.Context) error {
 	log.Println("Received request to update slot")
@@ -62,13 +79,17 @@ func (h *slotsHttpHandler) UpdateSlot(c echo.Context) error {
 		return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
 	}
 
-	slot, err := h.slotsUsecase.UpdateSlot(ctx, slotId, req.StartTime.Format("15:04"), req.EndTime.Format("15:04"))
+	startTimeStr := req.StartTime.ToTime().Format("15:04")
+	endTimeStr := req.EndTime.ToTime().Format("15:04")
+
+	slot, err := h.slotsUsecase.UpdateSlot(ctx, slotId, startTimeStr, endTimeStr)
 	if err != nil {
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
 
 	return response.SuccessResponse(c, http.StatusOK, slot)
 }
+
 
 func (h *slotsHttpHandler) FindSlot(c echo.Context) error {
 	log.Println("Received request to find slot")
