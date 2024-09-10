@@ -2,10 +2,39 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
 )
+
+type CustomTime time.Time
+
+// UnmarshalJSON parses time in HH:mm format
+func (ct *CustomTime) UnmarshalJSON(b []byte) error {
+	s := string(b[1 : len(b)-1]) // remove quotes
+	parsedTime, err := time.Parse("15:04", s)
+	if err != nil {
+		return errors.New("invalid time format, expected HH:mm")
+	}
+	*ct = CustomTime(parsedTime)
+	return nil
+}
+
+// MarshalJSON serializes time to HH:mm format
+func (ct CustomTime) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + time.Time(ct).Format("15:04") + `"`), nil
+}
+
+// ToTime returns the time.Time value of CustomTime
+func (ct CustomTime) ToTime() time.Time {
+	return time.Time(ct)
+}
+
+// IsZero checks if CustomTime is zero value
+func (ct CustomTime) IsZero() bool {
+	return time.Time(ct).IsZero()
+}
 
 func Debug(obj any) {
 	raw, _ := json.MarshalIndent(obj, "", "\t")
@@ -26,8 +55,10 @@ func ConvertStringTimeToTime(t string) time.Time {
 	return result
 }
 
-func ParseTimeOnly(t string) time.Time {
-	layout := "15:04" // HH:mm format for time
-	parsedTime, _ := time.Parse(layout, t)
-	return parsedTime
+func ParseTimeOnly(timeStr string) CustomTime {
+	parsedTime, err := time.Parse("15:04", timeStr)
+	if err != nil {
+		return CustomTime{}
+	}
+	return CustomTime(parsedTime)
 }
