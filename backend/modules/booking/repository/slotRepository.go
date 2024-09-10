@@ -59,9 +59,11 @@ func (r *slotRepository) InsertSlot(ctx context.Context, slot *booking.Slot) (*b
 	db := r.slotDbConn(ctx)
 	col := db.Collection("slots")
 
+	// Set the creation and update time
 	slot.CreatedAt = time.Now()
 	slot.UpdatedAt = time.Now()
 
+	// Insert the slot into the database
 	result, err := col.InsertOne(ctx, slot)
 	if err != nil {
 		log.Printf("Error: InsertSlot: %s", err.Error())
@@ -76,6 +78,7 @@ func (r *slotRepository) InsertSlot(ctx context.Context, slot *booking.Slot) (*b
 	slot.Id = slotId
 	return slot, nil
 }
+
 
 
 func (r *slotRepository) FindOneSlot(ctx context.Context, slotId string) (*booking.Slot, error) {
