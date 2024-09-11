@@ -19,7 +19,7 @@ type (
 		UpdateBooking (ctx context.Context, booking *booking.Booking) (*booking.Booking, error)
 		FindBooking(ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error)
-		FindOneSlotBooking(ctx context.Context, slotId string) (*booking.Booking, error)
+		FindOneSlotBooking(ctx context.Context, slotId string) (*booking.Slot, error)
 		InsertSlot(ctx context.Context, slot *booking.Slot) (*booking.Slot, error)
 	}
 
@@ -42,6 +42,12 @@ func (r *bookingRepository) InsertBooking(ctx context.Context, booking *booking.
 
 	db := r.bookingDbConn(ctx)
 	col := db.Collection("bookings")
+
+	// Check if the slot exists
+	_, err := r.FindOneSlotBooking(ctx, booking.SlotId)
+	if err != nil {
+		return nil, fmt.Errorf("error: slot %s does not exist", booking.SlotId)
+	}
 
 	result, err := col.InsertOne(ctx, booking)
 	if err != nil {
@@ -122,25 +128,33 @@ func (r*bookingRepository) FindOneUserBooking (ctx context.Context, userId strin
 	return result, nil
 }
 
-func (r *bookingRepository) FindOneSlotBooking(ctx context.Context, slotId string) (*booking.Booking, error) {
+func (r *bookingRepository) FindOneSlotBooking(ctx context.Context, slotId string) (*booking.Slot, error) {
     ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
     defer cancel()
 
     db := r.bookingDbConn(ctx)
-    col := db.Collection("bookings")
+    col := db.Collection("slots") // Use the correct collection
 
-    var booking booking.Booking
-    err := col.FindOne(ctx, bson.M{"slotId": slotId}).Decode(&booking)
+    var slot booking.Slot
+    // Convert string slotId to ObjectID if needed
+    objectId, err := primitive.ObjectIDFromHex(slotId)
+    if err != nil {
+        return nil, fmt.Errorf("error: invalid slot ID format: %s", slotId)
+    }
+
+    // Query using _id in the slots collection
+    err = col.FindOne(ctx, bson.M{"_id": objectId}).Decode(&slot)
     if err != nil {
         if err == mongo.ErrNoDocuments {
             return nil, fmt.Errorf("error: slot %s does not exist", slotId)
         }
         log.Printf("Error: FindOneSlotBooking: %s", err.Error())
-        return nil, fmt.Errorf("error: failed to find slot booking: %w", err)
+        return nil, fmt.Errorf("error: failed to find slot: %w", err)
     }
 
-    return &booking, nil
+    return &slot, nil
 }
+
 
 func (r *bookingRepository) InsertSlot(ctx context.Context, slot *booking.Slot) (*booking.Slot, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
