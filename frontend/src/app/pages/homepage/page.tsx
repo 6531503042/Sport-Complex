@@ -26,6 +26,7 @@ const HomePage: React.FC = () => {
       )}
             <div className="p-4">Breaking News ! ! ! !</div>
     </div>
+
   );
 };
 

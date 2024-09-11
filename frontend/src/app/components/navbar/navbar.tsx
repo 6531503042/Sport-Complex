@@ -18,7 +18,7 @@ type NavBarProps = {
   activePage?: string;
 };
 
-const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
+const navbar: React.FC<NavBarProps> = ({ activePage }) => {
   const getBackgroundColor = () => {
     switch (activePage) {
       case "gym":
@@ -130,4 +130,4 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   );
 };
 
-export default NavBar;
+export default navbar;
