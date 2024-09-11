@@ -3,3 +3,21 @@
 @tailwind utilities;
 
 @import 'flowbite';
+
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+
+@media (max-width: 1600px) {
+    .NavBar_res {
+        display: none;
+}
+    .NavBar_container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+  }
+
+

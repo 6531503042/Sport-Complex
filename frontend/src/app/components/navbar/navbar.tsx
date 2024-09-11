@@ -41,12 +41,14 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   };
 
   const getActiveClass = (page: string) => {
-    return activePage === page ? "border-b-4 border-white" : "border-b-4 border-transparent";
+    return activePage === page
+      ? "border-b-4 border-white"
+      : "border-b-4 border-transparent";
   };
 
   return (
     <div className={`${getBackgroundColor()} px-8`}>
-      <div className="flex flex-row items-center ">
+      <div className="NavBar_container flex flex-row items-center">
         <Link
           href="/pages/homepage"
           className="inline-flex flex-row items-center flex-none w-2/12 gap-3.5"
@@ -57,7 +59,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
             <span className="text-zinc-900">Complex</span>
           </span>
         </Link>
-        <ul className="inline-flex flex-row flex-none w-9/12 gap-12 justify-start font-semibold pt-6">
+        <ul className="NavBar_res inline-flex flex-row flex-none w-9/12 gap-12 justify-start font-semibold pt-6">
           <li className={getActiveClass("gym")}>
             <Link
               href="/pages/gym"
@@ -113,15 +115,16 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
             </Link>
           </li>
         </ul>
-        <aside className="flex-none w-1/12 flex justify-center border-b-4 border-transparent">
-          <nav className="inline-flex flex-row">
-            <div className="text-white hover:text-gray-400 cursor-pointer">
-              <Link href="/pages/registration">
-              login</Link>
-            </div>
-          </nav>
-        </aside>
-        <SideBar />
+        <div className="flex-none w-1/12 flex justify-between ms-5 me-2 gap-5">
+          <aside className=" border-b-4 border-transparent">
+            <nav className="inline-flex flex-row">
+              <div className="text-white hover:text-gray-400 cursor-pointer">
+                <Link href="/pages/registration">login</Link>
+              </div>
+            </nav>
+          </aside>
+          <SideBar />
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faBasketball, faCancel, faClipboard, faDumbbell, faFutbol, faSwimmer, faUser, faWallet, faX } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faBasketball, faCancel, faClipboard, faDumbbell, faFutbol, faHome, faSwimmer, faUser, faWallet, faX } from "@fortawesome/free-solid-svg-icons";
 
 const sidebar: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -32,6 +32,10 @@ const sidebar: React.FC = () => {
           </button>
         </div>
         <ul className="flex flex-col p-4 gap-8">
+          <li className="hover:text-gray-400 cursor-pointer">
+            <Link href="/pages/homepage"><FontAwesomeIcon icon={faHome} className="mx-3.5" />
+            Home Page</Link>
+          </li>
           <li className="hover:text-gray-400 cursor-pointer">
             <Link href="/pages/gym"><FontAwesomeIcon icon={faDumbbell} className="mx-3.5" />
             Gym Booking</Link>
