@@ -7,7 +7,7 @@ const LoginPage = () => {
   return (
     <div className={styles.container}>
       <div className={styles.left}>
-        <Image src="/assets/logo-mfu-v2.png" alt="Logo" width={80} height={80} />
+        <Image src="/assets/logo-mfu-v2.png" alt="Logo" width={75} height={75} />
         <h1 className={styles.header}>Welcome Back</h1>
         <p className={styles.uderheader}>Welcome back to MFU Sport complex.</p>
         <form className={styles.form}>
@@ -17,7 +17,7 @@ const LoginPage = () => {
             label="Email"
             placeholder="Enter your email"
             type="email"
-            className={styles.input} /* Apply custom styles */
+            className={styles.input} 
           />
           <Input
             fullWidth
@@ -25,7 +25,7 @@ const LoginPage = () => {
             label="Password"
             placeholder="********"
             type="password"
-            className={styles.input} /* Apply custom styles */
+            className={styles.input} 
           />
           <div className={styles.checkboxContainer}>
             <Checkbox>Remember me</Checkbox>
