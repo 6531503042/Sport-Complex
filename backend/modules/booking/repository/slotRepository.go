@@ -53,31 +53,38 @@ func (r *slotRepository) UpdateSlot(ctx context.Context, slot *booking.Slot) (*b
 
 
 func (r *slotRepository) InsertSlot(ctx context.Context, slot *booking.Slot) (*booking.Slot, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
 
-	db := r.slotDbConn(ctx)
-	col := db.Collection("slots")
+    db := r.slotDbConn(ctx)
+    col := db.Collection("slots")
 
-	// Set the creation and update time
-	slot.CreatedAt = time.Now()
-	slot.UpdatedAt = time.Now()
+    // Set the creation and update time
+    slot.CreatedAt = time.Now()
+    slot.UpdatedAt = time.Now()
 
-	// Insert the slot into the database
-	result, err := col.InsertOne(ctx, slot)
-	if err != nil {
-		log.Printf("Error: InsertSlot: %s", err.Error())
-		return nil, fmt.Errorf("error: insert slot failed: %w", err)
-	}
+    // Insert the slot into the database
+    result, err := col.InsertOne(ctx, bson.M{
+        "start_time": slot.StartTime, // Store as string "HH:mm"
+        "end_time":   slot.EndTime,   // Store as string "HH:mm"
+        "status":     slot.Status,
+        "created_at": slot.CreatedAt,
+        "updated_at": slot.UpdatedAt,
+    })
+    if err != nil {
+        log.Printf("Error: InsertSlot: %s", err.Error())
+        return nil, fmt.Errorf("error: insert slot failed: %w", err)
+    }
 
-	slotId, ok := result.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return nil, fmt.Errorf("error: insert slot failed")
-	}
+    slotId, ok := result.InsertedID.(primitive.ObjectID)
+    if !ok {
+        return nil, fmt.Errorf("error: insert slot failed")
+    }
 
-	slot.Id = slotId
-	return slot, nil
+    slot.Id = slotId
+    return slot, nil
 }
+
 
 
 
@@ -93,42 +100,58 @@ func (r *slotRepository) FindOneSlot(ctx context.Context, slotId string) (*booki
         return nil, fmt.Errorf("error: failed to parse slot ID: %w", err)
     }
 
-    var slot booking.Slot
-    err = col.FindOne(ctx, bson.M{"_id": id}).Decode(&slot)
+    var result bson.M
+    err = col.FindOne(ctx, bson.M{"_id": id}).Decode(&result)
     if err != nil {
         if err == mongo.ErrNoDocuments {
             return nil, fmt.Errorf("error: slot %s does not exist", slotId)
         }
-        log.Printf("Error: FindOneSlotBooking: %s", err.Error())
-        return nil, fmt.Errorf("error: failed to find slot booking: %w", err)
+        log.Printf("Error: FindOneSlot: %s", err.Error())
+        return nil, fmt.Errorf("error: failed to find slot: %w", err)
     }
 
-    return &slot, nil
+    slot := &booking.Slot{
+        Id:        id,
+        StartTime: result["start_time"].(string),  // Use string for "HH:mm"
+        EndTime:   result["end_time"].(string),    // Use string for "HH:mm"
+        Status:    result["status"].(int),
+        CreatedAt: result["created_at"].(time.Time),
+        UpdatedAt: result["updated_at"].(time.Time),
+    }
+
+    return slot, nil
 }
+
 
 
 func (r *slotRepository) FindAllSlots(ctx context.Context) ([]booking.Slot, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
 
-	db := r.slotDbConn(ctx)
-	col := db.Collection("slots")
+    db := r.slotDbConn(ctx)
+    col := db.Collection("slots")
 
-	cursor, err := col.Find(ctx, bson.M{})
-	if err != nil {
-		log.Printf("Error: FindAllSlots: %s", err.Error())
-		return nil, errors.New("error: find all slots failed")
+    cursor, err := col.Find(ctx, bson.M{})
+    if err != nil {
+        log.Printf("Error: FindAllSlots: %s", err.Error())
+        return nil, errors.New("error: find all slots failed")
+    }
+    defer cursor.Close(ctx)
+
+    var result []booking.Slot
+    if err = cursor.All(ctx, &result); err != nil {
+        log.Printf("Error: FindAllSlots: %s", err.Error())
+        return nil, errors.New("error: find all slots failed")
+    }
+
+    // Ensure all time values are properly converted
+    for _, slot := range result {
+		log.Printf("Slot: start_time=%v, end_time=%v", slot.StartTime, slot.EndTime)
 	}
-	defer cursor.Close(ctx)
 
-	var result []booking.Slot
-	if err = cursor.All(ctx, &result); err != nil {
-		log.Printf("Error: FindAllSlots: %s", err.Error())
-		return nil, errors.New("error: find all slots failed")
-	}
-
-	return result, nil
+    return result, nil
 }
+
 
 
 func (r *slotRepository) EnableOrDisableSlot(ctx context.Context, slotId string, status int) (*booking.Slot, error) {
