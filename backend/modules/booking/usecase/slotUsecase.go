@@ -12,7 +12,7 @@ import (
 
 type (
 	SlotUsecaseService interface {
-		InsertSlot(ctx context.Context, startTime, endTime time.Time) (*booking.Slot, error)
+		InsertSlot(ctx context.Context, startTime, endTime string) (*booking.Slot, error)
 		UpdateSlot(ctx context.Context, slotId string, startTime, endTime string) (*booking.Slot, error)
 		FindOneSlot(ctx context.Context, slotId string) (*booking.Slot, error)
 		FindAllSlots(ctx context.Context) ([]booking.Slot, error)
@@ -36,8 +36,12 @@ func (u *slotUsecase) CheckSlotOverlap(ctx context.Context, startTime, endTime t
     }
 
     for _, slot := range slots {
-        if (startTime.Before(time.Time(slot.StartTime)) && endTime.After(slot.EndTime.ToTime())) ||
-           (startTime.Equal(slot.StartTime.ToTime()) && endTime.Equal(slot.EndTime.ToTime())) {
+        slotStartTime := utils.ParseTimeOnly(slot.StartTime).ToTime()
+
+        slotEndTime := utils.ParseTimeOnly(slot.EndTime).ToTime()
+
+        if (startTime.Before(slotStartTime)) && endTime.After(slotEndTime) ||
+           (startTime.Equal(slotStartTime) && endTime.Equal(slotEndTime)) {
             return true, nil
         }
     }
@@ -47,10 +51,8 @@ func (u *slotUsecase) CheckSlotOverlap(ctx context.Context, startTime, endTime t
 
 
 
-
-func (u *slotUsecase) InsertSlot(ctx context.Context, startTime, endTime time.Time) (*booking.Slot, error) {
-	// Check for overlapping slots
-    hasOverlap, err := u.CheckSlotOverlap(ctx, startTime, endTime)
+func (u *slotUsecase) InsertSlot(ctx context.Context, startTime, endTime string) (*booking.Slot, error) {
+    hasOverlap, err := u.CheckSlotOverlap(ctx, utils.ParseTimeOnly(startTime).ToTime(), utils.ParseTimeOnly(endTime).ToTime())
     if err != nil {
         return nil, fmt.Errorf("failed to check slot overlap: %w", err)
     }
@@ -58,16 +60,19 @@ func (u *slotUsecase) InsertSlot(ctx context.Context, startTime, endTime time.Ti
         return nil, errors.New("a slot with the same start and end time already exists")
     }
 
-	slot := &booking.Slot{
-		StartTime: utils.CustomTime(startTime),  // Use time.Time directly
-		EndTime:   utils.CustomTime(endTime),    // Use time.Time directly
-		Status:    1,          // Enabled by default
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+    // Construct the slot with time values
+    slot := &booking.Slot{
+        StartTime: startTime,  // Use string "HH:mm"
+        EndTime:   endTime,    // Use string "HH:mm"
+        Status:    1,  // Enabled by default
+        CreatedAt: time.Now(),
+        UpdatedAt: time.Now(),
+    }
 
-	return u.slotRepository.InsertSlot(ctx, slot)
+    return u.slotRepository.InsertSlot(ctx, slot)
 }
+
+
 
 
 func (u *slotUsecase) UpdateSlot(ctx context.Context, slotId string, startTime, endTime string) (*booking.Slot, error) {
