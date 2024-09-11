@@ -1,29 +1,32 @@
-import React from 'react'
-import NavBar from '../../components/navbar/navbar'
-import Banner1 from '../../assets/banner_1.jpg'
+"use client"
 
-const page = () => {
+import React, { useState } from "react";
+import NavBar from "../../components/navbar/navbar";
+import Banner1 from "../../components/banner/banner1";
+import Banner2 from "../../components/banner/banner2";
+
+const HomePage: React.FC = () => {
+  const [currentBanner, setCurrentBanner] = useState<1 | 2>(1);
+
+  const handleLeftClick = () => {
+    setCurrentBanner((prev) => (prev === 1 ? 2 : 1));
+  };
+
+  const handleRightClick = () => {
+    setCurrentBanner((prev) => (prev === 1 ? 2 : 1));
+  };
+
   return (
     <div>
       <NavBar />
-      <div
-        className="flex items-center justify-center h-[400px] text-white bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${Banner1.src})`,
-        }}
-      >
-        <div className="bg-black bg-opacity-50 p-4 rounded-md">
-          <h1 className="text-3xl font-bold">Welcome to the Sport Complex</h1>
-          <p className="mt-2">
-            Discover our new features and start your fitness journey today!
-          </p>
-        </div>
-      </div>
-      <div className="p-4">
-        homepage content
-      </div>
+      {currentBanner === 1 ? (
+        <Banner1 onLeftClick={handleLeftClick} onRightClick={handleRightClick} />
+      ) : (
+        <Banner2 onLeftClick={handleLeftClick} onRightClick={handleRightClick} />
+      )}
+            <div className="p-4">Breaking News ! ! ! !</div>
     </div>
-  )
-}
+  );
+};
 
-export default page
+export default HomePage;

@@ -6,14 +6,9 @@ import Logo from "../../assets/Logo.png";
 import SideBar from "../sidebar/sidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBars,
   faBasketball,
-  faCheck,
   faClipboard,
-  faFootball,
-  faFootballBall,
   faFutbol,
-  faScaleBalanced,
   faSwimmer,
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
@@ -46,7 +41,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   };
 
   const getActiveClass = (page: string) => {
-    return activePage === page ? "border-b-4 border-white" : "";
+    return activePage === page ? "border-b-4 border-white" : "border-b-4 border-transparent";
   };
 
   return (
