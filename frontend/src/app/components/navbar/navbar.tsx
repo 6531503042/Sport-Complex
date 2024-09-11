@@ -59,7 +59,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             <span className="text-zinc-900">Complex</span>
           </span>
         </Link>
-        <ul className="NavBar_res inline-flex flex-row flex-none w-9/12 gap-12 justify-start font-semibold pt-6">
+        <ul className="NavBar_res inline-flex flex-row flex-none w-9/12 gap-12 justify-start font-semibold pt-6 text-sm">
           <li className={getActiveClass("gym")}>
             <Link
               href="/pages/gym"
