@@ -50,7 +50,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
     <div className={`${getBackgroundColor()} px-8`}>
       <div className="NavBar_container flex flex-row items-center">
         <Link
-          href="/pages/homepage"
+          href="/"
           className="inline-flex flex-row items-center flex-none w-2/12 gap-3.5"
         >
           <img src={Logo.src} alt="Logo" className="w-7" />
