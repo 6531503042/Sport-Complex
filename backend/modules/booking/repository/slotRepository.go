@@ -82,15 +82,20 @@ func (r *slotRepository) InsertSlot(ctx context.Context, slot *booking.Slot) (*b
 
 
 func (r *slotRepository) FindOneSlot(ctx context.Context, slotId string) (*booking.Slot, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
 
-	db := r.slotDbConn(ctx)
-	col := db.Collection("slots")
+    db := r.slotDbConn(ctx)
+    col := db.Collection("slots")
 
-	var slot booking.Slot
-	err := col.FindOne(ctx, bson.M{"_id": slotId}).Decode(&slot)
-	if err != nil {
+    id, err := primitive.ObjectIDFromHex(slotId)
+    if err != nil {
+        return nil, fmt.Errorf("error: failed to parse slot ID: %w", err)
+    }
+
+    var slot booking.Slot
+    err = col.FindOne(ctx, bson.M{"_id": id}).Decode(&slot)
+    if err != nil {
         if err == mongo.ErrNoDocuments {
             return nil, fmt.Errorf("error: slot %s does not exist", slotId)
         }
@@ -98,7 +103,7 @@ func (r *slotRepository) FindOneSlot(ctx context.Context, slotId string) (*booki
         return nil, fmt.Errorf("error: failed to find slot booking: %w", err)
     }
 
-	return &slot, nil
+    return &slot, nil
 }
 
 
