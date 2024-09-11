@@ -34,60 +34,64 @@ func NewSlotHttpHandler(cfg *config.Config, slotUsecase usecase.SlotUsecaseServi
 
 
 func (h *slotsHttpHandler) InsertSlot(c echo.Context) error {
-	log.Println("Received request to create slot")
+    log.Println("Received request to create slot")
 
-	ctx := c.Request().Context()
-	wrapper := request.ContextWrapper(c)
+    ctx := c.Request().Context()
+    wrapper := request.ContextWrapper(c)
 
-	req := new(booking.Slot)
-	if err := wrapper.Bind(req); err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
-	}
+    req := new(booking.Slot)
+    if err := wrapper.Bind(req); err != nil {
+        return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
+    }
 
-	// Convert CustomTime to time.Time
-	startTime := req.StartTime.ToTime()
-	endTime := req.EndTime.ToTime()
+    // Since req.StartTime and req.EndTime are now strings, no need to convert them to time.Time
+    startTime := req.StartTime // string in "HH:mm"
+    endTime := req.EndTime     // string in "HH:mm"
 
-	// Check if the times are valid
-	if startTime.IsZero() || endTime.IsZero() {
-		return response.ErrResponse(c, http.StatusBadRequest, "Invalid start or end time")
-	}
+    // Validate that startTime and endTime are not empty
+    if startTime == "" || endTime == "" {
+        return response.ErrResponse(c, http.StatusBadRequest, "Start time or end time cannot be empty")
+    }
 
-	// Pass time.Time values to the usecase
-	slot, err := h.slotsUsecase.InsertSlot(ctx, startTime, endTime)
-	if err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
-	}
+    // Pass the time strings to the usecase
+    slot, err := h.slotsUsecase.InsertSlot(ctx, startTime, endTime)
+    if err != nil {
+        return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+    }
 
-	return response.SuccessResponse(c, http.StatusCreated, slot)
+    return response.SuccessResponse(c, http.StatusCreated, slot)
 }
 
 
 
 
-
-
-
 func (h *slotsHttpHandler) UpdateSlot(c echo.Context) error {
-	log.Println("Received request to update slot")
+    log.Println("Received request to update slot")
 
-	ctx := c.Request().Context()
-	slotId := c.Param("slot_id")
+    ctx := c.Request().Context()
+    slotId := c.Param("slot_id")
 
-	req := new(booking.Slot)
-	if err := c.Bind(req); err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
-	}
+    req := new(booking.Slot)
+    if err := c.Bind(req); err != nil {
+        return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
+    }
 
-	startTimeStr := req.StartTime.ToTime().Format("15:04")
-	endTimeStr := req.EndTime.ToTime().Format("15:04")
+    // Since req.StartTime and req.EndTime are strings now (in "HH:mm" format), you can use them directly
+    startTimeStr := req.StartTime
+    endTimeStr := req.EndTime
 
-	slot, err := h.slotsUsecase.UpdateSlot(ctx, slotId, startTimeStr, endTimeStr)
-	if err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
-	}
+    // Validate that startTime and endTime are not empty
+    if startTimeStr == "" || endTimeStr == "" {
+        return response.ErrResponse(c, http.StatusBadRequest, "Start time or end time cannot be empty")
+    }
 
-	return response.SuccessResponse(c, http.StatusOK, slot)
+    // Call the usecase to update the slot with string times
+    slot, err := h.slotsUsecase.UpdateSlot(ctx, slotId, startTimeStr, endTimeStr)
+    if err != nil {
+        return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+    }
+
+    return response.SuccessResponse(c, http.StatusOK, slot)
 }
 
 
