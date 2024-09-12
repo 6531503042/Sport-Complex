@@ -2,10 +2,14 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"main/config"
 	"main/modules/booking"
+	"main/modules/models"
+	"main/pkg/queue"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -21,6 +25,10 @@ type (
 		FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error)
 		FindOneSlotBooking(ctx context.Context, slotId string) (*booking.Slot, error)
 		InsertSlot(ctx context.Context, slot *booking.Slot) (*booking.Slot, error)
+
+		//Kafka Interface
+		GetOffset(pctx context.Context) (int64, error)
+		UpOffset(pctx context.Context, newOffset int64) error
 	}
 
 	bookingRepository struct {
@@ -35,6 +43,73 @@ func NewBookingRepository(db *mongo.Client) BookingRepositoryService {
 func (r *bookingRepository) bookingDbConn(pctx context.Context) *mongo.Database {
 	return r.db.Database("booking")
 }
+
+// Kaka Repo Func
+func (r *bookingRepository) GetOffset(pctx context.Context) (int64, error) {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	defer cancel()
+
+	db := r.bookingDbConn(ctx)
+	col := db.Collection("booking_queue")
+
+	result := new(models.KafkaOffset)
+	if err := col.FindOne(ctx, bson.M{}).Decode(result); err != nil {
+		log.Printf("Error: GetOffset failed: %s", err.Error())
+		return -1, errors.New("error: GetOffset failed")
+	}
+
+	return result.Offset, nil
+}
+
+
+func (r *bookingRepository) UpOffset(pctx context.Context, newOffset int64) error {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	defer cancel()
+
+	db := r.bookingDbConn(ctx)
+	col := db.Collection("booking_queue")
+
+	filter := bson.M{} // Assuming you're updating the only document
+	update := bson.M{
+		"$set": bson.M{"offset": newOffset},
+	}
+
+	_, err := col.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Printf("Error: UpOffset failed: %s", err.Error())
+		return errors.New("error: UpOffset failed")
+	}
+
+	return nil
+}
+
+
+func (r *bookingRepository) InsertBookingViaQueue(pctx context.Context, cfg *config.Config, req *booking.Booking) error {
+	reqInBytes, err := json.Marshal(req)
+	if err != nil {
+		log.Printf("Error: InsertBookingViaQueue failed: %s", err.Error())
+		return errors.New("error: InsertBookingViaQueue failed")
+	}
+
+
+	bookingID := req.Id.Hex() // Convert Object to string
+
+	if err := queue.PushMessageWithKeyToQueue(
+		[]string{cfg.Kafka.Url},
+		cfg.Kafka.ApiKey,
+		cfg.Kafka.Secret,
+		"booking",
+		bookingID,
+		reqInBytes,
+	); err != nil {
+		log.Printf("Error: InsertBookingViaQueue failed: %s", err.Error())
+		return errors.New("error: InsertBookingViaQueue failed")
+	}
+
+	return nil
+}
+
+
 
 func (r *bookingRepository) InsertBooking(ctx context.Context, booking *booking.Booking) (*booking.Booking, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
