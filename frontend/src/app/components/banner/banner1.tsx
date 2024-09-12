@@ -16,12 +16,12 @@ const Banner1: React.FC<BannerProps> = ({ onLeftClick, onRightClick }) => {
   return (
     <div>
       <div
-        className="flex items-center justify-between h-[500px] text-white bg-cover bg-center px-10"
+        className="flex items-center h-[500px] text-white bg-cover bg-center px-10"
         style={{
           backgroundImage: `url(${Banner1Img.src})`,
         }}
-      >
-        <div
+      ><div className="flex flex-row items-center w-screen justify-between">
+        <button
           className="flex items-center justify-center w-12 h-12 rounded-full cursor-pointer text-8xl text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400"
           onClick={onLeftClick}
         >
@@ -29,7 +29,7 @@ const Banner1: React.FC<BannerProps> = ({ onLeftClick, onRightClick }) => {
             icon={faChevronLeft}
             style={{ fontSize: "1rem",}}
           />
-        </div>
+        </button>
         <div className="flex flex-col h-auto w-1/2 text-center items-center">
           <div className="flex flex-col p-4 items-center">
             <p className="text-6xl font-bold">Welcome to Sport Complex</p>
@@ -38,21 +38,22 @@ const Banner1: React.FC<BannerProps> = ({ onLeftClick, onRightClick }) => {
               favorite sports activities with just a few clicks.
             </span>
           </div>
-          <div className="mt-3 p-3 bg-red-400 w-fit rounded-md text-white text-xs font-bold">
+          <div className="mt-3 p-3 bg-transparent w-fit border-2 border-stone-400 rounded-md text-white text-xs font-bold">
             <a href="/pages/registration">
               <button type="button">Learn More</button>
             </a>
           </div>
         </div>
-        <div
-          className="flex items-center justify-center w-11 h-11 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400"
+        <button
+          className="flex items-center justify-center w-12 h-12 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400"
           onClick={onRightClick}
         >
           <FontAwesomeIcon
             icon={faChevronRight}
             style={{ fontSize: "1rem"}}
           />
-        </div>
+        </button>
+      </div>
       </div>
     </div>
   );

@@ -19,6 +19,14 @@
         flex-direction: row;
         justify-content: space-between;
     }
+    .login_button {
+        display: none;
+
+    }
+    .login_and_sidebar {
+        display: flex;
+        justify-content: end;
+    }
   }
 
 

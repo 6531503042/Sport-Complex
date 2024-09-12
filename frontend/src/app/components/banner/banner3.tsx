@@ -1,5 +1,5 @@
 import React from "react";
-import Banner2Img from "../../assets/banner_2.jpg";
+import Banner2Img from "../../assets/banner_1.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronLeft,
@@ -11,7 +11,7 @@ type BannerProps = {
   onRightClick: () => void;
 };
 
-const Banner2: React.FC<BannerProps> = ({ onLeftClick, onRightClick }) => {
+const Banner3: React.FC<BannerProps> = ({ onLeftClick, onRightClick }) => {
   return (
     <div>
       <div
@@ -53,4 +53,4 @@ const Banner2: React.FC<BannerProps> = ({ onLeftClick, onRightClick }) => {
   );
 };
 
-export default Banner2;
+export default Banner3;

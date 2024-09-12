@@ -17,11 +17,11 @@ const sidebar: React.FC = () => {
         className=" cursor-pointer "
         onClick={toggleSidebar}
       >
-        <img src={IconSidebar.src} alt="" className="h-auto w-6 transform transition-transform duration-200 ease-in-out hover:scale-125"/>
+        <img src={IconSidebar.src} alt="" className="h-auto w-6 transform transition-transform duration-100 ease-in-out hover:scale-125"/>
       </div>
       <div
         className={`fixed top-0 right-0 h-full bg-gray-800 text-white transform ${
-          isSidebarOpen ? "translate-x-0" : "translate-x-full"
+          isSidebarOpen ? "translate-x-0 " : "translate-x-full"
         } transition-transform duration-300 ease-in-out w-64`}
       >
         <div className="p-4">

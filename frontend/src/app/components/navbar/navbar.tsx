@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBasketball,
   faClipboard,
-  faFutbol,
+  faEnvelope,
   faSwimmer,
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
@@ -101,7 +101,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
               href="/pages/contact"
               className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
             >
-              <FontAwesomeIcon icon={faFutbol} className="mx-2.5" />
+              <FontAwesomeIcon icon={faEnvelope} className="mx-2.5" />
               Contact
             </Link>
           </li>
@@ -115,9 +115,9 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             </Link>
           </li>
         </ul>
-        <div className="flex-none w-1/12 flex justify-between ms-5 me-2 gap-5">
-          <aside className=" border-b-4 border-transparent">
-            <nav className="inline-flex flex-row">
+        <div className="login_and_sidebar flex-none w-1/12 flex justify-between ms-5 me-2 gap-5">
+          <aside className="login_button border-b-4 border-transparent">
+            <nav className="inline-flex">
               <div className="text-white hover:text-gray-400 cursor-pointer">
                 <Link href="/pages/registration">login</Link>
               </div>
