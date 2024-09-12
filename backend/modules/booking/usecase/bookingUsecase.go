@@ -14,6 +14,10 @@ type(
 		UpdateBooking (ctx context.Context, bookingId string, status int) (*booking.Booking, error)
 		FindBooking (ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking(ctx context.Context, userId string) ([]booking.Booking, error)
+
+		//Kafka Interface
+		// GetOffSet(ctx context.Context) (int64, error)
+		// UpOffSet(ctx context.Context) (int64, error)
 	}
 
 	bookingUsecase struct {
@@ -25,6 +29,15 @@ func NewBookingUsecase(bookingRepository repository.BookingRepositoryService) Bo
 	return &bookingUsecase{
 		bookingRepository: bookingRepository,
 	}
+}
+
+//Kafka Func
+func (u *bookingUsecase) GetOffSet(ctx context.Context) (int64, error) {
+	return u.bookingRepository.GetOffSet(ctx)
+}
+
+func (u *bookingUsecase) UpOffSet(ctx context.Context) (int64, error) {
+	return u.bookingRepository.UpOffSet(ctx)
 }
 
 func (u *bookingUsecase) InsertBooking(ctx context.Context, userId, slotId string) (*booking.Booking, error) {
