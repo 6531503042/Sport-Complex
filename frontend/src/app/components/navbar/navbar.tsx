@@ -27,7 +27,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         return "bg-blue-500";
       case "basketball":
         return "bg-yellow-500";
-      case "soccer":
+      case "contact":
         return "bg-green-500";
       case "rule":
         return "bg-purple-500";
@@ -87,15 +87,6 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
               Basketball Booking
             </Link>
           </li>
-          <li className={getActiveClass("soccer")}>
-            <Link
-              href="/pages/soccer"
-              className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
-            >
-              <FontAwesomeIcon icon={faFutbol} className="mx-2.5" />
-              Soccer Booking
-            </Link>
-          </li>
           <li className={getActiveClass("rule")}>
             <Link
               href="/pages/rule"
@@ -103,6 +94,15 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             >
               <FontAwesomeIcon icon={faClipboard} className="mx-2.5" />
               Rules
+            </Link>
+          </li>
+          <li className={getActiveClass("contact")}>
+            <Link
+              href="/pages/contact"
+              className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+            >
+              <FontAwesomeIcon icon={faFutbol} className="mx-2.5" />
+              Contact
             </Link>
           </li>
           <li className={getActiveClass("payment")}>

@@ -4,8 +4,8 @@ import NavBar from '../../components/navbar/navbar'
 const page = () => {
   return (
     <div>
-        <NavBar activePage="soccer"/>
-        soccer
+        <NavBar activePage="contact"/>
+        contact
     </div>
   )
 }
