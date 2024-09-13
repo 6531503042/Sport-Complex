@@ -16,8 +16,8 @@ type(
 		FindOneUserBooking(ctx context.Context, userId string) ([]booking.Booking, error)
 
 		//Kafka Interface
-		// GetOffSet(ctx context.Context) (int64, error)
-		// UpOffSet(ctx context.Context) (int64, error)
+		GetOffSet(ctx context.Context) (int64, error)
+		UpOffSet(ctx context.Context, newOffset int64) error
 	}
 
 	bookingUsecase struct {
@@ -33,11 +33,11 @@ func NewBookingUsecase(bookingRepository repository.BookingRepositoryService) Bo
 
 //Kafka Func
 func (u *bookingUsecase) GetOffSet(ctx context.Context) (int64, error) {
-	return u.bookingRepository.GetOffSet(ctx)
+	return u.bookingRepository.GetOffset(ctx)
 }
 
-func (u *bookingUsecase) UpOffSet(ctx context.Context) (int64, error) {
-	return u.bookingRepository.UpOffSet(ctx)
+func (u *bookingUsecase) UpOffSet(ctx context.Context, newOffset int64) error {
+    return u.bookingRepository.UpOffset(ctx, newOffset)
 }
 
 func (u *bookingUsecase) InsertBooking(ctx context.Context, userId, slotId string) (*booking.Booking, error) {
