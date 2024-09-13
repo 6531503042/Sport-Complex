@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import "./football-booking.css";
@@ -11,10 +11,31 @@ interface ImageLink {
   linkUrl: string;
 }
 
+interface TimeSlot {
+  time: string;
+  isAvailable: boolean;
+  member:string;
+}
+
 function Football_Booking() {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 5000 }),
   ]); // 5s
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
+
+  const timeSlots: TimeSlot[] = [
+    { time: "10:00 - 11:00", isAvailable: true ,member:"0/1"},
+    { time: "11:00 - 12:00", isAvailable: false ,member:"1/1"},
+    { time: "12:00 - 13:00", isAvailable: true ,member:"0/1"},
+    { time: "13:00 - 14:00", isAvailable: true ,member:"0/1"},
+    { time: "14:00 - 15:00", isAvailable: false ,member:"1/1"},
+    { time: "15:00 - 16:00", isAvailable: true,member:"0/1" },
+    { time: "16:00 - 17:00", isAvailable: true ,member:"0/1"},
+    { time: "17:00 - 18:00", isAvailable: false ,member:"1/1"},
+    { time: "18:00 - 19:00", isAvailable: true ,member:"0/1"},
+    { time: "19:00 - 20:00", isAvailable: true ,member:"0/1"},
+  ];
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -23,6 +44,20 @@ function Football_Booking() {
   const scrollNext = useCallback(() => {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
+
+  const handleTimeClick = (time: string, isAvailable: boolean) => {
+    if (isAvailable) {
+      setSelectedTime(time);
+      setShowPopup(true);
+    } else {
+      alert("This time slot is unavailable.");
+    }
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedTime(null);
+  };
 
   const imageLinks: ImageLink[] = [
     {
@@ -43,7 +78,6 @@ function Football_Booking() {
       linkUrl:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXqoUfOanL0mvHBzukEfzTyWTzBZk-ss1FsQ&s",
     },
-    // Add more objects as needed
   ];
 
   return (
@@ -85,48 +119,29 @@ function Football_Booking() {
         </div>
       </div>
 
-      <hr className="my-10 mx-5 " />
+      <hr className="my-10 mx-5" />
 
       <div className="mx-20 mb-20">
         <h1 className="text-center text-3xl font-bold mb-20">
           FOOTBALL BOOKING
         </h1>
         <div className="grid grid-cols-2">
-          <div className="container_list_time w-[1000px] h-[700px] bg-[#387F39] rounded-2xl p-10 overflow-y-auto shadow-2xl">
-            <div className="grid grid-cols-1 gap-6">
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                1
+          <div className="container_list_time h-[700px] bg-[#387F39] rounded-2xl p-10 overflow-y-auto shadow-2xl">
+            <div className="grid grid-cols-1 gap-6 ">
+              {timeSlots.map((slot, index) => (
+                <div
+                key={index}
+                className={`list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl cursor-pointer h-[114px] ${
+                  slot.isAvailable ? "text-black cursor-pointer" : "text-[#AAAAAA] cursor-not-allowed"
+                }`}
+                onClick={() => handleTimeClick(slot.time, slot.isAvailable)}
+              >
+                {slot.time} {"  "}
+                {slot.isAvailable ? "Available" : "Unavailable"} {"  "}
+                {slot.member}
               </div>
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                2
-              </div>
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                3
-              </div>
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                4
-              </div>
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                5
-              </div>
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                6
-              </div>
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                7
-              </div>
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                8
-              </div>
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                9
-              </div>
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                10
-              </div>
-              <div className="list-time bg-white p-4 rounded-lg text-center font-semibold text-lg shadow-2xl">
-                11
-              </div>
+              
+              ))}
             </div>
           </div>
           <div className="flex justify-center items-center">
@@ -136,22 +151,62 @@ function Football_Booking() {
           </div>
         </div>
       </div>
-        <Footer />
+
+      {showPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-8 rounded-lg shadow-lg w-[600px] h-[450px]">
+            <h2 className="text-xl font-semibold mb-4">Booking Time: {selectedTime}</h2>
+            <form>
+              <label htmlFor="name" className="block mb-2">
+                Name:
+              </label>
+              <input
+                type="text"
+                id="name"
+                className="w-full border p-2 mb-4"
+                placeholder="Enter your name"
+              />
+              <label htmlFor="id" className="block mb-2">
+                Lecturer / Staff / Student ID:
+              </label>
+              <input
+                type="text"
+                id="id"
+                className="w-full border p-2 mb-4"
+                placeholder="Enter your ID"
+              />
+              <label htmlFor="phone" className="block mb-2">
+                Phone Number:
+              </label>
+              <input
+                type="text"
+                id="phone"
+                className="w-full border p-2 mb-4"
+                placeholder="Enter your phone number"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={closePopup}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg ml-2"
+                >
+                  Book Now
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <Footer />
     </div>
   );
 }
 
 export default Football_Booking;
-
-{
-  /* <div>
-            <form action="">
-              <label htmlFor="name">Name</label>
-              <input type="text" name="name" placeholder="Enter your name"/>
-              <label htmlFor="id">Lecturer / Staff / Student ID</label>
-              <input type="text" name="id" placeholder="Enter your ID"/>
-              <label htmlFor="phone-number">Phone Number</label>
-              <input type="number" name="phone-number"  placeholder="Enter your Phone number"/>
-            </form>
-           </div> */
-}
