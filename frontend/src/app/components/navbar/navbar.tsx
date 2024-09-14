@@ -47,7 +47,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
   };
 
   return (
-    <div className={`${getBackgroundColor()} px-8`}>
+    <div className={`${getBackgroundColor()} px-8 `}>
       <div className="NavBar_container flex flex-row items-center">
         <Link
           href="/"
@@ -59,7 +59,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             <span className="text-zinc-900">Complex</span>
           </span>
         </Link>
-        <ul className="NavBar_res inline-flex flex-row flex-none w-9/12 gap-12 justify-start font-semibold pt-6 text-sm">
+        <ul className="NavBar_res inline-flex flex-row flex-none w-9/12 pr-10 gap-16 justify-center font-semibold pt-6 text-sm ">
           <li className={getActiveClass("gym")}>
             <Link
               href="/pages/gym"
