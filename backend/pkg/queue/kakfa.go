@@ -24,7 +24,7 @@ func ConnectProducer(brokerUrls []string, apiKey, secret string) (sarama.SyncPro
 			InsecureSkipVerify: true,
 			ClientAuth: tls.NoClientCert,
 		}
-	}
+	}  
 	config.Producer.Return.Successes = true
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Retry.Max = 3
