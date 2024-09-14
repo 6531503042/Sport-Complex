@@ -29,6 +29,7 @@ type (
 		//Kafka Interface
 		GetOffset(pctx context.Context) (int64, error)
 		UpOffset(pctx context.Context, newOffset int64) error
+		InsertBookingViaQueue(pctx context.Context, cfg *config.Config, req *booking.Booking) error
 	}
 
 	bookingRepository struct {
