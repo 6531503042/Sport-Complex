@@ -28,7 +28,8 @@ const LoginPage = () => {
             className={styles.input} 
           />
           <div className={styles.checkboxContainer}>
-            <Checkbox>Remember me</Checkbox>
+            <Checkbox className={styles.checkbox} />
+            <span>Remember me</span>
             <Link href="#">Forgot password</Link>
           </div>
           <Button type="submit" className={styles.button} color="primary">

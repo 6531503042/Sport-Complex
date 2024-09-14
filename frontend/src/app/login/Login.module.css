@@ -1,85 +1,93 @@
 .container {
-    display: flex;
-    height: 100vh;
-  }
-  
-  .left, .right {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .left {
-    background-color: #fff;
-    padding: 2rem;
-  }
-  
-  .right {
-    position: relative;
-    overflow: hidden;
-    height: 100%;
-    display: flex;
-    justify-content: center; /* Centers the image horizontally */
-    align-items: center; /* Centers the image vertically */
-    background-color: #f0f0f0; /* Optional: background color if needed */
-  }
-  
-  .form {
-    width: 100%;
-    max-width: 400px;
-  }
-  
-  .checkboxContainer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  
-  .logo {
-    margin-bottom: 1rem;
-  }
-  
-  .button {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: #AB3439;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .button:hover {
-    background-color: #8f2c31;
-  }
-  
-  .textCenter {
-    margin-top: 1rem;
-    text-align: center;
-  }
-  
-  .header {
-    color: black;
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-  
-  .input {
-    color: #000; 
-    border-radius: 20px; 
-    padding: 0.5rem; 
-  }
-  
-  .input::placeholder {
-    color: #888; /* Placeholder text color */
-  }
+  display: flex;
+  height: 100vh;
+}
 
-  .uderheader {
-    color: #555;
-    font-size: 1rem;
-    text-align: center;
-  }
-  
+.left, .right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.left {
+  background-color: #fff;
+  padding: 2rem;
+}
+
+.right {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  justify-content: center; /* Centers the image horizontally */
+  align-items: center; /* Centers the image vertically */
+  background-color: #f0f0f0; /* Optional: background color if needed */
+}
+
+.form {
+  width: 100%;
+  max-width: 400px;
+}
+
+.checkboxContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.checkboxContainer .checkbox {
+  width: 16px; /* Set the width of the checkbox */
+  height: 16px; /* Set the height of the checkbox */
+  margin-right: 0.5rem; /* Add space between the checkbox and the text */
+}
+
+.logo {
+  margin-bottom: 1rem;
+}
+
+.button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #AB3439;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: #8f2c31;
+}
+
+.textCenter {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.header {
+  color: black;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.input {
+  margin-bottom: 1rem;
+  border-radius: 20px !important; /* Adjust radius */
+}
+
+.input input {
+  padding: 0.75rem !important; /* Adjust padding for centering */
+}
+
+.input::placeholder {
+  color: #888; /* Placeholder text color */
+}
+
+.uderheader {
+  color: #555;
+  font-size: 1rem;
+  text-align: center;
+}
