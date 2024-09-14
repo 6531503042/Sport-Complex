@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"main/config"
 	"main/modules/booking"
 	"main/modules/booking/repository"
 	"main/pkg/utils"
@@ -60,10 +61,17 @@ func (u *bookingUsecase) InsertBooking(ctx context.Context, userId, slotId strin
         return nil, fmt.Errorf("error: slot %s does not exist", slotId)
     }
 
-    // Create the booking
+    // Create the booking in MongoDB
     createdBooking, err := u.bookingRepository.InsertBooking(ctx, newBooking)
     if err != nil {
         return nil, fmt.Errorf("error: failed to create booking: %w", err)
+    }
+
+    cfg := config.LoadConfig()
+
+    err = u.bookingRepository.InsertBookingViaQueue(ctx, &cfg, createdBooking)
+    if err != nil {
+        return nil, fmt.Errorf("error: failed to push booking to queue: %w", err)
     }
 
     return createdBooking, nil
