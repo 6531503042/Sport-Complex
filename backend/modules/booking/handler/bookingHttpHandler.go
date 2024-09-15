@@ -30,26 +30,27 @@ func NewBookingHttpHandler(cfg *config.Config, bookingUsecase usecase.BookingUse
 	return &bookingHttpHandler{cfg: cfg, bookingUsecase: bookingUsecase}
 }
 
+
 func (h *bookingHttpHandler) InsertBooking(c echo.Context) error {
-    log.Println("Received request to create booking")
+	log.Println("Received request to create booking")
 
-    ctx := c.Request().Context()
-    wrapper := request.ContextWrapper(c)
+	ctx := c.Request().Context()
+	wrapper := request.ContextWrapper(c)
 
-    req := new(booking.CreateBookingReq)
+	req := new(booking.CreateBookingReq)
 
-    // Bind and validate the incoming request payload
-    if err := wrapper.Bind(req); err != nil {
-        return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
-    }
+	// Bind and validate the incoming request payload
+	if err := wrapper.Bind(req); err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
+	}
 
-    // Use the usecase to insert a new booking
-    res, err := h.bookingUsecase.InsertBooking(ctx, h.config, req.UserId, req.SlotId)
-    if err != nil {
-        return response.ErrResponse(c, http.StatusBadRequest, err.Error())
-    }
+	// Use the usecase to insert a new booking
+	res, err := h.bookingUsecase.InsertBooking(ctx, req.UserId, req.SlotId)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
 
-    return response.SuccessResponse(c, http.StatusCreated, res)
+	return response.SuccessResponse(c, http.StatusCreated, res)
 }
 
 
