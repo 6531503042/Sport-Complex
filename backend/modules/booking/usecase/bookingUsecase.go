@@ -43,7 +43,21 @@ func (u *bookingUsecase) UpOffSet(ctx context.Context, newOffset int64) error {
     return u.bookingRepository.UpOffset(ctx, newOffset)
 }
 func (u *bookingUsecase) InsertBooking(ctx context.Context, userId, slotId string) (*booking.Booking, error) {
-    // Ensure the user and slot exist, then create a booking
+    // Ensure the user and slot exist before creating a booking
+    
+    // Check if the user exists
+    _, err := u.bookingRepository.FindOneUserBooking(ctx, userId)
+    if err != nil {
+        return nil, fmt.Errorf("error: user %s does not exist", userId)
+    }
+
+    // Check if the slot exists
+    _, err = u.bookingRepository.FindOneSlotBooking(ctx, slotId)
+    if err != nil {
+        return nil, fmt.Errorf("error: slot %s does not exist", slotId)
+    }
+
+    // Create the new booking object
     newBooking := &booking.Booking{
         UserId:    userId,
         SlotId:    slotId,
@@ -52,30 +66,22 @@ func (u *bookingUsecase) InsertBooking(ctx context.Context, userId, slotId strin
         UpdatedAt: utils.LocalTime(),
     }
 
-    // Check if the user exists
-    if _, err := u.bookingRepository.FindOneUserBooking(ctx, userId); err != nil {
-        return nil, fmt.Errorf("error: user %s does not exist", userId)
-    }
-
-    // Check if the slot exists
-    if _, err := u.bookingRepository.FindOneSlotBooking(ctx, slotId); err != nil {
-        return nil, fmt.Errorf("error: slot %s does not exist", slotId)
-    }
-
-    // Create the booking in MongoDB
+    // Insert the booking into MongoDB
     createdBooking, err := u.bookingRepository.InsertBooking(ctx, newBooking)
     if err != nil {
         return nil, fmt.Errorf("error: failed to create booking: %w", err)
     }
 
-    // Push booking to queue (repository should handle config internally)
-    err = u.bookingRepository.InsertBookingViaQueue(ctx, createdBooking)
+    // Push the booking to the queue
+    err = u.bookingRepository.InsertBookingViaQueue(ctx, u.cfg, createdBooking) // Pass config here
     if err != nil {
         return nil, fmt.Errorf("error: failed to push booking to queue: %w", err)
     }
 
     return createdBooking, nil
 }
+
+
 
 
 
