@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Banner1Img from "../../assets/dark_bg.jpg";
 import Banner2Img from "../../assets/banner_2.jpg";
-import Banner3Img from "../../assets/banner_3.jpg";
+import Banner3Img from "../../assets/banner_1.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
@@ -36,7 +36,7 @@ const BannerCarousel: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentBanner((prev) => (prev === banners.length - 1 ? 0 : prev + 1));
-    }, 5000); 
+    }, 60000); 
 
     return () => clearInterval(interval); 
   }, [banners.length]);
@@ -51,8 +51,10 @@ const BannerCarousel: React.FC = () => {
 
   return (
     <div className="flex items-center h-[500px] text-white bg-cover bg-center px-10"
-      style={{
+    style={{
         backgroundImage: `url(${banners[currentBanner].image.src})`,
+        backgroundSize: "cover",  
+        backgroundPosition: "center", 
       }}
     >
       <div className="flex flex-row items-center w-screen justify-between">
