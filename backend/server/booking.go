@@ -16,6 +16,7 @@ func (s *server) bookingService() {
 	// Initialize the booking HTTP handler
 	slotHttpHandler := handler.NewSlotHttpHandler(s.cfg, slotUsecase)
 	bookingHttpHandler := handler.NewBookingHttpHandler(s.cfg, bookingUsecase)
+	bookingQueueHandler := handler.NewBookingQueueHandler(s.cfg, bookingUsecase)
 
 
 	//Booking Route
@@ -24,6 +25,9 @@ func (s *server) bookingService() {
 	booking.GET("/bookings/:booking_id", bookingHttpHandler.FindBooking)
 	booking.GET("/bookings/user/:user_id", bookingHttpHandler.FindOneUserBooking)
 	booking.PUT("/bookings/:id", bookingHttpHandler.UpdateBooking)
+
+	//Message queue technical
+	go bookingQueueHandler.AddBooking()
 
 	//Slot Route
 	slots := s.app.Group("/slots_v1")
