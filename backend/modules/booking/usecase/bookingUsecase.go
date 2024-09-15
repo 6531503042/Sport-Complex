@@ -22,12 +22,14 @@ type(
 	}
 
 	bookingUsecase struct {
+		cfg              *config.Config
 		bookingRepository repository.BookingRepositoryService
 	}
 )
 
 func NewBookingUsecase(bookingRepository repository.BookingRepositoryService) BookingUsecaseService {
 	return &bookingUsecase{
+		cfg: &config.Config{},
 		bookingRepository: bookingRepository,
 	}
 }
@@ -40,7 +42,6 @@ func (u *bookingUsecase) GetOffSet(ctx context.Context) (int64, error) {
 func (u *bookingUsecase) UpOffSet(ctx context.Context, newOffset int64) error {
     return u.bookingRepository.UpOffset(ctx, newOffset)
 }
-
 func (u *bookingUsecase) InsertBooking(ctx context.Context, userId, slotId string) (*booking.Booking, error) {
     // Ensure the user and slot exist, then create a booking
     newBooking := &booking.Booking{
@@ -67,15 +68,17 @@ func (u *bookingUsecase) InsertBooking(ctx context.Context, userId, slotId strin
         return nil, fmt.Errorf("error: failed to create booking: %w", err)
     }
 
-    cfg := config.LoadConfig()
-
-    err = u.bookingRepository.InsertBookingViaQueue(ctx, &cfg, createdBooking)
+    // Push booking to queue (repository should handle config internally)
+    err = u.bookingRepository.InsertBookingViaQueue(ctx, createdBooking)
     if err != nil {
         return nil, fmt.Errorf("error: failed to push booking to queue: %w", err)
     }
 
     return createdBooking, nil
 }
+
+
+
 
 func (u *bookingUsecase) UpdateBooking (ctx context.Context, bookingId string, status int) (*booking.Booking, error) {
 	booking, err := u.bookingRepository.FindBooking(ctx, bookingId)
