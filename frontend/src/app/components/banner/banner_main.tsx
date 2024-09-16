@@ -22,13 +22,13 @@ const BannerCarousel: React.FC = () => {
       image: Banner2Img,
       title: "Stay Active, Stay Healthy",
       description: "Discover a variety of sports and fitness programs tailored to your needs.",
-      link: "/pages/programs",
+      link: "/",
     },
     {
       image: Banner3Img,
       title: "Join a Community",
       description: "Meet like-minded individuals and engage in exciting activities.",
-      link: "/pages/community",
+      link: "/",
     },
   ];
 
