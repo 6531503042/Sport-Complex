@@ -7,6 +7,7 @@ import (
 )
 
 func (s *server) bookingService() {
+
 	// Initialize repository, usecase, and handlers
 	bookingRepo := repository.NewBookingRepository(s.db)
 	slotRepo := repository.NewSlotRepository(s.db)
@@ -18,17 +19,16 @@ func (s *server) bookingService() {
 	bookingHttpHandler := handler.NewBookingHttpHandler(s.cfg, bookingUsecase)
 	bookingQueueHandler := handler.NewBookingQueueHandler(s.cfg, bookingUsecase)
 
-
 	//Booking Route
 	booking := s.app.Group("/booking_v1")
 	booking.POST("/bookings", bookingHttpHandler.InsertBooking)
 	booking.GET("/bookings/:booking_id", bookingHttpHandler.FindBooking)
 	booking.GET("/bookings/user/:user_id", bookingHttpHandler.FindOneUserBooking)
 	booking.PUT("/bookings/:id", bookingHttpHandler.UpdateBooking)
-
+	
 	//Message queue technical
 	go bookingQueueHandler.AddBooking()
-
+	
 	//Slot Route
 	slots := s.app.Group("/slots_v1")
 	slots.POST("/slots/slots", slotHttpHandler.InsertSlot)
