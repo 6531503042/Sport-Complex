@@ -43,7 +43,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
 
   const getActiveClass = (page: string) => {
     return activePage === page
-      ? "border-b-4 border-white"
+      ? "border-b-4 border-white "
       : "border-b-4 border-transparent";
   };
 
@@ -81,11 +81,11 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         </div>
       </div>
       </header>
-      <ul className="NavBar_res inline-flex flex-row pr-10 gap-16 justify-center font-semibold pt-6 px-10 text-sm">
+      <ul className="NavBar_res inline-flex flex-row pr-10 gap-16 justify-center font-semibold pt-4 text-sm">
         <li className={getActiveClass("gym")}>
           <Link
             href="/pages/gym"
-            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+            className="text-white hover:text-gray-400 flex items-center pb-4 me-2 "
           >
             <FontAwesomeIcon icon={faDumbbell} className="mx-2.5" />
             Gym Booking
@@ -94,7 +94,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         <li className={getActiveClass("swimming")}>
           <Link
             href="/pages/swimming"
-            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faSwimmer} className="mx-2.5" />
             Swimming Booking
@@ -103,7 +103,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         <li className={getActiveClass("football")}>
           <Link
             href="/pages/football"
-            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faBasketball} className="mx-2.5" />
             Football booking
@@ -112,7 +112,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         <li className={getActiveClass("rule")}>
           <Link
             href="/pages/rule"
-            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faClipboard} className="mx-2.5" />
             Rules
@@ -121,7 +121,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         <li className={getActiveClass("contact")}>
           <Link
             href="/pages/contact"
-            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faEnvelope} className="mx-2.5" />
             Contact
@@ -130,7 +130,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         <li className={getActiveClass("payment")}>
           <Link
             href="/pages/payment"
-            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faWallet} className="mx-2.5" />
             Payment
