@@ -7,7 +7,7 @@ import NewsReport from "../../components/new_report/report"
 import "../../css/banner.css";
 
 
-const HomePage: React.FC = () => {
+const homepage: React.FC = () => {
 
   return (
     <div className="">
@@ -19,4 +19,4 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default HomePage;
+export default homepage;
