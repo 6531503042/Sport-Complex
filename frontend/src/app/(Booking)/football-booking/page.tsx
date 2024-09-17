@@ -39,7 +39,7 @@ function Football() {
   const handleCardClick = (index: number, isAvailable: boolean) => {
     if (isAvailable) {
       setSelectedCard(index === selectedCard ? null : index);
-      setErrors({ name: "", id: "", phone: "" }); // Reset errors when selecting a new slot
+      setErrors({ name: "", id: "", phone: "" }); 
     }
   };
 
@@ -55,10 +55,9 @@ function Football() {
     const hasErrors = Object.values(newErrors).some(error => error !== "");
     if (!hasErrors) {
       console.log("Form submitted successfully", formData);
-      // Simulate a successful booking
       setIsBookingSuccessful(true);
 
-      // Reset form and selected card after booking
+
       setFormData({
         name: "",
         id: "",
@@ -172,7 +171,6 @@ function Football() {
           </div>
         </div>
 
-        {/* Success Popup */}
         {isBookingSuccessful && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-lg text-center">
