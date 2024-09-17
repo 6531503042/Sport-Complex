@@ -11,7 +11,7 @@
 }
 
 
-@media (max-width: 1600px) {
+@media (max-width: 1180px) {
     .NavBar_res {
         display: none;
 }

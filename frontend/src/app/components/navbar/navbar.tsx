@@ -7,6 +7,7 @@ import SideBar from "../sidebar/sidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBasketball,
+  faCircle,
   faClipboard,
   faEnvelope,
   faSwimmer,
@@ -25,7 +26,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         return "bg-red-500";
       case "swimming":
         return "bg-blue-500";
-      case "basketball":
+      case "football":
         return "bg-yellow-500";
       case "contact":
         return "bg-green-500";
@@ -47,78 +48,31 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
   };
 
   return (
-    <div className={`${getBackgroundColor()} px-8 `}>
-      <div className="NavBar_container flex flex-row items-center">
+    <div className={`${getBackgroundColor()} justify-center flex flex-col`}>
+      <header>
+      <div className="NavBar_container flex flex-row items-center justify-between bg-white px-8 py-5">
         <Link
           href="/"
-          className="inline-flex flex-row items-center flex-none w-2/12 gap-3.5"
+          className="inline-flex flex-row items-center flex-none gap-3.5"
         >
           <img src={Logo.src} alt="Logo" className="w-7" />
-          <span className="flex flex-col font-extrabold text-white text-lg">
-            <span className="text-white">Sport</span>
-            <span className="text-zinc-900">Complex</span>
+          <span className="flex flex-col border-l-2 w-max">
+            <div className="ms-1">
+              <span className="ms-1 inline-flex flex-row font-semibold text-xl">
+                <p className="text-black ">SPORT.</p>
+                <p className="text-gray-500">MFU</p>
+              </span>
+              <hr />
+              <span className="text-gray-500 ms-1 font-medium text-sm">
+                SPORT COMPLEX
+              </span>
+            </div>
           </span>
         </Link>
-        <ul className="NavBar_res inline-flex flex-row flex-none w-9/12 pr-10 gap-16 justify-center font-semibold pt-6 text-sm">
-          <li className={getActiveClass("gym")}>
-            <Link
-              href="/pages/gym"
-              className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
-            >
-              <FontAwesomeIcon icon={faDumbbell} className="mx-2.5" />
-              Gym Booking
-            </Link>
-          </li>
-          <li className={getActiveClass("swimming")}>
-            <Link
-              href="/pages/swimming"
-              className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
-            >
-              <FontAwesomeIcon icon={faSwimmer} className="mx-2.5" />
-              Swimming Booking
-            </Link>
-          </li>
-          <li className={getActiveClass("basketball")}>
-            <Link
-              href="/pages/basketball"
-              className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
-            >
-              <FontAwesomeIcon icon={faBasketball} className="mx-2.5" />
-              Basketball Booking
-            </Link>
-          </li>
-          <li className={getActiveClass("rule")}>
-            <Link
-              href="/pages/rule"
-              className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
-            >
-              <FontAwesomeIcon icon={faClipboard} className="mx-2.5" />
-              Rules
-            </Link>
-          </li>
-          <li className={getActiveClass("contact")}>
-            <Link
-              href="/pages/contact"
-              className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
-            >
-              <FontAwesomeIcon icon={faEnvelope} className="mx-2.5" />
-              Contact
-            </Link>
-          </li>
-          <li className={getActiveClass("payment")}>
-            <Link
-              href="/pages/payment"
-              className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
-            >
-              <FontAwesomeIcon icon={faWallet} className="mx-2.5" />
-              Payment
-            </Link>
-          </li>
-        </ul>
-        <div className="login_and_sidebar flex-none w-1/12 flex justify-between ms-5 me-2 gap-5">
+        <div className="login_and_sidebar flex-none flex justify-between ms-5 me-2 gap-10">
           <aside className="login_button border-b-4 border-transparent">
             <nav className="inline-flex">
-              <div className="text-white hover:text-gray-400 cursor-pointer">
+              <div className="text-black hover:text-gray-400 cursor-pointer">
                 <Link href="/pages/registration">login</Link>
               </div>
             </nav>
@@ -126,6 +80,63 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
           <SideBar />
         </div>
       </div>
+      </header>
+      <ul className="NavBar_res inline-flex flex-row pr-10 gap-16 justify-center font-semibold pt-6 px-10 text-sm">
+        <li className={getActiveClass("gym")}>
+          <Link
+            href="/pages/gym"
+            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+          >
+            <FontAwesomeIcon icon={faDumbbell} className="mx-2.5" />
+            Gym Booking
+          </Link>
+        </li>
+        <li className={getActiveClass("swimming")}>
+          <Link
+            href="/pages/swimming"
+            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+          >
+            <FontAwesomeIcon icon={faSwimmer} className="mx-2.5" />
+            Swimming Booking
+          </Link>
+        </li>
+        <li className={getActiveClass("football")}>
+          <Link
+            href="/pages/football"
+            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+          >
+            <FontAwesomeIcon icon={faBasketball} className="mx-2.5" />
+            Football booking
+          </Link>
+        </li>
+        <li className={getActiveClass("rule")}>
+          <Link
+            href="/pages/rule"
+            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+          >
+            <FontAwesomeIcon icon={faClipboard} className="mx-2.5" />
+            Rules
+          </Link>
+        </li>
+        <li className={getActiveClass("contact")}>
+          <Link
+            href="/pages/contact"
+            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+          >
+            <FontAwesomeIcon icon={faEnvelope} className="mx-2.5" />
+            Contact
+          </Link>
+        </li>
+        <li className={getActiveClass("payment")}>
+          <Link
+            href="/pages/payment"
+            className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
+          >
+            <FontAwesomeIcon icon={faWallet} className="mx-2.5" />
+            Payment
+          </Link>
+        </li>
+      </ul>
     </div>
   );
 };
