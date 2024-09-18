@@ -8,7 +8,7 @@ import (
 
 type (
 	Facilitiy struct {
-		ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+		Id          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 		Name        string             `bson:"name" json:"name"`
 		PriceInsider float64           `bson:"price_insider" json:"price_insider"`
 		PriceOutsider float64          `bson:"price_outsider" json:"price_outsider"`
@@ -18,7 +18,7 @@ type (
 	}
 
 	FacilityBson struct {
-		ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+		Id          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 		Name        string             `bson:"name" json:"name"`
 		PriceInsider float64           `bson:"price_insider" json:"price_insider"`
 		PriceOutsider float64          `bson:"price_outsider" json:"price_outsider"`

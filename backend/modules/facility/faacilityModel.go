@@ -18,7 +18,7 @@ type (
 	}
 
 	FacilitiyResponse struct {
-		ID            string    `json:"id"`
+		Id            string    `json:"id"`
 		Name          string    `json:"name"`
 		PriceInsider  float64   `json:"price_insider"`
 		PriceOutsider float64   `json:"price_outsider"`
