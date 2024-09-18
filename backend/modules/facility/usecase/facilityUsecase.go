@@ -12,11 +12,11 @@ import (
 
 type (
 	FacilityUsecaseService interface {
-		CreateFacility (pctx context.Context, req *facility.CreateFaciliityRequest) (facility.FacilityBson, error)
-		FindOneFacility (pctx  context.Context, facilityId string) (*facility.FacilityBson, error)
-		FindManyFacility (pctx context.Context) ([]facility.FacilityBson, error)
-		UpdateOneFacility (pctx context.Context, facilityId string, updateFields map[string]interface{}) error
-		DeleteOneFacility (pctx context.Context, facilityId string) error
+		CreateFacility(pctx context.Context, req *facility.CreateFaciliityRequest) (facility.FacilityBson, error)
+		FindOneFacility(pctx context.Context, facilityId, facilityName string) (*facility.FacilityBson, error)
+		FindManyFacility(pctx context.Context, facilityName string) ([]facility.FacilityBson, error)
+		UpdateOneFacility(pctx context.Context, facilityId, facilityName string, updateFields map[string]interface{}) error
+		DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error
 	}
 
 	facilityUsecase struct {
@@ -30,57 +30,60 @@ func NewFacilityUsecase(facilityRepository repository.FacilityRepositoryService)
 	}
 }
 
-func (u *facilityUsecase) CreateFacility (pctx context.Context, req *facility.CreateFaciliityRequest) (facility.FacilityBson, error) {
+func (u *facilityUsecase) CreateFacility(pctx context.Context, req *facility.CreateFaciliityRequest) (facility.FacilityBson, error) {
+	// Check if the facility name is unique
 	if !u.facilityRepository.IsUniqueName(pctx, req.Name) {
-		return facility.FacilityBson{}, errors.New("error: name already existing")
+		return facility.FacilityBson{}, errors.New("error: name already exists")
 	}
 
-	//Insert Facility
+	// Insert Facility
 	facilityId, err := u.facilityRepository.InsertFacility(pctx, &facility.Facilitiy{
-		Name: req.Name,
-		PriceInsider: req.PriceInsider,
+		Name:          req.Name,
+		PriceInsider:  req.PriceInsider,
 		PriceOutsider: req.PriceOutsider,
-		Description: req.Description,
-		CreatedAt: utils.LocalTime(),
-		UpdatedAt: utils.LocalTime(),
+		Description:   req.Description,
+		CreatedAt:     utils.LocalTime(),
+		UpdatedAt:     utils.LocalTime(),
 	})
-	// Find the newly inserted facility
-    facilityBson, err := u.facilityRepository.FindOneFacility(pctx, facilityId.Hex())
-    if err != nil {
-        return facility.FacilityBson{}, fmt.Errorf("error: find facility failed: %w", err)
-    }
-    if facilityBson == nil {
-        return facility.FacilityBson{}, errors.New("error: facility not found")
-    }
+	if err != nil {
+		return facility.FacilityBson{}, fmt.Errorf("error: failed to create facility: %w", err)
+	}
 
-    return *facilityBson, nil
+	// Find the newly inserted facility
+	facilityBson, err := u.facilityRepository.FindOneFacility(pctx, facilityId.Hex(), req.Name)
+	if err != nil {
+		return facility.FacilityBson{}, fmt.Errorf("error: find facility failed: %w", err)
+	}
+
+	return *facilityBson, nil
 }
 
-
-func (u *facilityUsecase) FindOneFacility (pctx  context.Context, facilityId string) (*facility.FacilityBson, error) {
-	result, err := u.facilityRepository.FindOneFacility(pctx, facilityId)
+func (u *facilityUsecase) FindOneFacility(pctx context.Context, facilityId, facilityName string) (*facility.FacilityBson, error) {
+	result, err := u.facilityRepository.FindOneFacility(pctx, facilityId, facilityName)
 	if err != nil {
 		return nil, err
 	}
 
-	loc, _ := time.LoadLocation("Asia/Bangkok")
+	// Set the location to Asia/Bangkok
+	loc, err := time.LoadLocation("Asia/Bangkok")
 	if err != nil {
-        return nil, fmt.Errorf("error: unable to load time location: %w", err)
-    }
+		return nil, fmt.Errorf("error: unable to load time location: %w", err)
+	}
 
+	// Return facility details with localized time
 	return &facility.FacilityBson{
-        Id:            result.Id, // No need to convert ObjectID to Hex manually
-        Name:          result.Name,
-        PriceInsider:  result.PriceInsider,
-        PriceOutsider: result.PriceOutsider,
-        Description:   result.Description,
-        CreatedAt:     result.CreatedAt.In(loc),
-        UpdatedAt:     result.UpdatedAt.In(loc),
-    }, nil
+		Id:            result.Id,
+		Name:          result.Name,
+		PriceInsider:  result.PriceInsider,
+		PriceOutsider: result.PriceOutsider,
+		Description:   result.Description,
+		CreatedAt:     result.CreatedAt.In(loc),
+		UpdatedAt:     result.UpdatedAt.In(loc),
+	}, nil
 }
 
-func (u *facilityUsecase) FindManyFacility (pctx context.Context) ([]facility.FacilityBson, error) {
-	results, err := u.facilityRepository.FindManyFacility(pctx)
+func (u *facilityUsecase) FindManyFacility(pctx context.Context, facilityName string) ([]facility.FacilityBson, error) {
+	results, err := u.facilityRepository.FindManyFacility(pctx, facilityName)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +91,7 @@ func (u *facilityUsecase) FindManyFacility (pctx context.Context) ([]facility.Fa
 	var facilityProfile []facility.FacilityBson
 	for _, result := range results {
 		facilityProfile = append(facilityProfile, facility.FacilityBson{
-			Id:            result.Id, // No need to convert ObjectID to Hex manually
+			Id:            result.Id,
 			Name:          result.Name,
 			PriceInsider:  result.PriceInsider,
 			PriceOutsider: result.PriceOutsider,
@@ -101,20 +104,26 @@ func (u *facilityUsecase) FindManyFacility (pctx context.Context) ([]facility.Fa
 	return facilityProfile, nil
 }
 
-func (u *facilityUsecase) UpdateOneFacility (pctx context.Context, facilityId string, updateFields map[string]interface{}) error {
-	if _, err := u.facilityRepository.FindOneFacility(pctx, facilityId); err != nil {
+func (u *facilityUsecase) UpdateOneFacility(pctx context.Context, facilityId, facilityName string, updateFields map[string]interface{}) error {
+	// Check if the facility exists
+	if _, err := u.facilityRepository.FindOneFacility(pctx, facilityId, facilityName); err != nil {
 		return err
 	}
 
+	// Update the updated_at field
 	updateFields["updated_at"] = utils.LocalTime().Format(time.RFC3339)
-	return u.facilityRepository.UpdateOneFacility(pctx, facilityId, updateFields)
+
+	// Update the facility
+	return u.facilityRepository.UpdateOneFacility(pctx, facilityId, facilityName, updateFields)
 }
 
-func (u *facilityUsecase) DeleteOneFacility (pctx context.Context, facilityId string) error {
-	_, err := u.facilityRepository.FindOneFacility(pctx, facilityId)
+func (u *facilityUsecase) DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error {
+	// Ensure the facility exists before deleting
+	_, err := u.facilityRepository.FindOneFacility(pctx, facilityId, facilityName)
 	if err != nil {
 		return err
 	}
 
-	return u.facilityRepository.DeleteOneFacility(pctx,facilityId)
+	// Delete the facility
+	return u.facilityRepository.DeleteOneFacility(pctx, facilityId, facilityName)
 }
