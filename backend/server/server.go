@@ -95,6 +95,8 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
         s.authService()
 	case "booking":
 		s.bookingService()
+	case "facility" :
+		s.facilityService()
     // Add other service cases here
     }
 
