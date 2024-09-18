@@ -18,11 +18,11 @@ import (
 type (
 	FacilityRepositoryService interface {
 		InsertFacility (pctx context.Context, req * facility.Facilitiy) (primitive.ObjectID, error)
-		IsUniqueName (pctx context.Context, name string) bool
-		UpdateOneFacility (pctx context.Context, facilityId string, updateFields bson.M) error
-		DeleteOneFacility(pctx context.Context, facilityId string) error
-		FindOneFacility(pctx context.Context, facilityId string) (*facility.FacilityBson, error)
-		FindManyFacility(pctx context.Context) ([]facility.FacilityBson, error)
+		IsUniqueName(pctx context.Context, facilityName string) bool
+		UpdateOneFacility (pctx context.Context, facilityId, facilityName string, updateFields bson.M) error
+		DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error
+		FindOneFacility(pctx context.Context, facilityId,facilityName string) (*facility.FacilityBson, error)
+		FindManyFacility(pctx context.Context, facilityName string) ([]facility.FacilityBson, error)
 	}
 
 	facilitiyReposiory struct {
@@ -34,15 +34,18 @@ func NewFacilityRepository(db *mongo.Client) FacilityRepositoryService {
 	return &facilitiyReposiory{db: db}
 }
 
-func (r *facilitiyReposiory) facilityDbConn(pctx context.Context) *mongo.Database {
-	return r.db.Database("facility_db")
+func (r *facilitiyReposiory) facilityDbConn(pctx context.Context, facilityName string) *mongo.Database {
+	// Use the facility name to dynamically create the database name
+	databaseName := fmt.Sprintf("%s_db", facilityName)
+	return r.db.Database(databaseName)
 }
+
 
 func (r *facilitiyReposiory) InsertFacility (pctx context.Context, req * facility.Facilitiy) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
-	db := r.facilityDbConn(ctx)
+	db := r.facilityDbConn(ctx, req.Name)
 	col := db.Collection("facilities")
 	
 	result, err := col.InsertOne(ctx, req)
@@ -60,14 +63,14 @@ func (r *facilitiyReposiory) InsertFacility (pctx context.Context, req * facilit
 	return facilityId, nil
 }
 
-func (r *facilitiyReposiory) IsUniqueName (pctx context.Context, name string) bool {
+func (r *facilitiyReposiory) IsUniqueName(pctx context.Context, facilityName string) bool {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
-	db := r.facilityDbConn(ctx)
+	db := r.facilityDbConn(ctx, facilityName) // Pass the facility name
 	col := db.Collection("facilities")
 
-	nameCount, err := col.CountDocuments(ctx, bson.M{"name": name})
+	nameCount, err := col.CountDocuments(ctx, bson.M{"name": facilityName})
 	if err != nil {
 		log.Printf("Error: IsUniqueName failed: %s", err.Error())
 		return false
@@ -78,11 +81,12 @@ func (r *facilitiyReposiory) IsUniqueName (pctx context.Context, name string) bo
 
 
 
-func (r *facilitiyReposiory) UpdateOneFacility (pctx context.Context, facilityId string, updateFields bson.M) error {
+
+func (r *facilitiyReposiory) UpdateOneFacility (pctx context.Context, facilityId, facilityName string, updateFields bson.M) error {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
-	db := r.facilityDbConn(ctx)
+	db := r.facilityDbConn(ctx, facilityName)
 	col := db.Collection("facilities")
 
 	updateResult, err := col.UpdateOne(
@@ -106,11 +110,11 @@ func (r *facilitiyReposiory) UpdateOneFacility (pctx context.Context, facilityId
 	return nil
 }
 
-func (r *facilitiyReposiory) DeleteOneFacility(pctx context.Context, facilityId string) error {
+func (r *facilitiyReposiory) DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
-	db := r.facilityDbConn(ctx)
+	db := r.facilityDbConn(ctx,facilityName)
 	col := db.Collection("facilities")
 
 	result, err := col.DeleteOne(ctx, bson.M{"_id": utils.ConvertToObjectId(facilityId)})
@@ -128,15 +132,14 @@ func (r *facilitiyReposiory) DeleteOneFacility(pctx context.Context, facilityId 
 }
 
 
-func (r *facilitiyReposiory) FindOneFacility(pctx context.Context, facilityId string) (*facility.FacilityBson, error) {
+func (r *facilitiyReposiory) FindOneFacility(pctx context.Context, facilityId, facilityName string) (*facility.FacilityBson, error) {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
-	db := r.facilityDbConn(ctx)
+	db := r.facilityDbConn(ctx, facilityName)
 	col := db.Collection("facilities")
 
 	result := new(facility.FacilityBson)
-
 	if err := col.FindOne(
 		ctx,
 		bson.M{"_id": utils.ConvertToObjectId(facilityId)},
@@ -159,11 +162,11 @@ func (r *facilitiyReposiory) FindOneFacility(pctx context.Context, facilityId st
 	return result, nil
 }
 
-func (r *facilitiyReposiory) FindManyFacility(pctx context.Context) ([]facility.FacilityBson, error) {
+func (r *facilitiyReposiory) FindManyFacility(pctx context.Context, facilityName string) ([]facility.FacilityBson, error) {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
-	db := r.facilityDbConn(ctx)
+	db := r.facilityDbConn(ctx, facilityName)
 	col := db.Collection("facilities")
 
 	cursor, err := col.Find(ctx, bson.M{}, options.Find().SetProjection(bson.M{
@@ -179,7 +182,7 @@ func (r *facilitiyReposiory) FindManyFacility(pctx context.Context) ([]facility.
 		log.Printf("Error: FindManyFacility: %s", err.Error())
 		return nil, fmt.Errorf("error: failed to fetch facilities: %w", err)
 	}
-	defer func ()  {
+	defer func() {
 		if err := cursor.Close(ctx); err != nil {
 			log.Printf("Error: FindManyFacility: %s", err.Error())
 		}
