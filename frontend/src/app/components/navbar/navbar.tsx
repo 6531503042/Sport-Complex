@@ -9,6 +9,7 @@ import {
   faBasketball,
   faCircle,
   faClipboard,
+  faDumbbell,
   faEnvelope,
   faSwimmer,
   faWallet,
@@ -85,6 +86,15 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         </div>
       </header>
       <ul className="NavBar_res inline-flex flex-row pr-10 gap-16 justify-center font-semibold pt-4 text-sm">
+      <li className={getActiveClass("gym")}>
+          <Link
+            href="/pages/gym"
+            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
+          >
+            <FontAwesomeIcon icon={faDumbbell} className="mx-2.5" />
+            Gym Booking
+          </Link>
+        </li>
         <li className={getActiveClass("swimming")}>
           <Link
             href="/pages/swimming"

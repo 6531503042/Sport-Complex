@@ -132,7 +132,7 @@ const BannerMain: React.FC = () => {
               className={`cursor-pointer w-4 h-4 rounded-full border-2 ${
                 currentBanner === index
                   ? "bg-yellow-500 border-yellow-500"
-                  : "bg-transparent border-white"
+                  : "bg-transparent border-gray-200"
               }`}
             ></span>
           ))}

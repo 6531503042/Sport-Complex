@@ -5,7 +5,7 @@ const page = () => {
   return (
     <div className=''>
         <NavBar activePage="gym"/>
-        <div className='w-screen h-full '>
+        <div className='w-full h-full '>
           <div className=''>
             <p>aaaa</p>
           </div>

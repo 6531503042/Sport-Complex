@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faBasketball, faCancel, faClipboard, faDumbbell, faFutbol, faHome, faSwimmer, faUser, faWallet, faX } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faBasketball, faCancel, faClipboard, faDumbbell, faEnvelope, faFutbol, faHome, faSwimmer, faUser, faWallet, faX } from "@fortawesome/free-solid-svg-icons";
 import IconSidebar from "../../assets/icon_sidebar_black.png"
 
 const sidebar: React.FC = () => {
@@ -22,17 +22,17 @@ const sidebar: React.FC = () => {
       <div
         className={`fixed top-0 right-0 h-full bg-gray-800 text-white transform ${
           isSidebarOpen ? "translate-x-0 " : "translate-x-full"
-        } transition-transform duration-300 ease-in-out w-64`}
+        } transition-transform duration-300 ease-in-out w-80`}
       >
-        <div className="p-4">
+        <div className="">
           <button
-            className="text-white hover:text-gray-300 "
+            className="text-white hover:text-gray-300 p-8"
             onClick={toggleSidebar}
           >
             <FontAwesomeIcon icon={faX} />
           </button>
         </div>
-        <ul className="flex flex-col p-4 gap-8 ">
+        <ul className="flex flex-col py-2 px-8 gap-8 ">
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
             <Link href="/pages/homepage"><FontAwesomeIcon icon={faHome} className="mx-3.5" />
             Home Page</Link>
@@ -46,11 +46,11 @@ const sidebar: React.FC = () => {
             Swimming Booking</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/pages/football"><FontAwesomeIcon icon={faBasketball} className="mx-3.5" />
+            <Link href="/pages/football"><FontAwesomeIcon icon={faFutbol} className="mx-3.5" />
             Football Booking</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/pages/contact"><FontAwesomeIcon icon={faFutbol} className="mx-3.5" />
+            <Link href="/pages/contact"><FontAwesomeIcon icon={faEnvelope} className="mx-3.5" />
             Contact</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
