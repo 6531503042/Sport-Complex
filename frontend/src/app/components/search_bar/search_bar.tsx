@@ -14,8 +14,8 @@ const search_bar = () => {
   return (
     <div className="flex w-full items-center">
       <div
-        className={`flex justify-end items-center transition-all duration-500 ease-in-out ${
-          isExpanded ? "w-64 border px-2 py-2" : "w-10"
+        className={`flex justify-end items-center transition-all duration-300 ease-in-out ${
+          isExpanded ? "w-64 border px-2 py-2 " : "w-10"
         } border-gray-400 rounded-full w-full`}
       >
         {isExpanded && (
@@ -28,10 +28,12 @@ const search_bar = () => {
         <button
           onClick={toggleSearch}
           className={`flex justify-center items-center transition-all duration-300 mx-1 ${
-            isOpen ? "border border-transparent px-2 py-2 rounded-full  hover:bg-orange-700 hover:text-white text-gray-500 " : "text-gray-500 hover:bg-orange-700 hover:text-white rounded-full px-2 py-2"
+            isExpanded
+              ? "text-gray-500 hover:bg-orange-700 hover:text-white rounded-full px-2 py-2"
+              : "border border-transparent px-2 py-2 rounded-full hover:bg-orange-700 hover:text-white text-gray-500"
           }`}
         >
-          <FontAwesomeIcon icon={faSearch} className="" />
+          <FontAwesomeIcon icon={faSearch} />
         </button>
       </div>
     </div>

@@ -10,6 +10,16 @@
     -webkit-box-sizing: border-box;
 }
 
+html, body {
+    min-width: 500px;
+    max-width: 1500px;
+    margin-left: auto;
+    margin-right: auto;
+    /* Optional: Add padding for extra spacing on very narrow screens */
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
 
 @media (max-width: 1180px) {
     .NavBar_res {
@@ -30,4 +40,17 @@
     }
   }
 
+  @media (max-width: 860px) {
+    .banner_container {
+        height: 600px;
+
+    }
+  }
+
+  @media (max-width: 560px) {
+    .banner_container {
+        height: 700px;
+
+    }
+  }
 
