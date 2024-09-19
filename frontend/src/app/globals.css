@@ -51,3 +51,8 @@ html, body {
     }
   }
 
+@media (max-width: 955px) {
+    .searchbar_field {
+        display:none;
+    }
+}

@@ -12,7 +12,7 @@ const search_bar = () => {
   };
 
   return (
-    <div className="flex w-full items-center">
+    <div className="searchbar_field flex w-full items-center justify-end">
       <div
         className={`flex justify-end items-center transition-all duration-300 ease-in-out ${
           isExpanded ? "w-64 border px-2 py-2 " : "w-10"
@@ -22,7 +22,7 @@ const search_bar = () => {
           <input
             type="text"
             placeholder="Search . . ."
-            className="text-xs border-none w-full outline-none focus:outline-none focus:ring-0 transition-all duration-300"
+            className=" text-xs border-none w-full outline-none focus:outline-none focus:ring-0 transition-all duration-300"
           />
         )}
         <button
