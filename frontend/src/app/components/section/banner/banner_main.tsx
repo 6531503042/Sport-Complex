@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Banner1Img from "../../assets/dark_bg.jpg";
-import Banner2Img from "../../assets/banner_2.jpg";
-import Banner3Img from "../../assets/banner_1.jpg";
+import Banner1Img from "../../../assets/dark_bg.jpg";
+import Banner2Img from "../../../assets/banner_2.jpg";
+import Banner3Img from "../../../assets/banner_1.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronLeft,
