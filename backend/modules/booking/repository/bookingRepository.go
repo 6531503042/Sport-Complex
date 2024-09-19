@@ -24,7 +24,6 @@ type (
 		FindBooking(ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error)
 		FindOneSlotBooking(ctx context.Context, slotId string) (*booking.Slot, error)
-		InsertSlot(ctx context.Context, slot *booking.Slot) (*booking.Slot, error)
 
 		//Kafka Interface
 		GetOffset(pctx context.Context) (int64, error)
@@ -229,27 +228,4 @@ func (r *bookingRepository) FindOneSlotBooking(ctx context.Context, slotId strin
     }
 
     return &slot, nil
-}
-
-
-func (r *bookingRepository) InsertSlot(ctx context.Context, slot *booking.Slot) (*booking.Slot, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	db := r.bookingDbConn(ctx)
-	col := db.Collection("slots")
-
-	result, err := col.InsertOne(ctx, slot)
-	if err != nil {
-		log.Printf("Error: InsertSlot: %s", err.Error())
-		return nil, fmt.Errorf("error: insert slot failed: %w", err)
-	}
-
-	slotId, ok := result.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return nil, fmt.Errorf("error: insert slot failed")
-	}
-
-	slot.Id = slotId
-	return slot, nil
 }
