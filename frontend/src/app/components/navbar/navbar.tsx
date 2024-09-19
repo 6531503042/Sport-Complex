@@ -63,20 +63,20 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
                   <p className="text-gray-500">MFU</p>
                 </span>
                 <hr />
-                <span className="text-gray-500 ms-1 font-medium text-sm">
+                <span className="text-gray-500 ms-1 font-medium text-sm bg-black">
                   SPORT COMPLEX
                 </span>
               </div>
             </span>
           </Link>
-          <div className="flex-none w-3/5 justify-end flex">
+          <div className="flex-none w-3/5 flex me-3">
             <SearhBar />
           </div>
-          <div className="login_and_sidebar flex-none w-1/12 flex justify-end ms-5 me-2 gap-20">
+          <div className="login_and_sidebar flex-none w-1/12 flex justify-end ms-5 me-2 gap-12">
             <aside className="login_button border-b-4 border-transparent">
               <nav className="inline-flex">
-                <div className="text-black hover:text-gray-400 cursor-pointer">
-                  <Link href="/pages/registration">login</Link>
+                <div className=" hover:text-white hover:bg-orange-700 hover:shadow-lg transition-all duration-300 cursor-pointer py-2 px-5 bg-tranparent border rounded-full border-orange-700 text-orange-700 items-center">
+                  <Link href="/pages/registration" className=" font-medium">Login</Link>
                 </div>
               </nav>
             </aside>
