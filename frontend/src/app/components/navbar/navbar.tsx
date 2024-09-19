@@ -15,6 +15,7 @@ import {
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
 import SearhBar from "../../components/search_bar/search_bar";
+import '../navbar/navbar.css'
 
 type NavBarProps = {
   activePage?: string;
@@ -38,7 +39,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
       case "homepage":
         return "bg-red-400";
       default:
-        return "bg-red-500";
+        return "bg-red-900";
     }
   };
 
@@ -77,7 +78,9 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             <aside className="login_button border-b-4 border-transparent">
               <nav className="inline-flex">
                 <div className=" hover:text-white hover:bg-orange-700 hover:shadow-lg transition-all duration-300 cursor-pointer py-2 px-5 bg-tranparent border rounded-full border-orange-700 text-orange-700 items-center">
-                  <Link href="/pages/registration" className=" font-medium">Login</Link>
+                  <Link href="/pages/registration" className=" font-medium">
+                    Login
+                  </Link>
                 </div>
               </nav>
             </aside>
@@ -86,7 +89,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         </div>
       </header>
       <ul className="NavBar_res inline-flex flex-row pr-10 gap-16 justify-center font-semibold pt-4 text-sm">
-      <li className={getActiveClass("gym")}>
+        <li className={getActiveClass("gym")}>
           <Link
             href="/pages/gym"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
