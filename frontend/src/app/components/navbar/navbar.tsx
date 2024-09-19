@@ -63,7 +63,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
                   <p className="text-gray-500">MFU</p>
                 </span>
                 <hr />
-                <span className="text-gray-500 ms-1 font-medium text-sm bg-black">
+                <span className="text-gray-500 ms-1 font-medium text-sm">
                   SPORT COMPLEX
                 </span>
               </div>

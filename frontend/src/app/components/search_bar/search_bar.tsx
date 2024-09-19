@@ -4,9 +4,11 @@ import React, { useState } from "react";
 
 const search_bar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   const toggleSearch = () => {
     setIsExpanded((prev) => !prev);
+    setIsOpen((prev) => !prev);
   };
 
   return (
@@ -23,8 +25,13 @@ const search_bar = () => {
             className="text-xs border-none w-full outline-none focus:outline-none focus:ring-0 transition-all duration-300"
           />
         )}
-        <button onClick={toggleSearch} className="flex justify-center items-center">
-          <FontAwesomeIcon icon={faSearch} className="text-gray-500 px-4" />
+        <button
+          onClick={toggleSearch}
+          className={`flex justify-center items-center transition-all duration-300 mx-1 ${
+            isOpen ? "border px-2 py-2 rounded-full border-gray-400 hover:border-orange-700 hover:text-orange-700 text-gray-500 " : "text-gray-500 hover:bg-orange-700 hover:text-white rounded-full px-2 py-2"
+          }`}
+        >
+          <FontAwesomeIcon icon={faSearch} className="" />
         </button>
       </div>
     </div>
