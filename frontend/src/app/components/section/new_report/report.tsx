@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   faCircleExclamation,
-  faClock,
   faClockFour,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

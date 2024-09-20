@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faBasketball, faCancel, faClipboard, faDumbbell, faEnvelope, faFutbol, faHome, faSwimmer, faUser, faWallet, faX } from "@fortawesome/free-solid-svg-icons";
+import { faClipboard, faDumbbell, faEnvelope, faFutbol, faHome, faSwimmer, faUser, faWallet, faX } from "@fortawesome/free-solid-svg-icons";
 import IconSidebar from "../../assets/icon_sidebar_black.png"
 
 const sidebar: React.FC = () => {
@@ -34,35 +34,35 @@ const sidebar: React.FC = () => {
         </div>
         <ul className="flex flex-col py-2 px-8 gap-8 ">
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/pages/homepage"><FontAwesomeIcon icon={faHome} className="mx-3.5" />
+            <Link href="/homepage"><FontAwesomeIcon icon={faHome} className="mx-3.5" />
             Home Page</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/pages/gym"><FontAwesomeIcon icon={faDumbbell} className="mx-3.5" />
+            <Link href="/gym"><FontAwesomeIcon icon={faDumbbell} className="mx-3.5" />
             Gym Booking</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/pages/swimming"><FontAwesomeIcon icon={faSwimmer} className="mx-3.5" />
+            <Link href="/swimming"><FontAwesomeIcon icon={faSwimmer} className="mx-3.5" />
             Swimming Booking</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/pages/football"><FontAwesomeIcon icon={faFutbol} className="mx-3.5" />
+            <Link href="/football"><FontAwesomeIcon icon={faFutbol} className="mx-3.5" />
             Football Booking</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/pages/contact"><FontAwesomeIcon icon={faEnvelope} className="mx-3.5" />
+            <Link href="/contact"><FontAwesomeIcon icon={faEnvelope} className="mx-3.5" />
             Contact</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/pages/rule"><FontAwesomeIcon icon={faClipboard} className="mx-3.5" />
+            <Link href="/rule"><FontAwesomeIcon icon={faClipboard} className="mx-3.5" />
             Rules</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/pages/payment"><FontAwesomeIcon icon={faWallet} className="mx-3.5" />
+            <Link href="/payment"><FontAwesomeIcon icon={faWallet} className="mx-3.5" />
             Payment</Link>
           </li>
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/"><FontAwesomeIcon icon={faUser} className="mx-3.5" />
+            <Link href="/homepage"><FontAwesomeIcon icon={faUser} className="mx-3.5" />
             Profile</Link>
           </li>
         </ul>

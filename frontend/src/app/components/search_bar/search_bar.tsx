@@ -4,11 +4,9 @@ import React, { useState } from "react";
 
 const search_bar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isOpen, setIsOpen] = useState(true);
 
   const toggleSearch = () => {
     setIsExpanded((prev) => !prev);
-    setIsOpen((prev) => !prev);
   };
 
   return (

@@ -6,8 +6,6 @@ import Logo from "../../assets/Logo.png";
 import SideBar from "../sidebar/sidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBasketball,
-  faCircle,
   faClipboard,
   faDumbbell,
   faEnvelope,
@@ -55,7 +53,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
       <header>
         <div className="NavBar_container flex flex-row items-center justify-between bg-white px-8 py-5">
           <Link
-            href="/"
+            href="/homepage"
             className="inline-flex flex-row items-center flex-none gap-3.5 w-1/5"
           >
             <img src={Logo.src} alt="Logo" className="w-7" />
@@ -92,7 +90,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
       <ul className="NavBar_res inline-flex flex-row pr-10 gap-16 justify-center font-semibold pt-4 text-sm">
         <li className={getActiveClass("gym")}>
           <Link
-            href="/pages/gym"
+            href="/gym"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faDumbbell} className="mx-2.5" />
@@ -101,7 +99,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("swimming")}>
           <Link
-            href="/pages/swimming"
+            href="/swimming"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faSwimmer} className="mx-2.5" />
@@ -110,7 +108,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("football")}>
           <Link
-            href="/pages/football"
+            href="/football"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faFutbol} className="mx-2.5" />
@@ -119,7 +117,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("rule")}>
           <Link
-            href="/pages/rule"
+            href="/rule"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faClipboard} className="mx-2.5" />
@@ -128,7 +126,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("contact")}>
           <Link
-            href="/pages/contact"
+            href="/contact"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faEnvelope} className="mx-2.5" />
@@ -137,7 +135,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("payment")}>
           <Link
-            href="/pages/payment"
+            href="/payment"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FontAwesomeIcon icon={faWallet} className="mx-2.5" />
