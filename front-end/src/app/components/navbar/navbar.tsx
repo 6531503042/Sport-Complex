@@ -23,20 +23,6 @@ type NavBarProps = {
 const navbar: React.FC<NavBarProps> = ({ activePage }) => {
   const getBackgroundColor = () => {
     switch (activePage) {
-      case "gym":
-        return "bg-red-500";
-      case "swimming":
-        return "bg-blue-500";
-      case "football":
-        return "bg-yellow-500";
-      case "contact":
-        return "bg-green-500";
-      case "rule":
-        return "bg-purple-500";
-      case "payment":
-        return "bg-orange-500";
-      case "homepage":
-        return "bg-red-400";
       default:
         return "bg-red-900";
     }
