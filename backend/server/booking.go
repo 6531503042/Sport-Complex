@@ -15,12 +15,12 @@ func (s *server) bookingService() {
 	
 	// Initialize usecases
 	slotUsecase := usecase.NewSlotUsecase(slotRepo)
-	bookingUsecase := usecase.NewBookingUsecase(bookingRepo, slotRepo)
+	bookingUsecase := usecase.NewBookingUsecase(bookingRepo)
 
 	// Initialize HTTP handlers
 	slotHttpHandler := handler.NewSlotHttpHandler(s.cfg, slotUsecase)
 	bookingHttpHandler := handler.NewBookingHttpHandler(s.cfg, bookingUsecase)
-	bookingQueueHandler := handler.NewBookingQueueHandler(s.cfg, bookingUsecase)
+	// bookingQueueHandler := handler.NewBookingQueueHandler(s.cfg, bookingUsecase)
 
 	// Booking Routes
 	booking := s.app.Group("/booking_v1")
@@ -30,13 +30,13 @@ func (s *server) bookingService() {
 	booking.PUT("/bookings/:id", bookingHttpHandler.UpdateBooking)    // Update a booking
 
 	// Start Booking Queue Consumer (Kafka)
-	go func() {
-		log.Println("Starting Booking Queue Consumer")
-		booking := &booking.Booking{} // Initialize a new Booking instance
-		if err := bookingQueueHandler.AddBooking(booking); err != nil {
-			log.Fatalf("Error running booking queue consumer: %v", err)
-		}
-	}()
+	// go func() {
+	// 	log.Println("Starting Booking Queue Consumer")
+	// 	booking := &booking.Booking{} // Initialize a new Booking instance
+	// 	if err := bookingQueueHandler.AddBooking(booking); err != nil {
+	// 		log.Fatalf("Error running booking queue consumer: %v", err)
+	// 	}
+	// }()
 
 	// Slot Routes
 	slots := s.app.Group("/slots_v1")
