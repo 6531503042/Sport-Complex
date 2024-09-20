@@ -32,15 +32,15 @@ const LoginPage = () => {
           <div className={styles.checkboxContainer}>
             <div className={styles.checkboxWrapper}>
               <Checkbox className={styles.checkbox} />
-              <span>Remember me</span>
+              <span className={styles.checkboxText}>Remember me</span>
             </div>
-            <Link href="#">Forgot password</Link>
+            <Link href="#" className={styles.link}>Forgot password</Link>
           </div>
           <Button type="submit" className={styles.button} color="primary">
             Sign in
           </Button>
-          <p className={styles.textCenter}>
-            Are you outsider? <Link href="#">Can Sign up for free!</Link>
+          <p className={`${styles.textCenter} ${styles.signupText}`}>
+            Are you an outsider? <Link href="#" className={styles.link}>Sign up for free!</Link>
           </p>
         </form>
       </div>
