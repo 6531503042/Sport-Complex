@@ -27,12 +27,12 @@ type (
 		UpdatedAt   time.Time          `bson:"updated_at" json:"updated_at"`
 	}
 
-	Slot struct {
-		Id        primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
-		StartTime string             `bson:"start_time" json:"start_time"`
-		EndTime   string             `bson:"end_time" json:"end_time"`
-		Status    int                `bson:"status" json:"status"`
-		CreatedAt time.Time          `bson:"created_at" json:"created_at"`
-		UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
-	}
+	// Slot struct {
+	// 	Id        primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	// 	StartTime string             `bson:"start_time" json:"start_time"`
+	// 	EndTime   string             `bson:"end_time" json:"end_time"`
+	// 	Status    int                `bson:"status" json:"status"`
+	// 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
+	// 	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
+	// }
 )
