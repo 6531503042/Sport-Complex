@@ -23,6 +23,13 @@ type (
 		DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error
 		FindOneFacility(pctx context.Context, facilityId,facilityName string) (*facility.FacilityBson, error)
 		FindManyFacility(pctx context.Context, facilityName string) ([]facility.FacilityBson, error)
+
+		//Slot
+		InsertSlot (pctx context.Context, facilityName string, slot facility.Slot) (*facility.Slot, error)
+		FindOneSlot (ctx context.Context, facilityName,slotId string) (*facility.Slot, error)
+		FindManySlot (ctx context.Context, facilityName string) ([]facility.Slot, error)
+		UpdateSlot (ctx context.Context, facilityName string, req *facility.Slot) (*facility.Slot, error)
+		EnableOrDisableSlot (ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error)
 	}
 
 	facilitiyReposiory struct {
@@ -195,4 +202,131 @@ func (r *facilitiyReposiory) FindManyFacility(pctx context.Context, facilityName
 	}
 
 	return facilities, nil
+}
+
+func (r *facilitiyReposiory) InsertSlot (pctx context.Context, facilityName string, slot facility.Slot) (*facility.Slot, error) {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	defer cancel()
+
+	db := r.facilityDbConn(ctx, facilityName)
+	col := db.Collection("slots")
+
+	slot.CreatedAt = time.Now()
+	slot.UpdatedAt = time.Now()
+
+	result, err := col.InsertOne(ctx, bson.M{
+        "start_time": slot.StartTime, // Store as string "HH:mm"
+        "end_time":   slot.EndTime,   // Store as string "HH:mm"
+        "status":     slot.Status,
+		"max_bookings": slot.MaxBookings,
+		"current_bookings": slot.CurrentBookings,
+        "created_at": slot.CreatedAt,
+        "updated_at": slot.UpdatedAt,
+    })
+	if err != nil {
+		log.Printf("Error: InsertSlot: %s", err.Error())
+        return nil, fmt.Errorf("error: insert slot failed: %w", err)
+	}
+
+	slotId, ok := result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		log.Printf("error: InsertSlot: %s", err.Error())
+        return nil, fmt.Errorf("error: insert slot failed: %w", err)
+	}
+
+	slot.Id = slotId
+	return &slot, nil
+}
+
+func (r *facilitiyReposiory) FindOneSlot (ctx context.Context, facilityName,slotId string) (*facility.Slot, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	db := r.facilityDbConn(ctx, facilityName)
+	col := db.Collection("slots")
+
+	id, err := primitive.ObjectIDFromHex(slotId)
+	if err != nil {
+		log.Printf("Error: FindOneSlot: %s", err.Error())
+        return nil, fmt.Errorf("error: find one slot failed: %w", err)
+	}
+
+	var result bson.M
+	err = col.FindOne(ctx, bson.M{"_id": id}).Decode(&result)
+	if err != nil {
+	    if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("error: slot %s doesn't exist", slotId)
+		}
+		log.Printf("Error: FindOneSlot: %s", err.Error())
+        return nil, fmt.Errorf("error: find one slot failed: %w", err)
+	}
+
+	slot := &facility.Slot{
+		Id: id,
+		StartTime: result["start_time"].(string),
+		EndTime: result["end_time"].(string),
+		Status: result["status"].(int),
+		MaxBookings: result["max_bookings"].(int),
+		CurrentBookings: result["current_bookings"].(int),
+		CreatedAt: result["created_at"].(time.Time),
+		UpdatedAt: result["updated_at"].(time.Time),
+	}
+	return slot, nil
+}
+
+func (r *facilitiyReposiory) FindManySlot (ctx context.Context, facilityName string) ([]facility.Slot, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	db := r.facilityDbConn(ctx, facilityName)
+	col := db.Collection("slots")
+
+	cur, err := col.Find(ctx, bson.M{})
+	if err != nil {
+		log.Printf("Error: FindManySlot: %s", err.Error())
+        return nil, fmt.Errorf("error: find many slot failed: %w", err)
+	}
+	defer cur.Close(ctx)
+
+	var result []facility.Slot
+	if err = cur.All(ctx, &result); err != nil {
+		log.Printf("Error: FindManySlot: %s", err.Error())
+        return nil, fmt.Errorf("error: find many slot failed: %w", err)
+	}
+
+	for _, slot := range result {
+		log.Printf("Slot: start_time=%v, end_time=%v", slot.StartTime, slot.EndTime)
+	}
+
+	return result, nil
+}
+
+func (r *facilitiyReposiory) UpdateSlot (ctx context.Context, facilityName string, req *facility.Slot) (*facility.Slot, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	db := r.facilityDbConn(ctx, facilityName)
+	col := db.Collection("slots")
+
+	_, err := col.UpdateOne(ctx, bson.M{"_id": req.Id}, bson.M{"$set": req})
+	if err != nil {
+		log.Printf("Error: UpdateSlot: %s", err.Error())
+        return nil, fmt.Errorf("error: update slot failed: %w", err)
+	}
+	return req, nil
+}
+
+func (r *facilitiyReposiory) EnableOrDisableSlot (ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	db := r.facilityDbConn(ctx, facilityName)
+	col := db.Collection("slots")
+
+	_, err := col.UpdateOne(ctx, bson.M{"_id": slotId}, bson.M{"$set": bson.M{"status": status}})
+	if err != nil {
+		log.Printf("Error: EnableOrDisableSlot: %s", err.Error())
+        return nil, fmt.Errorf("error: update slot failed: %w", err)
+	}
+	return r.FindOneSlot(ctx, facilityName, slotId)
 }
