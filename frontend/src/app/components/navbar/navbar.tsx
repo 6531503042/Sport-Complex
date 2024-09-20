@@ -13,6 +13,7 @@ import {
   faEnvelope,
   faSwimmer,
   faWallet,
+  faFutbol,
 } from "@fortawesome/free-solid-svg-icons";
 import SearhBar from "../../components/search_bar/search_bar";
 import '../navbar/navbar.css'
@@ -112,7 +113,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/pages/football"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faBasketball} className="mx-2.5" />
+            <FontAwesomeIcon icon={faFutbol} className="mx-2.5" />
             Football booking
           </Link>
         </li>
