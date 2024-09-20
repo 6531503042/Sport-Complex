@@ -127,3 +127,12 @@ func (u *facilityUsecase) DeleteOneFacility(pctx context.Context, facilityId, fa
 	// Delete the facility
 	return u.facilityRepository.DeleteOneFacility(pctx, facilityId, facilityName)
 }
+
+func (u *facilityUsecase) InsertSlot (ctx context.Context, startTime, emdTime, facilityName string) (*facility.Slot, error) {
+	slot := facility.Slot{
+		StartTime: startTime,
+		EndTime:   emdTime,
+		Status: 1,
+		
+	}
+}
