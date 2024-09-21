@@ -15,7 +15,7 @@ const BannerMain: React.FC = () => {
       title: "Welcome to Sport Complex",
       description:
         "Reserve your spot and never miss out! Easily schedule your favorite sports activities with just a few clicks.",
-      link: "/pages/registration",
+      link: "/registration",
     },
     {
       image: Banner2Img,
