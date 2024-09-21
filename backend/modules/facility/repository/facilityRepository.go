@@ -34,19 +34,25 @@ type (
 
 	facilitiyReposiory struct {
 		db *mongo.Client
+		client *mongo.Client
 	}
 )
 
-func NewFacilityRepository(db *mongo.Client) FacilityRepositoryService {
-	return &facilitiyReposiory{db: db}
+func NewFacilityRepository(client *mongo.Client) *facilitiyReposiory {
+	return &facilitiyReposiory{client: client}
 }
 
 func (r *facilitiyReposiory) facilityDbConn(pctx context.Context, facilityName string) *mongo.Database {
 	// Use the facility name to dynamically create the database name
 	databaseName := fmt.Sprintf("%s_db", facilityName)
-	return r.db.Database(databaseName)
+	return r.client.Database(databaseName) // This will create the DB if it doesn't exist
 }
 
+func (r *facilitiyReposiory) slotDbConn(pctx context.Context, facilityName string) *mongo.Database {
+	// Use the existing client to connect to the facility database
+	databaseName := fmt.Sprintf("%s_db", facilityName) // Consistent naming
+	return r.client.Database(databaseName) // Connect to the existing database
+}
 
 func (r *facilitiyReposiory) InsertFacility (pctx context.Context, req * facility.Facilitiy) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
@@ -204,34 +210,35 @@ func (r *facilitiyReposiory) FindManyFacility(pctx context.Context, facilityName
 	return facilities, nil
 }
 
-func (r *facilitiyReposiory) InsertSlot (pctx context.Context, facilityName string, slot facility.Slot) (*facility.Slot, error) {
+func (r *facilitiyReposiory) InsertSlot(pctx context.Context, facilityName string, slot facility.Slot) (*facility.Slot, error) {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
-	db := r.facilityDbConn(ctx, facilityName)
-	col := db.Collection("slots")
+	// Use the slotDbConn to ensure we're connecting to an existing facility DB
+	db := r.slotDbConn(ctx, facilityName)
+	col := db.Collection("slots") // Get the "slots" collection
 
 	slot.CreatedAt = time.Now()
 	slot.UpdatedAt = time.Now()
 
 	result, err := col.InsertOne(ctx, bson.M{
-        "start_time": slot.StartTime, // Store as string "HH:mm"
-        "end_time":   slot.EndTime,   // Store as string "HH:mm"
-        "status":     slot.Status,
-		"max_bookings": slot.MaxBookings,
+		"start_time":      slot.StartTime,
+		"end_time":        slot.EndTime,
+		"status":          slot.Status,
+		"max_bookings":    slot.MaxBookings,
 		"current_bookings": slot.CurrentBookings,
-        "created_at": slot.CreatedAt,
-        "updated_at": slot.UpdatedAt,
-    })
+		"created_at":      slot.CreatedAt,
+		"updated_at":      slot.UpdatedAt,
+	})
 	if err != nil {
 		log.Printf("Error: InsertSlot: %s", err.Error())
-        return nil, fmt.Errorf("error: insert slot failed: %w", err)
+		return nil, fmt.Errorf("error: insert slot failed: %w", err)
 	}
 
 	slotId, ok := result.InsertedID.(primitive.ObjectID)
 	if !ok {
 		log.Printf("error: InsertSlot: %s", err.Error())
-        return nil, fmt.Errorf("error: insert slot failed: %w", err)
+		return nil, fmt.Errorf("error: insert slot failed: %w", err)
 	}
 
 	slot.Id = slotId
