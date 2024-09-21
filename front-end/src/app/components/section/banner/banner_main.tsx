@@ -118,7 +118,7 @@ const BannerMain: React.FC = () => {
               </p>
             </div>
             <div className="absolute whitespace-nowrap cursor-pointer p-5 bottom-32 z-20">
-              <Link href={banner.link}>
+              <Link href={banner.link} className="">
                 <button type="button">LEARN MORE</button>
               </Link>
             </div>
