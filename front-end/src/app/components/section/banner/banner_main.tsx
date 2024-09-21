@@ -9,7 +9,6 @@ import {
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
-import { link } from "fs";
 
 const BannerMain: React.FC = () => {
   const banners = [
@@ -113,16 +112,16 @@ const BannerMain: React.FC = () => {
             }}
           >
             <div className="banner_detail flex flex-col justify-center items-center w-full h-full bg-black bg-opacity-60 text-center p-5 sm:p-10">
-              <h1 className="text-4xl sm:text-6xl font-bold mb-3 sm:mb-5 w-1/2">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-3 sm:mb-5  w-2/3 sm:w-1/2">
                 {banner.title}
               </h1>
-              <p className="text-base sm:text-lg mb-5 w-1/2 sm:w-1/3">
+              <p className="text-base sm:text-lg md:text-xl mb-5 w-1/3 sm:w-1/3 md:w-1/2 ">
                 {banner.description}
               </p>
               <div className="cursor-pointer pt-5">
                 <Link
                   href={banner.link}
-                  className="py-3 px-6 sm:py-5 sm:px-10 transition-all duration-200 border-2 border-stone-200 text-stone-200 rounded-full text-sm sm:text-base hover:border-transparent hover:shadow-lg hover:bg-yellow-500 hover:text-white"
+                  className="py-3 px-6 sm:py-4 sm:px-8 lg:py-5 lg:px-10 transition-all duration-200 border-2 border-stone-200 text-stone-200 rounded-full text-sm sm:text-base hover:border-transparent hover:shadow-lg hover:bg-yellow-500 hover:text-white"
                 >
                   <button type="button" className="uppercase">
                     Learn More{" "}
