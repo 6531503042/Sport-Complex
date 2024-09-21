@@ -17,6 +17,11 @@ type (
 		CreateFacility(c echo.Context) error
 		FindOneFacility(c echo.Context) error
 		FindManyFacility(c echo.Context) error
+
+		//Slot
+		InsertSlot (c echo.Context) error
+		FindOneSlot (c echo.Context) error
+		FindAllSlots (c echo.Context) error
 	}
 
 	facilityHttpHandler struct {
@@ -92,4 +97,79 @@ func (h *facilityHttpHandler) FindManyFacility(c echo.Context) error {
 	}
 
 	return response.SuccessResponse(c, http.StatusOK, res)
+}
+
+func (h *facilityHttpHandler) InsertSlot(c echo.Context) error {
+	facilityName := c.Param("facilityName")
+
+	var slotRequest struct {
+		StartTime       string `json:"start_time"`
+		EndTime         string `json:"end_time"`
+		MaxBookings     int    `json:"max_bookings"`
+		CurrentBookings int    `json:"current_bookings"`
+		FacilityType    string `json:"facility_type"`
+	}
+
+	if err := c.Bind(&slotRequest); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid input: "+err.Error())
+	}
+
+	ctx := c.Request().Context()
+
+	slot, err := h.facilityUsecase.InsertSlot(
+		ctx,
+		slotRequest.StartTime,
+		slotRequest.EndTime,
+		facilityName, 
+		slotRequest.MaxBookings,
+		slotRequest.CurrentBookings,
+		slotRequest.FacilityType,
+	)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, slot)
+}
+
+
+func (h *facilityHttpHandler) FindOneSlot (c echo.Context) error {
+
+	facilityName := c.QueryParam("facility_name") // Retrieve facilityName from query params
+
+	if facilityName == "" {
+		return response.ErrResponse(c, http.StatusBadRequest, "Facility name is required")
+	}
+	slotId := c.Param("slot_id")
+
+	if slotId == "" {
+		return response.ErrResponse(c, http.StatusBadRequest, "Slot id is required")
+	}
+
+	ctx := c.Request().Context()
+
+	slot, err := h.facilityUsecase.FindOneSlot(ctx,facilityName, slotId)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, slot)
+}
+
+func (h *facilityHttpHandler) FindAllSlots (c echo.Context) error {
+
+	facilityName := c.QueryParam("facility_name") // Retrieve facilityName from query params
+
+	if facilityName == "" {
+		return response.ErrResponse(c, http.StatusBadRequest, "Facility name is required")
+	}
+
+	ctx := c.Request().Context()
+
+	slots, err := h.facilityUsecase.FindManySlot(ctx,facilityName)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, slots)
 }
