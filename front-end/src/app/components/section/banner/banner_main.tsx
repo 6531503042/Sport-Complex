@@ -8,6 +8,7 @@ import {
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
+import { link } from "fs";
 
 const BannerMain: React.FC = () => {
   const banners = [
@@ -16,18 +17,21 @@ const BannerMain: React.FC = () => {
       title: "Welcome to Sport Complex",
       description:
         "Reserve your spot and never miss out! Easily schedule your favorite sports activities with just a few clicks.",
+        link: "/registration",
     },
     {
       image: Banner2Img,
       title: "Stay Active, Stay Healthy",
       description:
         "Discover a variety of sports and fitness programs tailored to your needs.",
+        link: "/",
     },
     {
       image: Banner3Img,
       title: "Join a Community",
       description:
         "Meet like-minded individuals and engage in exciting activities.",
+        link: "/",
     },
   ];
 
@@ -77,21 +81,20 @@ const BannerMain: React.FC = () => {
 
   return (
     <div className="banner-container relative flex items-center overflow-hidden h-[500px] text-white">
-      <div className="absolute inset-0 flex items-center justify-between z-20 px-5">
-        <button
-          className="flex items-center justify-center w-12 h-12 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all"
-          onClick={handleLeftClick}
-        >
-          <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: "1rem" }} />
-        </button>
+      <button
+        className="absolute top-1/2 left-10 z-20 flex items-center justify-center w-12 h-12 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all"
+        onClick={handleLeftClick}
+      >
+        <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: "1rem" }} />
+      </button>
 
-        <button
-          className="flex items-center justify-center w-12 h-12 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all"
-          onClick={handleRightClick}
-        >
-          <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: "1rem" }} />
-        </button>
-      </div>
+      <button
+        className="absolute top-1/2 z-20 right-10 flex items-center justify-center w-12 h-12 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all"
+        onClick={handleRightClick}
+      >
+        <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: "1rem" }} />
+      </button>
+
       <div
         className={`flex transition-transform duration-700 ease-in-out transform relative z-10 ${
           isSliding ? "translate-x-[-100%]" : "translate-x-[0]"
@@ -114,14 +117,15 @@ const BannerMain: React.FC = () => {
                 {banner.description}
               </p>
             </div>
-            <div className="absolute whitespace-nowrap cursor-pointer p-5 bottom-32">
-              <a href="/">
+            <div className="absolute whitespace-nowrap cursor-pointer p-5 bottom-32 z-20">
+              <Link href={banner.link}>
                 <button type="button">LEARN MORE</button>
-              </a>
+              </Link>
             </div>
           </div>
         ))}
       </div>
+
       <div className="absolute bottom-5 flex space-x-2 justify-center w-full z-20">
         {banners.map((_, index) => (
           <span
