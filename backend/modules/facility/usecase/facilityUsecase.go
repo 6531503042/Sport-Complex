@@ -17,6 +17,13 @@ type (
 		FindManyFacility(pctx context.Context, facilityName string) ([]facility.FacilityBson, error)
 		UpdateOneFacility(pctx context.Context, facilityId, facilityName string, updateFields map[string]interface{}) error
 		DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error
+
+		//Slot - usecase
+		InsertSlot(ctx context.Context, startTime, endTime, facilityName string, maxBookings, currentBookings int, facilityType string) (*facility.Slot, error)
+		FindOneSlot(ctx context.Context, facilityName, slotId string) (*facility.Slot, error)
+		FindManySlot(ctx context.Context, facilityName string) ([]facility.Slot, error)
+		EnableOrDisableSlot(ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error)
+
 	}
 
 	facilityUsecase struct {
@@ -128,11 +135,31 @@ func (u *facilityUsecase) DeleteOneFacility(pctx context.Context, facilityId, fa
 	return u.facilityRepository.DeleteOneFacility(pctx, facilityId, facilityName)
 }
 
-func (u *facilityUsecase) InsertSlot (ctx context.Context, startTime, emdTime, facilityName string) (*facility.Slot, error) {
+func (u *facilityUsecase) InsertSlot(ctx context.Context, startTime, endTime, facilityName string, maxBookings, currentBookings int, facilityType string) (*facility.Slot, error) {
 	slot := facility.Slot{
-		StartTime: startTime,
-		EndTime:   emdTime,
-		Status: 1,
-		
+		StartTime:       startTime,
+		EndTime:         endTime,
+		Status:          1,
+		MaxBookings:     maxBookings,
+		CurrentBookings: currentBookings,
+		FacilityType:    facilityType,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
 	}
+
+	// Call the repository to insert the slot
+	return u.facilityRepository.InsertSlot(ctx, facilityName, slot)
+}
+
+
+func (u *facilityUsecase) FindOneSlot(ctx context.Context, facilityName, slotId string) (*facility.Slot, error) {
+	return u.facilityRepository.FindOneSlot(ctx, facilityName, slotId)
+}
+
+func (u *facilityUsecase) FindManySlot(ctx context.Context, facilityName string) ([]facility.Slot, error) {
+	return u.facilityRepository.FindManySlot(ctx, facilityName)
+}
+
+func (u *facilityUsecase) EnableOrDisableSlot(ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error) {
+	return u.facilityRepository.EnableOrDisableSlot(ctx, facilityName, slotId, status)
 }
