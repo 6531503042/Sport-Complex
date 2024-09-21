@@ -37,13 +37,13 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
   return (
     <div className={`${getBackgroundColor()} justify-center flex flex-col`}>
       <header>
-        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-8 py-5">
+        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5">
           <Link
-            href="/homepage"
-            className="inline-flex flex-row items-center flex-none gap-3.5 w-1/5"
+            href="/"
+            className="inline-flex flex-row items-center  gap-3.5 w-1/5"
           >
             <img src={Logo.src} alt="Logo" className="w-7" />
-            <span className="flex flex-col border-l-2 w-max">
+            <span className="flex flex-col border-l-2 w-max whitespace-nowrap">
               <div className="ms-1">
                 <span className="ms-1 inline-flex flex-row font-semibold text-xl">
                   <p className="text-black ">SPORT.</p>
@@ -73,7 +73,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
           </div>
         </div>
       </header>
-      <ul className="NavBar_res inline-flex flex-row pr-10 gap-16 justify-center font-semibold pt-4 text-sm">
+      <ul className="NavBar_res inline-flex flex-row px-10 gap-16 justify-center font-semibold pt-4 text-sm">
         <li className={getActiveClass("gym")}>
           <Link
             href="/gym"
