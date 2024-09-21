@@ -11,14 +11,14 @@ func (s *server) bookingService() {
 
 	// Initialize repositories
 	bookingRepo := repository.NewBookingRepository(s.db)
-	slotRepo := repository.NewSlotRepository(s.db)
+	// slotRepo := repository.NewSlotRepository(s.db)
 	
 	// Initialize usecases
-	slotUsecase := usecase.NewSlotUsecase(slotRepo)
+	// slotUsecase := usecase.NewSlotUsecase(slotRepo)
 	bookingUsecase := usecase.NewBookingUsecase(bookingRepo)
 
 	// Initialize HTTP handlers
-	slotHttpHandler := handler.NewSlotHttpHandler(s.cfg, slotUsecase)
+	// slotHttpHandler := handler.NewSlotHttpHandler(s.cfg, slotUsecase)
 	bookingHttpHandler := handler.NewBookingHttpHandler(s.cfg, bookingUsecase)
 	// bookingQueueHandler := handler.NewBookingQueueHandler(s.cfg, bookingUsecase)
 
@@ -39,11 +39,11 @@ func (s *server) bookingService() {
 	// }()
 
 	// Slot Routes
-	slots := s.app.Group("/slots_v1")
-	slots.POST("/slots", slotHttpHandler.InsertSlot)    // Create a slot
-	slots.PUT("/slots/:slot_id", slotHttpHandler.UpdateSlot) // Update a slot
-	slots.GET("/slots", slotHttpHandler.FindAllSlots)    // Find all slots
-	slots.GET("/slots/:slot_id", slotHttpHandler.FindSlot)  // Find a specific slot
+	// slots := s.app.Group("/slots_v1")
+	// slots.POST("/slots", slotHttpHandler.InsertSlot)    // Create a slot
+	// slots.PUT("/slots/:slot_id", slotHttpHandler.UpdateSlot) // Update a slot
+	// slots.GET("/slots", slotHttpHandler.FindAllSlots)    // Find all slots
+	// slots.GET("/slots/:slot_id", slotHttpHandler.FindSlot)  // Find a specific slot
 
 	log.Println("Booking service initialized")
 }
