@@ -5,10 +5,9 @@ const page = () => {
   return (
     <div className=''>
         <NavBar activePage="gym"/>
-        <div className='w-full h-full '>
-          <div className=''>
-            <p>aaaa</p>
-          </div>
+        <div className='w-full h-screen inline-flex flex-row'>
+          <div className='bg-red-500 flex-none w-2/3'>1</div>
+          <div className='bg-black flex-none w-1/3'>2</div>
         </div>
     </div>
   )

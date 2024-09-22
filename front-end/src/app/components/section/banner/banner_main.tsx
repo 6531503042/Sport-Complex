@@ -111,7 +111,7 @@ const BannerMain: React.FC = () => {
               backgroundImage: `url(${banner.image.src})`,
             }}
           >
-            <div className="banner_detail flex flex-col justify-center items-center w-full h-full bg-black bg-opacity-60 text-center p-5 sm:p-10">
+            <div className="banner_detail flex flex-col justify-center items-center w-full h-full bg-black bg-opacity-50 text-center p-5 sm:p-10">
               <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-3 sm:mb-5  w-2/3 sm:w-1/2">
                 {banner.title}
               </h1>
