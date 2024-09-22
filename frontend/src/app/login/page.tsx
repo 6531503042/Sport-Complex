@@ -45,7 +45,7 @@ const LoginPage = () => {
         </form>
       </div>
       <div className={styles.right}>
-        <Image className={styles.rightImage} src="/assets/loginpicture.png" alt="rightImage "/>
+        <Image src="/assets/loginpicture.png" alt="Sports Image" fill className={styles.rightImage} />
       </div>
     </div>
   );
