@@ -17,8 +17,8 @@ func (s *server) facilityService() {
 	facility.POST("/facility/facility", httpHandler.CreateFacility)
 
 	// Slot Routes
-	facilitySlot := facility.Group("/:facilityName/slot_v1") // Corrected this line
-	facilitySlot.POST("/slots", httpHandler.InsertSlot)         // Create a new slot for a specific facility
-	facilitySlot.GET("/slots/:slot_id", httpHandler.FindOneSlot) // GET a slot by slot_id for a specific facility
-	facilitySlot.GET("/slots", httpHandler.FindAllSlots)        // GET all slots for a specific facility
+	facilitySlot := facility.Group("/:facilityName/slot_v1") 
+	facilitySlot.POST("/slots", httpHandler.InsertSlot)         
+	facilitySlot.GET("/slots/:slot_id", httpHandler.FindOneSlot) 
+	facilitySlot.GET("/slots", httpHandler.FindAllSlots)        
 }
