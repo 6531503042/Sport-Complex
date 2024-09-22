@@ -24,7 +24,7 @@ func (s *server) bookingService() {
 
 	// Booking Routes
 	booking := s.app.Group("/booking_v1")
-	booking.POST("/bookings", bookingHttpHandler.InsertBooking)       // Create a booking
+	// booking.POST("/bookings", bookingHttpHandler.InsertBooking)       // Create a booking
 	booking.GET("/bookings/:booking_id", bookingHttpHandler.FindBooking) // Find a specific booking
 	booking.GET("/bookings/user/:user_id", bookingHttpHandler.FindOneUserBooking) // Find all bookings for a specific user
 	booking.PUT("/bookings/:id", bookingHttpHandler.UpdateBooking)    // Update a booking
