@@ -85,13 +85,8 @@ func (h *facilityHttpHandler) FindManyFacility(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	facilityName := c.QueryParam("facility_name") // Retrieve facilityName from query params
 
-	if facilityName == "" {
-		return response.ErrResponse(c, http.StatusBadRequest, "Facility name is required")
-	}
-
-	res, err := h.facilityUsecase.FindManyFacility(ctx, facilityName)
+	res, err := h.facilityUsecase.FindManyFacility(ctx)
 	if err != nil {
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
@@ -156,17 +151,16 @@ func (h *facilityHttpHandler) FindOneSlot (c echo.Context) error {
 	return response.SuccessResponse(c, http.StatusOK, slot)
 }
 
-func (h *facilityHttpHandler) FindAllSlots (c echo.Context) error {
+func (h *facilityHttpHandler) FindAllSlots(c echo.Context) error {
+	ctx := c.Request().Context()
 
-	facilityName := c.QueryParam("facility_name") // Retrieve facilityName from query params
+	facilityName := c.Param("facilityName") // Retrieve facilityName from path params
 
 	if facilityName == "" {
 		return response.ErrResponse(c, http.StatusBadRequest, "Facility name is required")
 	}
 
-	ctx := c.Request().Context()
-
-	slots, err := h.facilityUsecase.FindManySlot(ctx,facilityName)
+	slots, err := h.facilityUsecase.FindManySlot(ctx, facilityName)
 	if err != nil {
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
