@@ -14,14 +14,14 @@ type (
 	FacilityUsecaseService interface {
 		CreateFacility(pctx context.Context, req *facility.CreateFaciliityRequest) (facility.FacilityBson, error)
 		FindOneFacility(pctx context.Context, facilityId, facilityName string) (*facility.FacilityBson, error)
-		FindManyFacility(pctx context.Context, facilityName string) ([]facility.FacilityBson, error)
+		FindManyFacility(pctx context.Context) ([]facility.FacilityBson, error)
 		UpdateOneFacility(pctx context.Context, facilityId, facilityName string, updateFields map[string]interface{}) error
 		DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error
 
 		//Slot - usecase
 		InsertSlot(ctx context.Context, startTime, endTime, facilityName string, maxBookings, currentBookings int, facilityType string) (*facility.Slot, error)
 		FindOneSlot(ctx context.Context, facilityName, slotId string) (*facility.Slot, error)
-		FindManySlot(ctx context.Context, facilityName string) ([]facility.Slot, error)
+		FindManySlot(ctx context.Context,facilityName string) ([]facility.Slot, error)
 		EnableOrDisableSlot(ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error)
 
 	}
@@ -89,8 +89,8 @@ func (u *facilityUsecase) FindOneFacility(pctx context.Context, facilityId, faci
 	}, nil
 }
 
-func (u *facilityUsecase) FindManyFacility(pctx context.Context, facilityName string) ([]facility.FacilityBson, error) {
-	results, err := u.facilityRepository.FindManyFacility(pctx, facilityName)
+func (u *facilityUsecase) FindManyFacility(pctx context.Context) ([]facility.FacilityBson, error) {
+	results, err := u.facilityRepository.FindManyFacility(pctx)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (u *facilityUsecase) FindOneSlot(ctx context.Context, facilityName, slotId 
 	return u.facilityRepository.FindOneSlot(ctx, facilityName, slotId)
 }
 
-func (u *facilityUsecase) FindManySlot(ctx context.Context, facilityName string) ([]facility.Slot, error) {
+func (u *facilityUsecase) FindManySlot(ctx context.Context,facilityName string) ([]facility.Slot, error) {
 	return u.facilityRepository.FindManySlot(ctx, facilityName)
 }
 
