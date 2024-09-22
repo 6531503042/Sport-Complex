@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { Button } from "@nextui-org/react";
+import "./football.css";
 
 interface Data {
   time: string;
@@ -42,7 +44,8 @@ function Football_Booking() {
       setSelectedCard(index === selectedCard ? null : index);
       setErrors({ name: "", id: "", phone: "" });
 
-      if (window.innerWidth < 640) { // Mobile screen size (sm breakpoint in Tailwind)
+      if (window.innerWidth < 640) {
+        // Mobile screen size (sm breakpoint in Tailwind)
         setIsMobileView(true); // Switch to form view in mobile
       }
     }
@@ -95,24 +98,27 @@ function Football_Booking() {
             // Mobile View: Show the form instead of the time slots
             <div className="block sm:hidden">
               <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
-                <h2 className="text-xl font-bold mb-4">
-                  Booking for {selectedCard !== null && data[selectedCard].time}
-                </h2>
                 <form onSubmit={handleSubmit}>
                   <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700">Name</span>
+                    <span className="block text-sm font-medium text-gray-700 py-2">
+                      Name
+                    </span>
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Enter your name"
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="name-input mt-1 block w-full px-3 py-3"
                     />
-                    {errors.name && <span className="text-red-500 text-sm">{errors.name}</span>}
+                    {errors.name && (
+                      <span className="text-red-500 text-sm">
+                        {errors.name}
+                      </span>
+                    )}
                   </label>
                   <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700">
+                    <span className="block text-sm font-medium text-gray-700 py-2">
                       Lecturer / Staff / Student ID
                     </span>
                     <input
@@ -121,21 +127,29 @@ function Football_Booking() {
                       value={formData.id}
                       onChange={handleChange}
                       placeholder="Enter your ID"
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="name-input mt-1 block w-full px-3 py-3"
                     />
-                    {errors.id && <span className="text-red-500 text-sm">{errors.id}</span>}
+                    {errors.id && (
+                      <span className="text-red-500 text-sm">{errors.id}</span>
+                    )}
                   </label>
                   <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700">Phone Number</span>
+                    <span className="block text-sm font-medium text-gray-700 py-2">
+                      Phone Number
+                    </span>
                     <input
                       type="number"
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="Enter your phone number"
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="name-input mt-1 block w-full px-3 py-3"
                     />
-                    {errors.phone && <span className="text-red-500 text-sm">{errors.phone}</span>}
+                    {errors.phone && (
+                      <span className="text-red-500 text-sm">
+                        {errors.phone}
+                      </span>
+                    )}
                   </label>
                   <button
                     type="submit"
@@ -144,12 +158,15 @@ function Football_Booking() {
                     Booking
                   </button>
                   <button
-                    type="button"
-                    className="bg-gray-500 text-white px-4 py-2 rounded-md ml-4 hover:bg-gray-600"
                     onClick={handleBackToTimeSlots}
+                    type="submit"
+                    className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
                   >
-                    Back to Time Slots
+                    Booking
                   </button>
+                  <h2 className="text-xl font-bold mb-4 text-end">
+                    {selectedCard !== null && data[selectedCard].time}
+                  </h2>
                 </form>
               </div>
             </div>
@@ -161,19 +178,29 @@ function Football_Booking() {
                   <div
                     key={index}
                     className={`bg-white border border-gray-200 rounded-lg p-4 shadow-md transition-transform duration-300 ease-in-out
-                      ${item.isAvailable ? "cursor-pointer" : "cursor-not-allowed"}
+                      ${
+                        item.isAvailable
+                          ? "cursor-pointer"
+                          : "cursor-not-allowed"
+                      }
                       ${
                         selectedCard === index && item.isAvailable
                           ? "bg-green-100 border-green-500"
                           : ""
                       }
-                      ${!item.isAvailable ? "bg-gray-200 text-gray-500" : "hover:bg-green-100"}`}
+                      ${
+                        !item.isAvailable
+                          ? "bg-gray-200 text-gray-500"
+                          : "hover:bg-green-100"
+                      }`}
                     onClick={() => handleCardClick(index, item.isAvailable)}
                   >
                     <div className="text-lg font-semibold mb-2 flex justify-between">
                       <div>{item.time}</div>
                       <div
-                        className={`text-sm ${item.isAvailable ? "text-black" : "text-gray-500"}`}
+                        className={`text-sm ${
+                          item.isAvailable ? "text-black" : "text-gray-500"
+                        }`}
                       >
                         {item.member}
                       </div>
@@ -192,7 +219,9 @@ function Football_Booking() {
 
               <div
                 className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
-                  selectedCard !== null ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"
+                  selectedCard !== null
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-5 opacity-0"
                 }`}
               >
                 {selectedCard !== null && data[selectedCard].isAvailable && (
@@ -202,21 +231,25 @@ function Football_Booking() {
                     </h2>
                     <form onSubmit={handleSubmit}>
                       <label className="block mb-4">
-                        <span className="block text-sm font-medium text-gray-700">Name</span>
+                        <span className="block text-sm font-medium text-gray-700 py-2">
+                          Name
+                        </span>
                         <input
                           type="text"
                           name="name"
                           value={formData.name}
                           onChange={handleChange}
                           placeholder="Enter your name"
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                          className="name-input mt-1 block w-full px-3 py-3"
                         />
                         {errors.name && (
-                          <span className="text-red-500 text-sm">{errors.name}</span>
+                          <span className="text-red-500 text-sm">
+                            {errors.name}
+                          </span>
                         )}
                       </label>
                       <label className="block mb-4">
-                        <span className="block text-sm font-medium text-gray-700">
+                        <span className="block text-sm font-medium text-gray-700 py-2">
                           Lecturer / Staff / Student ID
                         </span>
                         <input
@@ -225,21 +258,31 @@ function Football_Booking() {
                           value={formData.id}
                           onChange={handleChange}
                           placeholder="Enter your ID"
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                          className="name-input mt-1 block w-full px-3 py-3"
                         />
-                        {errors.id && <span className="text-red-500 text-sm">{errors.id}</span>}
+                        {errors.id && (
+                          <span className="text-red-500 text-sm">
+                            {errors.id}
+                          </span>
+                        )}
                       </label>
                       <label className="block mb-4">
-                        <span className="block text-sm font-medium text-gray-700">Phone Number</span>
+                        <span className="block text-sm font-medium text-gray-700 py-2">
+                          Phone Number
+                        </span>
                         <input
                           type="number"
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
                           placeholder="Enter your phone number"
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                          className="name-input mt-1 block w-full px-3 py-3"
                         />
-                        {errors.phone && <span className="text-red-500 text-sm">{errors.phone}</span>}
+                        {errors.phone && (
+                          <span className="text-red-500 text-sm">
+                            {errors.phone}
+                          </span>
+                        )}
                       </label>
                       <button
                         type="submit"
@@ -253,22 +296,28 @@ function Football_Booking() {
               </div>
             </>
           )}
-
-          {isBookingSuccessful && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-                <h2 className="text-xl font-bold mb-2">Booking Successful!</h2>
-                <p className="text-green-500">You have successfully booked the slot.</p>
-                <button
-                  className="mt-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-                  onClick={() => setIsBookingSuccessful(false)}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          )}
         </div>
+        {isBookingSuccessful && (
+          <div className="fixed inset-0 w-screen h-screen flex items-center justify-center z-50 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 ease-in-out">
+            <div className="relative bg-white w-full max-w-sm mx-auto p-8 rounded-lg shadow-xl transform transition-all duration-500 ease-in-out scale-100">
+              {/* Popup Content */}
+              <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+                Booking Successful!
+              </h2>
+              <p className="text-gray-600 mb-6 ">
+                You have successfully booked the slot.
+              </p>
+
+              {/* Close Button */}
+              <button
+                className="w-full bg-gradient-to-r from-green-500 to-green-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
+                onClick={() => setIsBookingSuccessful(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
