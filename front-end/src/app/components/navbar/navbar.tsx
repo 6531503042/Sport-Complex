@@ -14,7 +14,7 @@ import {
   faFutbol,
 } from "@fortawesome/free-solid-svg-icons";
 import SearhBar from "../../components/search_bar/search_bar";
-import '../navbar/navbar.css'
+import "../navbar/navbar.css";
 
 type NavBarProps = {
   activePage?: string;
@@ -73,13 +73,13 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
           </div>
         </div>
       </header>
-      <ul className="NavBar_res inline-flex flex-row px-10 gap-16 justify-center font-semibold pt-4 text-sm">
+      <ul className="NavBar_res inline-flex flex-row px-10 gap-16 justify-center items-center font-semibold pt-4 text-sm">
         <li className={getActiveClass("gym")}>
           <Link
             href="/gym"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faDumbbell} className="mx-2.5" />
+            <a className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>exercise</a>
             Gym Booking
           </Link>
         </li>
@@ -88,7 +88,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/swimming"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faSwimmer} className="mx-2.5" />
+            <a className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>pool</a>
             Swimming Booking
           </Link>
         </li>
@@ -97,7 +97,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/football"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faFutbol} className="mx-2.5" />
+            <a className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>sports_soccer</a>
             Football booking
           </Link>
         </li>
@@ -106,7 +106,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/rule"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faClipboard} className="mx-2.5" />
+            <a className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>assignment_late</a>
             Rules
           </Link>
         </li>
@@ -115,7 +115,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/contact"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faEnvelope} className="mx-2.5" />
+            <a className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>mail</a>
             Contact
           </Link>
         </li>
@@ -124,7 +124,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/payment"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faWallet} className="mx-2.5" />
+            <a className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>wallet</a>
             Payment
           </Link>
         </li>
