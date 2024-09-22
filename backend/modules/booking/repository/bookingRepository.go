@@ -11,6 +11,7 @@ import (
 	"main/modules/facility"
 	"main/modules/models"
 	"main/pkg/queue"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,11 +21,11 @@ import (
 
 type (
 	BookingRepositoryService interface {
-		InsertBooking(ctx context.Context, booking *booking.Booking) (*booking.Booking, error)
+		// InsertBooking(ctx context.Context, booking *booking.Booking) (*booking.Booking, error)
 		UpdateBooking (ctx context.Context, booking *booking.Booking) (*booking.Booking, error)
 		FindBooking(ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error)
-		FindOneSlotBooking(ctx context.Context, slotId string) (*facility.Slot, error)
+		FindOneSlotBooking(ctx context.Context, slotId string) (*facility.Slot, string, error)
 
 		//Kafka Interface
 		GetOffset(pctx context.Context) (int64, error)
@@ -33,16 +34,39 @@ type (
 	}
 
 	bookingRepository struct {
-		db *mongo.Client
+		db     *mongo.Client
+		client *mongo.Client
 	}
 )
 
 func NewBookingRepository(db *mongo.Client) BookingRepositoryService {
-	return &bookingRepository{db}
+	return &bookingRepository{
+		db:     db,
+		client: db,}
 }
 
 func (r *bookingRepository) bookingDbConn(pctx context.Context) *mongo.Database {
 	return r.db.Database("booking_db")
+}
+
+func (r *bookingRepository) ListAllFacilities(pctx context.Context) ([]string, error) {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+    defer cancel()
+
+	dbs, err := r.client.ListDatabaseNames(ctx, bson.M{})
+	if err != nil {
+		log.Printf("Error: ListAllFacilities: %s", err.Error())
+		return nil, fmt.Errorf("error: list all facilities failed: %w", err)
+	}
+
+	var facilityDbs []string
+    for _, dbName := range dbs {
+        if strings.HasSuffix(dbName, "_facility") {
+            facilityDbs = append(facilityDbs, dbName)
+        }
+    }
+
+    return facilityDbs, nil
 }
 
 // Kaka Repo Func
@@ -112,33 +136,46 @@ func (r *bookingRepository) InsertBookingViaQueue(pctx context.Context, cfg *con
 
 
 
-func (r *bookingRepository) InsertBooking(ctx context.Context, booking *booking.Booking) (*booking.Booking, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+// func (r *bookingRepository) InsertBooking(ctx context.Context, booking *booking.Booking) (*booking.Booking, error) {
+//     ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+//     defer cancel()
 
-	db := r.bookingDbConn(ctx)
-	col := db.Collection("bookings")
+//     db := r.bookingDbConn(ctx)
+//     col := db.Collection("bookings")
 
-	// Check if the slot exists
-	_, err := r.FindOneSlotBooking(ctx, booking.SlotId)
-	if err != nil {
-		return nil, fmt.Errorf("error: slot %s does not exist", booking.SlotId)
-	}
+//     // Check if the slot exists using the SlotId from the booking
+//     slot, facilityName, err := r.FindOneSlotBooking(ctx, booking.SlotId)
+//     if err != nil {
+//         return nil, fmt.Errorf("error: slot %s does not exist", booking.SlotId)
+//     }
 
-	result, err := col.InsertOne(ctx, booking)
-	if err != nil {
-		log.Printf("Error: InsertBooking: %s", err.Error())
-		return nil, fmt.Errorf("error: insert booking failed: %w", err)
-	}
+//     // Optionally, you can add additional checks here (e.g., if slot is available for booking)
+//     // if slot.Status != facility.Slot {
+// 	// 	return nil, fmt.Errorf("error: slot %s is not available for booking", booking.SlotId)
+// 	// }
 
-	bookingId, ok := result.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return nil, fmt.Errorf("error: insert booking failed")
-	}
+//     // Proceed to insert the booking into the bookings collection
+//     result, err := col.InsertOne(ctx, booking)
+//     if err != nil {
+//         log.Printf("Error: InsertBooking: %s", err.Error())
+//         return nil, fmt.Errorf("error: insert booking failed: %w", err)
+//     }
 
-	booking.Id = bookingId
-	return booking, nil
-}
+//     // Cast the inserted ID to ObjectID
+//     bookingId, ok := result.InsertedID.(primitive.ObjectID)
+//     if !ok {
+//         return nil, fmt.Errorf("error: failed to retrieve inserted booking ID")
+//     }
+
+//     // Assign the generated ID to the booking object
+//     booking.Id = bookingId
+
+//     // Optionally, log the facility name where the slot was found
+//     log.Printf("Booking inserted for slot %s in facility: %s", booking.SlotId, facilityName)
+
+//     return booking, nil
+// }
+
 
 func (r *bookingRepository) UpdateBooking (ctx context.Context, booking *booking.Booking) (*booking.Booking, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -154,19 +191,6 @@ func (r *bookingRepository) UpdateBooking (ctx context.Context, booking *booking
     return booking, nil
 }
 
-// FindBooking retrieves a booking by ID from the database.
-//
-// Context:
-//   This method is intended to be called within a context that is derived from the
-//   http.Request.Context(), which is a context.Context that is associated with the request.
-//
-// Parameters:
-//   ctx - a context that is derived from the http.Request.Context()
-//   bookingId - the ID of the booking to retrieve
-//
-// Returns:
-//   a pointer to a booking.Booking, or nil if the booking does not exist
-//   an error, or nil if the booking exists and the retrieval was successful
 func (r *bookingRepository) FindBooking(ctx context.Context, bookingId string) (*booking.Booking, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -204,29 +228,43 @@ func (r*bookingRepository) FindOneUserBooking (ctx context.Context, userId strin
 	return result, nil
 }
 
-func (r *bookingRepository) FindOneSlotBooking(ctx context.Context, slotId string) (*facility.Slot, error) {
+func (r *bookingRepository) FindOneSlotBooking(ctx context.Context, slotId string) (*facility.Slot, string, error) {
     ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
     defer cancel()
 
-    db := r.bookingDbConn(ctx)
-    col := db.Collection("slots") // Use the correct collection
+    // List all databases
+    dbs, err := r.client.ListDatabaseNames(ctx, bson.M{})
+    if err != nil {
+        return nil, "", fmt.Errorf("error: failed to list databases: %w", err)
+    }
 
-    var slot facility.Slot
-    // Convert string slotId to ObjectID if needed
+    // Convert string slotId to ObjectID
     objectId, err := primitive.ObjectIDFromHex(slotId)
     if err != nil {
-        return nil, fmt.Errorf("error: invalid slot ID format: %s", slotId)
+        return nil, "", fmt.Errorf("error: invalid slot ID format: %s", slotId)
     }
 
-    // Query using _id in the slots collection
-    err = col.FindOne(ctx, bson.M{"_id": objectId}).Decode(&slot)
-    if err != nil {
-        if err == mongo.ErrNoDocuments {
-            return nil, fmt.Errorf("error: slot %s does not exist", slotId)
+    // Iterate through all facility databases
+    for _, dbName := range dbs {
+        // Check for facility databases that have a suffix "_db"
+        if strings.HasSuffix(dbName, "_facility") {
+            db := r.client.Database(dbName)
+            col := db.Collection("slots")
+
+            // Query the slots collection for the matching _id
+            var slot facility.Slot
+            err := col.FindOne(ctx, bson.M{"_id": objectId}).Decode(&slot)
+            if err == nil {
+                // Return the first matching slot and the facility name (from dbName)
+                facilityName := strings.TrimSuffix(dbName, "_db")
+                return &slot, facilityName, nil
+            } else if err != mongo.ErrNoDocuments {
+                log.Printf("Error: FindOneSlotBooking in %s: %s", dbName, err.Error())
+                continue
+            }
         }
-        log.Printf("Error: FindOneSlotBooking: %s", err.Error())
-        return nil, fmt.Errorf("error: failed to find slot: %w", err)
     }
 
-    return &slot, nil
+    return nil, "", fmt.Errorf("error: slot %s does not exist in any facility", slotId)
 }
+
