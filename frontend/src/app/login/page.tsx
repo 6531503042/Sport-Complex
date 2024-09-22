@@ -40,12 +40,12 @@ const LoginPage = () => {
             Sign in
           </Button>
           <p className={`${styles.textCenter} ${styles.signupText}`}>
-            Are you an outsider? <Link href="#" className={styles.link}>Sign up for free!</Link>
+            Are you an outsider? <Link href="signup" className={styles.link}>Sign up for free!</Link>
           </p>
         </form>
       </div>
       <div className={styles.right}>
-        <Image src="/assets/mfu.jpg" alt="Sports Image" fill className={styles.rightImage} />
+        <Image className={styles.rightImage} src="/assets/loginpicture.png" alt="rightImage "/>
       </div>
     </div>
   );
