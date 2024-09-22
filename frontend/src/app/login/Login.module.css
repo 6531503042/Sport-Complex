@@ -46,15 +46,19 @@
   padding: 0.75rem;
   width: 100%;
   outline: none;
-  color: #000; /* Ensure the text color is black */
+  color: #000; 
+}
+
+.input label {
+  color: #000; 
 }
 
 .checkboxContainer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  color: #000; /* Ensure the text color is black */
+  margin-bottom: 1;
+  color: #000; 
 }
 
 .checkboxWrapper {
@@ -64,16 +68,22 @@
 
 .checkboxWrapper span {
   margin-left: 8px;
-  color: #000; /* Ensure the text color is black */
+  color: #000;
 }
 
 .checkbox {
   margin-right: 8px;
-  transform: scale(1.2); /* Adjust size of the checkbox */
+  transform: scale(1.2); 
+}
+
+.checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
 }
 
 .checkbox label {
-  color: #000; /* Ensure the text color is black */
+  color: #000; 
 }
 
 .link {
@@ -98,7 +108,7 @@
 .textCenter {
   margin-top: 1rem;
   text-align: center;
-  color: #000; /* Ensure the text color is black */
+  color: #000; 
 }
 
 .right {
@@ -106,8 +116,6 @@
   position: relative;
 }
 
-.right img {
-  width: 100%;
-  height: 100%;
+.rightImage {
   object-fit: cover;
 }
