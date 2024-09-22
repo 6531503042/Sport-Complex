@@ -4,15 +4,6 @@ import React from "react";
 import Link from "next/link";
 import Logo from "../../assets/Logo.png";
 import SideBar from "../sidebar/sidebar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faClipboard,
-  faDumbbell,
-  faEnvelope,
-  faSwimmer,
-  faWallet,
-  faFutbol,
-} from "@fortawesome/free-solid-svg-icons";
 import SearhBar from "../../components/search_bar/search_bar";
 import "../navbar/navbar.css";
 
