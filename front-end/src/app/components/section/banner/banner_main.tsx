@@ -121,7 +121,7 @@ const BannerMain: React.FC = () => {
               <div className="cursor-pointer pt-5">
                 <Link
                   href={banner.link}
-                  className="py-3 px-6 sm:py-4 sm:px-8 lg:py-5 lg:px-10 transition-all duration-200 border-2 border-stone-200 text-stone-200 rounded-full text-sm sm:text-base hover:border-transparent hover:shadow-lg hover:bg-yellow-500 hover:text-white"
+                  className="py-2.5 px-3 sm:py-3.5 sm:px-5 lg:py-4.5 lg:px-7 transition-all duration-300 border-2 border-stone-200 text-stone-200 rounded-full text-xs sm:text-sm hover:border-transparent hover:shadow-lg hover:bg-yellow-500 hover:text-white"
                 >
                   <button type="button" className="uppercase">
                     Learn More{" "}

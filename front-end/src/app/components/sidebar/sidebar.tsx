@@ -43,26 +43,27 @@ const Sidebar: React.FC = () => {
           isSidebarOpen ? "translate-x-0" : "translate-x-full"
         } transition-transform duration-300 ease-in-out w-80 z-50 overflow-y-auto overflow-x-hidden`}
       >
-        <div className="inline-flex flex-row">
-          <div className="p-8 flex justify-end">
+        <div className="inline-flex flex-row w-full justify-end">
+          <div className="p-8 flex gap-5">
+            <aside className="login_button border-b-4 border-transparent">
+              <nav className="inline-flex">
+                <div className=" hover:text-white hover:bg-amber-800 hover:shadow-md hover:shadow-amber-700 transition-all duration-300 cursor-pointer py-1.5 px-4 bg-red-900 rounded-full text-white items-center">
+                  <Link href="/registration" className=" font-medium">
+                    Login
+                  </Link>
+                </div>
+              </nav>
+            </aside>
             <button
-              className="text-black hover:text-gray-300"
+              className="text-black hover:text-gray-300 transition-all duration-200"
               onClick={toggleSidebar}
             >
-              <FontAwesomeIcon icon={faX} />
-            </button>
-          </div>
-          <div className="p-8 flex justify-end">
-            <button
-              className="text-black hover:text-gray-300"
-              onClick={toggleSidebar}
-            >
-              <FontAwesomeIcon icon={faX} />
+              <FontAwesomeIcon icon={faX} style={{fontSize:'1.5rem', fontWeight:'normal'}}/>
             </button>
           </div>
         </div>
 
-        <ul className="flex flex-col ps-5 gap-4 font-medium uppercase">
+        <ul className="flex flex-col ps-5 gap-4 font-medium uppercase ">
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
             <Link
               href="/homepage"
