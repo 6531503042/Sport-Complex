@@ -8,6 +8,7 @@ import (
 	"log"
 	"main/config"
 	"main/modules/booking"
+	"main/modules/facility"
 	"main/modules/models"
 	"main/pkg/queue"
 	"time"
@@ -23,7 +24,7 @@ type (
 		UpdateBooking (ctx context.Context, booking *booking.Booking) (*booking.Booking, error)
 		FindBooking(ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error)
-		FindOneSlotBooking(ctx context.Context, slotId string) (*booking.Slot, error)
+		FindOneSlotBooking(ctx context.Context, slotId string) (*facility.Slot, error)
 
 		//Kafka Interface
 		GetOffset(pctx context.Context) (int64, error)
@@ -41,7 +42,7 @@ func NewBookingRepository(db *mongo.Client) BookingRepositoryService {
 }
 
 func (r *bookingRepository) bookingDbConn(pctx context.Context) *mongo.Database {
-	return r.db.Database("booking")
+	return r.db.Database("booking_db")
 }
 
 // Kaka Repo Func
@@ -203,14 +204,14 @@ func (r*bookingRepository) FindOneUserBooking (ctx context.Context, userId strin
 	return result, nil
 }
 
-func (r *bookingRepository) FindOneSlotBooking(ctx context.Context, slotId string) (*booking.Slot, error) {
+func (r *bookingRepository) FindOneSlotBooking(ctx context.Context, slotId string) (*facility.Slot, error) {
     ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
     defer cancel()
 
     db := r.bookingDbConn(ctx)
     col := db.Collection("slots") // Use the correct collection
 
-    var slot booking.Slot
+    var slot facility.Slot
     // Convert string slotId to ObjectID if needed
     objectId, err := primitive.ObjectIDFromHex(slotId)
     if err != nil {
