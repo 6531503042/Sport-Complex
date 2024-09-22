@@ -74,6 +74,15 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             Gym Booking
           </Link>
         </li>
+        <li className={getActiveClass("badminton")}>
+          <Link
+            href="/badminton"
+            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
+          >
+            <a className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>sports_tennis</a>
+            Badminton Booking
+          </Link>
+        </li>
         <li className={getActiveClass("swimming")}>
           <Link
             href="/swimming"
@@ -89,7 +98,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <a className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>sports_soccer</a>
-            Football booking
+            Football Booking
           </Link>
         </li>
         <li className={getActiveClass("rule")}>
