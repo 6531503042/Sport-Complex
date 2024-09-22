@@ -7,6 +7,7 @@ import (
 	"log"
 	"main/modules/facility"
 	"main/pkg/utils"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,7 +23,7 @@ type (
 		UpdateOneFacility (pctx context.Context, facilityId, facilityName string, updateFields bson.M) error
 		DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error
 		FindOneFacility(pctx context.Context, facilityId,facilityName string) (*facility.FacilityBson, error)
-		FindManyFacility(pctx context.Context, facilityName string) ([]facility.FacilityBson, error)
+		FindManyFacility(ctx context.Context) ([]facility.FacilityBson, error)
 
 		//Slot
 		InsertSlot (pctx context.Context, facilityName string, slot facility.Slot) (*facility.Slot, error)
@@ -30,6 +31,8 @@ type (
 		FindManySlot (ctx context.Context, facilityName string) ([]facility.Slot, error)
 		UpdateSlot (ctx context.Context, facilityName string, req *facility.Slot) (*facility.Slot, error)
 		EnableOrDisableSlot (ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error)
+
+		ListAllFacilities(pctx context.Context) ([]string, error)
 	}
 
 	facilitiyReposiory struct {
@@ -44,14 +47,34 @@ func NewFacilityRepository(client *mongo.Client) *facilitiyReposiory {
 
 func (r *facilitiyReposiory) facilityDbConn(pctx context.Context, facilityName string) *mongo.Database {
 	// Use the facility name to dynamically create the database name
-	databaseName := fmt.Sprintf("%s_db", facilityName)
+	databaseName := fmt.Sprintf("%s_facility", facilityName)
 	return r.client.Database(databaseName) // This will create the DB if it doesn't exist
 }
 
-func (r *facilitiyReposiory) slotDbConn(pctx context.Context, facilityName string) *mongo.Database {
+func (r *facilitiyReposiory) slotDbConn(pctx context.Context,facilityName string) *mongo.Database {
 	// Use the existing client to connect to the facility database
-	databaseName := fmt.Sprintf("%s_db", facilityName) // Consistent naming
+	databaseName := fmt.Sprintf("%s_facility", facilityName) // Consistent naming
 	return r.client.Database(databaseName) // Connect to the existing database
+}
+
+func (r *facilitiyReposiory) ListAllFacilities(pctx context.Context) ([]string, error) {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+    defer cancel()
+
+	dbs, err := r.client.ListDatabaseNames(ctx, bson.M{})
+	if err != nil {
+		log.Printf("Error: ListAllFacilities: %s", err.Error())
+		return nil, fmt.Errorf("error: list all facilities failed: %w", err)
+	}
+
+	var facilityDbs []string
+    for _, dbName := range dbs {
+        if strings.HasSuffix(dbName, "_facility") {
+            facilityDbs = append(facilityDbs, dbName)
+        }
+    }
+
+    return facilityDbs, nil
 }
 
 func (r *facilitiyReposiory) InsertFacility (pctx context.Context, req * facility.Facilitiy) (primitive.ObjectID, error) {
@@ -175,39 +198,40 @@ func (r *facilitiyReposiory) FindOneFacility(pctx context.Context, facilityId, f
 	return result, nil
 }
 
-func (r *facilitiyReposiory) FindManyFacility(pctx context.Context, facilityName string) ([]facility.FacilityBson, error) {
-	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
-	defer cancel()
+func (r *facilitiyReposiory) FindManyFacility(ctx context.Context) ([]facility.FacilityBson, error) {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
 
-	db := r.facilityDbConn(ctx, facilityName)
-	col := db.Collection("facilities")
+    // List all databases
+    dbs, err := r.client.ListDatabaseNames(ctx, bson.M{})
+    if err != nil {
+        return nil, fmt.Errorf("error: failed to list databases: %w", err)
+    }
 
-	cursor, err := col.Find(ctx, bson.M{}, options.Find().SetProjection(bson.M{
-		"_id": 1,
-		"name": 1,
-		"price_insider": 1,
-		"price_outsider": 1,
-		"description": 1,
-		"created_at": 1,
-		"updated_at": 1,
-	}))
-	if err != nil {
-		log.Printf("Error: FindManyFacility: %s", err.Error())
-		return nil, fmt.Errorf("error: failed to fetch facilities: %w", err)
-	}
-	defer func() {
-		if err := cursor.Close(ctx); err != nil {
-			log.Printf("Error: FindManyFacility: %s", err.Error())
-		}
-	}()
+    var allFacilities []facility.FacilityBson
 
-	var facilities []facility.FacilityBson
-	if err := cursor.All(ctx, &facilities); err != nil {
-		log.Printf("Error: FindManyFacility: %s", err.Error())
-		return nil, fmt.Errorf("error: failed to fetch facilities: %w", err)
-	}
+    // Loop through all databases to find facilities
+    for _, dbName := range dbs {
+        if strings.HasSuffix(dbName, "_facility") {
+            db := r.client.Database(dbName)
+            col := db.Collection("facilities")
 
-	return facilities, nil
+            var facilities []facility.FacilityBson
+            cur, err := col.Find(ctx, bson.M{})
+            if err != nil {
+                log.Printf("Error: FindAllFacilities: %s", err.Error())
+                continue
+            }
+            if err = cur.All(ctx, &facilities); err != nil {
+                log.Printf("Error: FindAllFacilities: %s", err.Error())
+                continue
+            }
+
+            allFacilities = append(allFacilities, facilities...)
+        }
+    }
+
+    return allFacilities, nil
 }
 
 func (r *facilitiyReposiory) InsertSlot(pctx context.Context, facilityName string, slot facility.Slot) (*facility.Slot, error) {
@@ -227,6 +251,7 @@ func (r *facilitiyReposiory) InsertSlot(pctx context.Context, facilityName strin
 		"status":          slot.Status,
 		"max_bookings":    slot.MaxBookings,
 		"current_bookings": slot.CurrentBookings,
+		"facility_type": slot.FacilityType,
 		"created_at":      slot.CreatedAt,
 		"updated_at":      slot.UpdatedAt,
 	})
