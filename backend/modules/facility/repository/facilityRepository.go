@@ -18,6 +18,8 @@ import (
 
 type (
 	FacilityRepositoryService interface {
+
+
 		InsertFacility (pctx context.Context, req * facility.Facilitiy) (primitive.ObjectID, error)
 		IsUniqueName(pctx context.Context, facilityName string) bool
 		UpdateOneFacility (pctx context.Context, facilityId, facilityName string, updateFields bson.M) error
@@ -32,7 +34,11 @@ type (
 		UpdateSlot (ctx context.Context, facilityName string, req *facility.Slot) (*facility.Slot, error)
 		EnableOrDisableSlot (ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error)
 
-		ListAllFacilities(pctx context.Context) ([]string, error)
+		//Badminton
+		InsertBadCourt(ctx context.Context, court *facility.BadmintonCourt) (primitive.ObjectID, error)
+		FindBadmintonCourt (ctx context.Context) ([]facility.BadmintonCourt, error)
+		InsertBadmintonSlot(ctx context.Context, req *facility.BadmintonSlot) (primitive.ObjectID, error)
+		FindBadmintonSlot (ctx context.Context) ([]facility.BadmintonSlot, error)
 	}
 
 	facilitiyReposiory struct {
@@ -54,6 +60,12 @@ func (r *facilitiyReposiory) facilityDbConn(pctx context.Context, facilityName s
 func (r *facilitiyReposiory) slotDbConn(pctx context.Context,facilityName string) *mongo.Database {
 	// Use the existing client to connect to the facility database
 	databaseName := fmt.Sprintf("%s_facility", facilityName) // Consistent naming
+	return r.client.Database(databaseName) // Connect to the existing database
+}
+
+func (r *facilitiyReposiory) courtDbConn(pctx context.Context) *mongo.Database {
+	// Use the existing client to connect to the facility database
+	databaseName := fmt.Sprintf("badminton_facility") // Consistent naming
 	return r.client.Database(databaseName) // Connect to the existing database
 }
 
@@ -362,3 +374,129 @@ func (r *facilitiyReposiory) EnableOrDisableSlot (ctx context.Context, facilityN
 	}
 	return r.FindOneSlot(ctx, facilityName, slotId)
 }
+
+func (r *facilitiyReposiory) InsertBadCourt(ctx context.Context, court *facility.BadmintonCourt) (primitive.ObjectID, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	// Connect to the badminton facility database
+	db := r.courtDbConn(ctx)
+	col := db.Collection("badminton_court")
+
+	result, err := col.InsertOne(ctx, bson.M{
+		"court_number": court.CourtNumber,
+		"is_booked": court.IsBooked,
+	})
+	if err != nil {
+		log.Printf("Error: Insert Badminton Court: %s", err.Error())
+		return primitive.NilObjectID, fmt.Errorf("error: insert badminton court failed: %w", err)
+	}
+
+	// Insert the court into the collection
+
+	courtID, ok := result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return primitive.NilObjectID, fmt.Errorf("error: insert badminton court failed")
+	}
+
+	return courtID, nil
+}
+
+func (r *facilitiyReposiory) FindBadmintonCourt (ctx context.Context) ([]facility.BadmintonCourt, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	db := r.courtDbConn(ctx)
+	col := db.Collection("badminton_court")
+
+	cur, err := col.Find(ctx, bson.M{})
+	if err != nil {
+		log.Printf("Error: Find Many Badminton Court: %s", err.Error())
+        return nil, fmt.Errorf("error: find many court failed: %w", err)
+	}
+	defer cur.Close(ctx)
+
+	var result []facility.BadmintonCourt
+	if err = cur.All(ctx, &result); err != nil {
+		log.Printf("Error: FindManySlot: %s", err.Error())
+        return nil, fmt.Errorf("error: find many slot failed: %w", err)
+	}
+
+	return result, nil
+}
+
+func (r *facilitiyReposiory) InsertBadmintonSlot(ctx context.Context, req *facility.BadmintonSlot) (primitive.ObjectID, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	// Connect to the badminton facility database
+	db := r.courtDbConn(ctx)
+	col := db.Collection("badminton_slots") // Change this to the appropriate slots collection
+
+	// Create the slot entry
+	slot := &facility.BadmintonSlot{
+		StartTime: req.StartTime,
+		EndTime:   req.EndTime,
+		CourtId: req.CourtId,
+		// Courts:    req.Courts,
+		Status:    0,          // Initial status (e.g., available)
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	// Insert the slot into the collection
+	result, err := col.InsertOne(ctx, slot)
+	if err != nil {
+		log.Printf("Error: InsertBadmintonSlot: %s", err.Error())
+		return primitive.NilObjectID, fmt.Errorf("error: insert badminton slot failed: %w", err)
+	}
+
+	slotID, ok := result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return primitive.NilObjectID, fmt.Errorf("error: insert badminton slot failed")
+	}
+
+	return slotID, nil
+}
+
+func (r *facilitiyReposiory) FindBadmintonSlot(ctx context.Context) ([]facility.BadmintonSlot, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	// Connect to the badminton facility collection
+	db := r.courtDbConn(ctx)
+	col := db.Collection("badminton_slots")
+
+	// Find all slots with relevant fields
+	cursor, err := col.Find(ctx, bson.M{}, options.Find().SetProjection(bson.M{
+		"_id":        1,
+		"start_time": 1,
+		"end_time":   1,
+		"court_id":   1,
+		"status":     1,
+		"created_at": 1,
+		"updated_at": 1, // Include created_at and updated_at in the projection
+	}))
+	if err != nil {
+		log.Printf("Error: Find Badminton Slot: %s", err.Error())
+		return nil, fmt.Errorf("error: find badminton slot failed: %w", err)
+	}
+	defer func() {
+		if err := cursor.Close(ctx); err != nil {
+			log.Printf("Error: Find Badminton Slot - failed to close cursor: %s", err.Error())
+		}
+	}()
+
+	// Decode all found documents into BadmintonSlot slice
+	var result []facility.BadmintonSlot
+	if err = cursor.All(ctx, &result); err != nil {
+		log.Printf("Error: Find Badminton Slot - failed to decode cursor: %s", err.Error())
+		return nil, fmt.Errorf("error: find badminton slot failed: %w", err)
+	}
+
+	return result, nil
+}
+
+
+
+
