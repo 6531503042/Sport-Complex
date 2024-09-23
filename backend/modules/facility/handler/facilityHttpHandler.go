@@ -22,6 +22,13 @@ type (
 		InsertSlot (c echo.Context) error
 		FindOneSlot (c echo.Context) error
 		FindAllSlots (c echo.Context) error
+
+		//Badminton
+		InsertBadCourt ( c echo.Context) error
+		FindCourt(c echo.Context) error
+		InsertBadmintonSlot ( c echo.Context) error
+		FindBadmintonSlot(c echo.Context) error
+		
 	}
 
 	facilityHttpHandler struct {
@@ -166,4 +173,65 @@ func (h *facilityHttpHandler) FindAllSlots(c echo.Context) error {
 	}
 
 	return response.SuccessResponse(c, http.StatusOK, slots)
+}
+
+func (h *facilityHttpHandler) InsertBadCourt ( c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var court facility.BadmintonCourt
+	if err := c.Bind(&court); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
+	}
+
+	courtId, err := h.facilityUsecase.InsertBadCourt(ctx, &court)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusCreated, echo.Map{"court_id": courtId})
+}
+
+func (h *facilityHttpHandler) FindCourt(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var court []facility.BadmintonCourt // Change the variable type to a slice
+
+	court, err := h.facilityUsecase.FindBadCourt(ctx)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, court)
+}
+
+func (h *facilityHttpHandler) InsertBadmintonSlot ( c echo.Context) error {
+    ctx := c.Request().Context()
+
+	var slot facility.BadmintonSlot
+	if err := c.Bind(&slot); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
+	}
+
+	slotId, err := h.facilityUsecase.InsertBadmintonSlot(ctx, &slot)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusCreated, echo.Map{"slot_id": slotId})
+}
+
+func (h *facilityHttpHandler) FindBadmintonSlot(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	// var court []facility.BadmintonSlot // Change the variable type to a slice
+	// if err := c.Bind(&court); err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
+	// }
+
+	slot, err := h.facilityUsecase.FindBadmintonSlot(ctx)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, slot)
 }
