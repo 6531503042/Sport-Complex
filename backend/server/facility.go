@@ -20,5 +20,12 @@ func (s *server) facilityService() {
 	facilitySlot := facility.Group("/:facilityName/slot_v1") 
 	facilitySlot.POST("/slots", httpHandler.InsertSlot)         
 	facilitySlot.GET("/slots/:slot_id", httpHandler.FindOneSlot) 
-	facilitySlot.GET("/slots", httpHandler.FindAllSlots)        
+	facilitySlot.GET("/slots", httpHandler.FindAllSlots)      
+	
+	//Badminton
+	badminton := facility.Group("/badminton_v1")
+	badminton.POST("/court", httpHandler.InsertBadCourt)
+	badminton.POST("/slot", httpHandler.InsertBadmintonSlot)
+	badminton.GET("/slots", httpHandler.FindBadmintonSlot)
+	badminton.GET("/courts", httpHandler.FindCourt)
 }
