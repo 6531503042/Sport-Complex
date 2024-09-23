@@ -8,6 +8,8 @@ import (
 	"main/modules/facility/repository"
 	"main/pkg/utils"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type (
@@ -23,6 +25,12 @@ type (
 		FindOneSlot(ctx context.Context, facilityName, slotId string) (*facility.Slot, error)
 		FindManySlot(ctx context.Context,facilityName string) ([]facility.Slot, error)
 		EnableOrDisableSlot(ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error)
+
+		//Court - usecase
+		InsertBadCourt(ctx context.Context, court *facility.BadmintonCourt) (primitive.ObjectID, error)
+		FindBadCourt(ctx context.Context) ([]facility.BadmintonCourt, error)
+		InsertBadmintonSlot(ctx context.Context, slot *facility.BadmintonSlot) (primitive.ObjectID, error)
+		FindBadmintonSlot(ctx context.Context) ([]facility.BadmintonSlot, error)
 
 	}
 
@@ -162,4 +170,53 @@ func (u *facilityUsecase) FindManySlot(ctx context.Context,facilityName string) 
 
 func (u *facilityUsecase) EnableOrDisableSlot(ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error) {
 	return u.facilityRepository.EnableOrDisableSlot(ctx, facilityName, slotId, status)
+}
+
+func (u *facilityUsecase) InsertBadCourt(ctx context.Context, court *facility.BadmintonCourt) (primitive.ObjectID, error) {
+	return u.facilityRepository.InsertBadCourt(ctx, court)
+}
+
+func (u *facilityUsecase) FindBadCourt(ctx context.Context) ([]facility.BadmintonCourt, error) {
+	results, err := u.facilityRepository.FindBadmintonCourt(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var badCourt []facility.BadmintonCourt
+	for _, result := range results {
+		badCourt = append(badCourt, facility.BadmintonCourt{
+			Id:          result.Id,
+			CourtNumber: result.CourtNumber,
+			IsBooked: result.IsBooked,
+		})
+	}
+
+	return badCourt, nil
+}
+
+func (u *facilityUsecase) InsertBadmintonSlot(ctx context.Context, slot *facility.BadmintonSlot) (primitive.ObjectID, error) {
+	return u.facilityRepository.InsertBadmintonSlot(ctx, slot)
+}
+
+func (u *facilityUsecase) FindBadmintonSlot(ctx context.Context) ([]facility.BadmintonSlot, error) {
+	// Fetch slots from repository
+	results, err := u.facilityRepository.FindBadmintonSlot(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var badmintonSlots []facility.BadmintonSlot
+	for _, result := range results {
+		badmintonSlots = append(badmintonSlots, facility.BadmintonSlot{
+			Id:        result.Id,
+			StartTime: result.StartTime,
+			EndTime:   result.EndTime,
+			Status:    result.Status,
+			CourtId:   result.CourtId,
+			CreatedAt: result.CreatedAt,
+			UpdatedAt: result.UpdatedAt,
+		})
+	}
+
+	return badmintonSlots, nil
 }
