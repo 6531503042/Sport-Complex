@@ -1,28 +1,27 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@nextui-org/react";
 import "./football.css";
 
 interface Data {
   time: string;
   isAvailable: boolean;
-  member: string;
+
 }
 
 function Football_Booking() {
   const data: Data[] = [
-    { time: "10.00 - 11.00", isAvailable: true, member: "0/1" },
-    { time: "11.00 - 12.00", isAvailable: false, member: "1/1" },
-    { time: "12.00 - 13.00", isAvailable: true, member: "0/1" },
-    { time: "13.00 - 14.00", isAvailable: false, member: "1/1" },
-    { time: "14.00 - 15.00", isAvailable: true, member: "0/1" },
-    { time: "15.00 - 16.00", isAvailable: true, member: "0/1" },
-    { time: "16.00 - 17.00", isAvailable: true, member: "0/1" },
-    { time: "17.00 - 18.00", isAvailable: true, member: "0/1" },
-    { time: "18.00 - 19.00", isAvailable: true, member: "0/1" },
-    { time: "19.00 - 20.00", isAvailable: true, member: "0/1" },
-    { time: "20.00 - 21.00", isAvailable: true, member: "0/1" },
+    { time: "10.00 - 11.00", isAvailable: true},
+    { time: "11.00 - 12.00", isAvailable: false},
+    { time: "12.00 - 13.00", isAvailable: true},
+    { time: "13.00 - 14.00", isAvailable: false},
+    { time: "14.00 - 15.00", isAvailable: true},
+    { time: "15.00 - 16.00", isAvailable: true},
+    { time: "16.00 - 17.00", isAvailable: true},
+    { time: "17.00 - 18.00", isAvailable: true},
+    { time: "18.00 - 19.00", isAvailable: true},
+    { time: "19.00 - 20.00", isAvailable: true},
+    { time: "20.00 - 21.00", isAvailable: true},
   ];
 
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
@@ -71,7 +70,7 @@ function Football_Booking() {
         phone: "",
       });
       setSelectedCard(null);
-      setIsMobileView(false); // Reset view after booking
+      setIsMobileView(false);
     }
   };
 
@@ -83,7 +82,7 @@ function Football_Booking() {
   };
 
   const handleBackToTimeSlots = () => {
-    setIsMobileView(false); // Go back to time slots in mobile
+    setIsMobileView(false); 
   };
 
   return (
@@ -99,6 +98,13 @@ function Football_Booking() {
             <div className="block sm:hidden">
               <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
                 <form onSubmit={handleSubmit}>
+                  <div className="my-3"><a
+                    onClick={handleBackToTimeSlots}
+                    className="bg-red-500 text-white p-2.5 px rounded-lg hover:bg-red-600 cursor-pointer"
+                  >
+                    X
+                  </a></div>
+                
                   <label className="block mb-4">
                     <span className="block text-sm font-medium text-gray-700 py-2">
                       Name
@@ -151,19 +157,14 @@ function Football_Booking() {
                       </span>
                     )}
                   </label>
+
                   <button
                     type="submit"
-                    className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+                    className="bg-green-500 text-white px-5 py-2.5 rounded-md hover:bg-green-600"
                   >
                     Booking
                   </button>
-                  <button
-                    onClick={handleBackToTimeSlots}
-                    type="submit"
-                    className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-                  >
-                    Booking
-                  </button>
+                  
                   <h2 className="text-xl font-bold mb-4 text-end">
                     {selectedCard !== null && data[selectedCard].time}
                   </h2>
@@ -171,13 +172,13 @@ function Football_Booking() {
               </div>
             </div>
           ) : (
-            // Normal and larger screen view: Show time slots and form sliding in
+            // Normal and larger screen view
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {data.map((item, index) => (
                   <div
                     key={index}
-                    className={`bg-white border border-gray-200 rounded-lg p-4 shadow-md transition-transform duration-300 ease-in-out
+                    className={`bg-white border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
                       ${
                         item.isAvailable
                           ? "cursor-pointer"
@@ -195,23 +196,21 @@ function Football_Booking() {
                       }`}
                     onClick={() => handleCardClick(index, item.isAvailable)}
                   >
-                    <div className="text-lg font-semibold mb-2 flex justify-between">
+                    <div className="text-lg font-semibold flex justify-between items-center	">
                       <div>{item.time}</div>
                       <div
                         className={`text-sm ${
                           item.isAvailable ? "text-black" : "text-gray-500"
                         }`}
                       >
-                        {item.member}
-                      </div>
-                    </div>
-
-                    <div
+                         <div
                       className={`text-sm ${
                         item.isAvailable ? "text-green-500" : "text-gray-500"
                       }`}
                     >
                       {item.isAvailable ? "Available" : "Unavailable"}
+                    </div>
+                      </div>
                     </div>
                   </div>
                 ))}
