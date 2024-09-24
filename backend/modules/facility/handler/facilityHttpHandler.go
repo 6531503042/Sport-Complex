@@ -223,10 +223,6 @@ func (h *facilityHttpHandler) InsertBadmintonSlot ( c echo.Context) error {
 func (h *facilityHttpHandler) FindBadmintonSlot(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	// var court []facility.BadmintonSlot // Change the variable type to a slice
-	// if err := c.Bind(&court); err != nil {
-	// 	return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
-	// }
 
 	slot, err := h.facilityUsecase.FindBadmintonSlot(ctx)
 	if err != nil {
