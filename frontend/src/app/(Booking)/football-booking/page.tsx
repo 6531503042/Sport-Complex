@@ -2,26 +2,28 @@
 
 import React, { useState } from "react";
 import "./football.css";
+import Available from "@/app/assets/available.png";
+import Unavailable from "@/app/assets/unavailable.png";
+import Back from '@/app/assets/back.png'
 
 interface Data {
   time: string;
   isAvailable: boolean;
-
 }
 
 function Football_Booking() {
   const data: Data[] = [
-    { time: "10.00 - 11.00", isAvailable: true},
-    { time: "11.00 - 12.00", isAvailable: false},
-    { time: "12.00 - 13.00", isAvailable: true},
-    { time: "13.00 - 14.00", isAvailable: false},
-    { time: "14.00 - 15.00", isAvailable: true},
-    { time: "15.00 - 16.00", isAvailable: true},
-    { time: "16.00 - 17.00", isAvailable: true},
-    { time: "17.00 - 18.00", isAvailable: true},
-    { time: "18.00 - 19.00", isAvailable: true},
-    { time: "19.00 - 20.00", isAvailable: true},
-    { time: "20.00 - 21.00", isAvailable: true},
+    { time: "10.00 - 11.00", isAvailable: true },
+    { time: "11.00 - 12.00", isAvailable: false },
+    { time: "12.00 - 13.00", isAvailable: true },
+    { time: "13.00 - 14.00", isAvailable: false },
+    { time: "14.00 - 15.00", isAvailable: true },
+    { time: "15.00 - 16.00", isAvailable: true },
+    { time: "16.00 - 17.00", isAvailable: true },
+    { time: "17.00 - 18.00", isAvailable: true },
+    { time: "18.00 - 19.00", isAvailable: true },
+    { time: "19.00 - 20.00", isAvailable: true },
+    { time: "20.00 - 21.00", isAvailable: true },
   ];
 
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
@@ -82,7 +84,7 @@ function Football_Booking() {
   };
 
   const handleBackToTimeSlots = () => {
-    setIsMobileView(false); 
+    setIsMobileView(false);
   };
 
   return (
@@ -95,16 +97,13 @@ function Football_Booking() {
 
           {isMobileView ? (
             // Mobile View: Show the form instead of the time slots
-            <div className="block sm:hidden">
+            <div className="block sm:hidden ">
               <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
                 <form onSubmit={handleSubmit}>
-                  <div className="my-3"><a
-                    onClick={handleBackToTimeSlots}
-                    className="bg-red-500 text-white p-2.5 px rounded-lg hover:bg-red-600 cursor-pointer"
-                  >
-                    X
-                  </a></div>
-                
+                  <div className="my-3 ">
+                    <img src={Back.src} alt="back" onClick={handleBackToTimeSlots} className="border shadow-xl p-2 rounded-md cursor-pointer hover:bg-gray-200" width={40}/>
+                  </div>
+
                   <label className="block mb-4">
                     <span className="block text-sm font-medium text-gray-700 py-2">
                       Name
@@ -160,11 +159,11 @@ function Football_Booking() {
 
                   <button
                     type="submit"
-                    className="bg-green-500 text-white px-5 py-2.5 rounded-md hover:bg-green-600"
+                    className="font-bold bg-green-500 text-white px-5 py-2.5 my-5 rounded-md drop-shadow-2xl hover:bg-green-600"
                   >
                     Booking
                   </button>
-                  
+
                   <h2 className="text-xl font-bold mb-4 text-end">
                     {selectedCard !== null && data[selectedCard].time}
                   </h2>
@@ -181,35 +180,37 @@ function Football_Booking() {
                     className={`bg-white border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
                       ${
                         item.isAvailable
-                          ? "cursor-pointer"
+                          ? "cursor-pointer hover:scale-105 hover:shadow-lg"
                           : "cursor-not-allowed"
                       }
                       ${
                         selectedCard === index && item.isAvailable
-                          ? "bg-green-100 border-green-500"
+                          ? "bg-green-200 border-green-500 scale-105 shadow-lg"
                           : ""
                       }
                       ${
                         !item.isAvailable
-                          ? "bg-gray-200 text-gray-500"
-                          : "hover:bg-green-100"
+                          ? "bg-gray-100 text-gray-700"
+                          : "hover:bg-green-200"
                       }`}
                     onClick={() => handleCardClick(index, item.isAvailable)}
                   >
-                    <div className="text-lg font-semibold flex justify-between items-center	">
+                    <div className="text-lg font-semibold flex justify-between items-center">
                       <div>{item.time}</div>
-                      <div
-                        className={`text-sm ${
-                          item.isAvailable ? "text-black" : "text-gray-500"
-                        }`}
-                      >
-                         <div
-                      className={`text-sm ${
-                        item.isAvailable ? "text-green-500" : "text-gray-500"
-                      }`}
-                    >
-                      {item.isAvailable ? "Available" : "Unavailable"}
-                    </div>
+                      <div>
+                        {item.isAvailable ? (
+                          <img
+                            src={Available.src}
+                            alt="Available"
+                            className="w-6 h-6"
+                          />
+                        ) : (
+                          <img
+                            src={Unavailable.src}
+                            alt="Unavailable"
+                            className="w-6 h-6"
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -283,12 +284,15 @@ function Football_Booking() {
                           </span>
                         )}
                       </label>
-                      <button
-                        type="submit"
-                        className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-                      >
-                        Booking
-                      </button>
+                      {/* Center the button */}
+                      <div className="flex justify-center">
+                        <button
+                          type="submit"
+                          className="font-semibold bg-green-500 text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-green-600"
+                        >
+                          Booking
+                        </button>
+                      </div>
                     </form>
                   </>
                 )}
@@ -303,7 +307,7 @@ function Football_Booking() {
               <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
                 Booking Successful!
               </h2>
-              <p className="text-gray-600 mb-6 ">
+              <p className="text-gray-600 mb-6 text-center">
                 You have successfully booked the slot.
               </p>
 
