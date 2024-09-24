@@ -187,7 +187,7 @@ func (u *facilityUsecase) FindBadCourt(ctx context.Context) ([]facility.Badminto
 		badCourt = append(badCourt, facility.BadmintonCourt{
 			Id:          result.Id,
 			CourtNumber: result.CourtNumber,
-			IsBooked: result.IsBooked,
+			Status: result.Status,
 		})
 	}
 
