@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"main/config"
 	"main/modules/booking"
 	"main/modules/booking/usecase"
@@ -14,9 +13,10 @@ import (
 type (
 	NewBookingHttpHandlerService interface {
 		// InsertBooking(c echo.Context) error
-		UpdateBooking(c echo.Context) error
+
 		FindBooking(c echo.Context) error
 		FindOneUserBooking(c echo.Context) error
+		CreateBooking (c echo.Context) error
 	}
 
 	bookingHttpHandler struct {
@@ -29,58 +29,32 @@ func NewBookingHttpHandler(cfg *config.Config, bookingUsecase usecase.BookingUse
 	return &bookingHttpHandler{cfg: cfg, bookingUsecase: bookingUsecase}
 }
 
+func (h *bookingHttpHandler) CreateBooking (c echo.Context) error {
+	var req booking.CreateBookingRequest
 
-// func (h *bookingHttpHandler) InsertBooking(c echo.Context) error {
-//     log.Println("Received request to create booking")
-
-//     ctx := c.Request().Context()
-//     wrapper := request.ContextWrapper(c)
-
-//     req := new(booking.CreateBookingReq)
-
-//     // Bind and validate the incoming request payload
-//     if err := wrapper.Bind(req); err != nil {
-//         log.Println("Invalid request payload:", err)
-//         return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
-//     }
-
-//     log.Printf("Attempting to create booking for UserId: %s, SlotId: %s", req.UserId, req.SlotId)
-
-//     // Use the usecase to insert a new booking
-//     res, err := h.bookingUsecase.InsertBooking(ctx, req.UserId, req.SlotId)
-//     if err != nil {
-//         log.Println("Failed to create booking:", err)
-//         return response.ErrResponse(c, http.StatusBadRequest, err.Error())
-//     }
-
-//     log.Println("Booking created successfully, Booking ID:", res.Id)
-
-//     return response.SuccessResponse(c, http.StatusCreated, res)
-// }
-
-
-
-func (h *bookingHttpHandler) UpdateBooking(c echo.Context) error {
-	log.Println("Received request to update booking")
-
-	ctx := c.Request().Context()
-	bookingId := c.Param("booking_id")
-
-	// Bind the request to the UpdateBookingReq struct
-	req := new(booking.BookingUpdateReq)
-
-	if err := c.Bind(req); err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, "Invalid request payload")
+	// Bind and validate the request
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request format")
+	}
+	if err := c.Validate(req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	// Call the usecase with the required parameters
-	updatedBooking, err := h.bookingUsecase.UpdateBooking(ctx, bookingId, int(req.SlotId))
+	facilityName := c.Param("facility_name") // Assuming the facility name is part of the URL path
+
+	// Call the usecase to insert the booking
+	response, err := h.bookingUsecase.InsertBooking(c.Request().Context(), facilityName, &req)
+
 	if err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, updatedBooking)
+	// Return the successful response
+	return c.JSON(http.StatusCreated, response)
 }
+
+
+
 
 func (h *bookingHttpHandler) FindBooking(c echo.Context) error {
 	bookingId := c.Param("booking_id") // Ensure the same parameter name as UpdateBooking
