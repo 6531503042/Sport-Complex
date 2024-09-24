@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import NavBar from "../../components/navbar/navbar";
 import BannerMain from "../../components/section/banner/banner_main";
 import NewsReport from "../../components/section/new_report/report";
-import LinkRelease from "../../components/section/link_to_another_website/link_release";
+import RelatedLink from "../../components/section/related_link_web/related_link";
 import Footer from "../../components/section/footer/footer";
 import "../../css/banner.css";
 
@@ -14,7 +14,7 @@ const homepage: React.FC = () => {
       <NavBar />
       <BannerMain />
       <NewsReport />
-      <LinkRelease />
+      <RelatedLink />
       <br />
       <br />
       <br />

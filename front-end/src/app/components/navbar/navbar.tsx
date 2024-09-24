@@ -70,7 +70,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/gym"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <a className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>exercise</a>
+            <i className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>exercise</i>
             Gym Booking
           </Link>
         </li>
@@ -79,7 +79,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/badminton"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <a className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>sports_tennis</a>
+            <i className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>sports_tennis</i>
             Badminton Booking
           </Link>
         </li>
@@ -88,7 +88,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/swimming"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <a className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>pool</a>
+            <i className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>pool</i>
             Swimming Booking
           </Link>
         </li>
@@ -97,7 +97,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/football"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <a className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>sports_soccer</a>
+            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>sports_soccer</i>
             Football Booking
           </Link>
         </li>
@@ -106,7 +106,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/rule"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <a className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>assignment_late</a>
+            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>assignment_late</i>
             Rules
           </Link>
         </li>
@@ -115,7 +115,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/contact"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <a className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>mail</a>
+            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>mail</i>
             Contact
           </Link>
         </li>
@@ -124,7 +124,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/payment"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <a className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>wallet</a>
+            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>wallet</i>
             Payment
           </Link>
         </li>
