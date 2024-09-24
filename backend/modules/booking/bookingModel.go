@@ -25,7 +25,6 @@ type (
         UserId string `json:"user_id,omitempty"`
         SlotId string `json:"slot_id,omitempty"`
         Status int    `json:"status,omitempty"`
-        // Add pagination fields if needed
         Limit  int `json:"limit,omitempty"`
         Offset int `json:"offset,omitempty"`
     }
