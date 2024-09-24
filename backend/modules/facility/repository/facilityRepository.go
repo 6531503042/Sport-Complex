@@ -385,7 +385,7 @@ func (r *facilitiyReposiory) InsertBadCourt(ctx context.Context, court *facility
 
 	result, err := col.InsertOne(ctx, bson.M{
 		"court_number": court.CourtNumber,
-		"is_booked": court.IsBooked,
+		"status": court.Status,
 	})
 	if err != nil {
 		log.Printf("Error: Insert Badminton Court: %s", err.Error())
