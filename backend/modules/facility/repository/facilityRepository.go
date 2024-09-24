@@ -381,7 +381,7 @@ func (r *facilitiyReposiory) InsertBadCourt(ctx context.Context, court *facility
 
 	// Connect to the badminton facility database
 	db := r.courtDbConn(ctx)
-	col := db.Collection("badminton_court")
+	col := db.Collection("court")
 
 	result, err := col.InsertOne(ctx, bson.M{
 		"court_number": court.CourtNumber,
@@ -407,7 +407,7 @@ func (r *facilitiyReposiory) FindBadmintonCourt (ctx context.Context) ([]facilit
 	defer cancel()
 
 	db := r.courtDbConn(ctx)
-	col := db.Collection("badminton_court")
+	col := db.Collection("court")
 
 	cur, err := col.Find(ctx, bson.M{})
 	if err != nil {
@@ -431,7 +431,7 @@ func (r *facilitiyReposiory) InsertBadmintonSlot(ctx context.Context, req *facil
 
 	// Connect to the badminton facility database
 	db := r.courtDbConn(ctx)
-	col := db.Collection("badminton_slots") // Change this to the appropriate slots collection
+	col := db.Collection("slots") // Change this to the appropriate slots collection
 
 	// Create the slot entry
 	slot := &facility.BadmintonSlot{
@@ -465,7 +465,7 @@ func (r *facilitiyReposiory) FindBadmintonSlot(ctx context.Context) ([]facility.
 
 	// Connect to the badminton facility collection
 	db := r.courtDbConn(ctx)
-	col := db.Collection("badminton_slots")
+	col := db.Collection("slots")
 
 	// Find all slots with relevant fields
 	cursor, err := col.Find(ctx, bson.M{}, options.Find().SetProjection(bson.M{
