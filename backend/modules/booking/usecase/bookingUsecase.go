@@ -2,13 +2,14 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"main/config"
 	"main/modules/booking"
+	bm "main/modules/booking"
 	"main/modules/booking/repository"
 	"main/pkg/utils"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
 )
 
 type(
@@ -47,67 +48,49 @@ func (u *bookingUsecase) UpOffSet(ctx context.Context, newOffset int64) error {
 }
 
 func (u *bookingUsecase) InsertBooking(ctx context.Context, facilityName string, req *booking.CreateBookingRequest) (*booking.BookingResponse, error) {
-	// Convert UserId from string to ObjectID
-	userId, err := primitive.ObjectIDFromHex(req.UserId)
-	if err != nil {
-		return nil, fmt.Errorf("invalid user ID: %w", err)
-	}
+    // Validate slot type and IDs
+    if req.SlotType == "normal" && req.SlotId == nil {
+        return nil, errors.New("error: SlotId is required for normal bookings")
+    }
+    if req.SlotType == "badminton" && req.BadmintonSlotId == nil {
+        return nil, errors.New("error: BadmintonSlotId is required for badminton bookings")
+    }
+    if req.SlotId != nil && req.BadmintonSlotId != nil {
+        return nil, errors.New("error: Only one of SlotId or BadmintonSlotId should be provided")
+    }
 
-	var slotId, badmintonSlotId *primitive.ObjectID
-	if req.SlotId != nil {
-		id, err := primitive.ObjectIDFromHex(*req.SlotId)
+    // Create the booking request struct for repository interaction
+    bookingReq := &booking.Booking{
+        UserId:          req.UserId,
+        SlotId:          req.SlotId,
+        BadmintonSlotId: req.BadmintonSlotId,
+        Status:          1, // Assuming status 1 means active or new
+        CreatedAt:       time.Now(),
+        UpdatedAt:       time.Now(),
+    }
+
+    // Insert booking using the repository
+        // Insert booking using the repository
+		booking, err := u.bookingRepository.InsertBooking(ctx, facilityName, bookingReq)
 		if err != nil {
-			return nil, fmt.Errorf("invalid slot ID: %w", err)
+			return nil, fmt.Errorf("failed to insert booking: %w", err)
 		}
-		slotId = &id
-	} else if req.BadmintonSlotId != nil {
-		id, err := primitive.ObjectIDFromHex(*req.BadmintonSlotId)
-		if err != nil {
-			return nil, fmt.Errorf("invalid badminton slot ID: %w", err)
+	
+		// Map the internal booking struct to the response DTO
+		bookingResponse := &bm.BookingResponse{
+			Id:              booking.Id,
+			UserId:          booking.UserId,
+			SlotId:          booking.SlotId,
+			BadmintonSlotId: booking.BadmintonSlotId,
+			SlotType:        req.SlotType,
+			Status:          booking.Status,
+			CreatedAt:       booking.CreatedAt,
+			UpdatedAt:       booking.UpdatedAt,
 		}
-		badmintonSlotId = &id
-	}
 
-	// Create the booking object to pass to the repository
-	bookingDoc := &booking.Booking{
-		UserId:         userId,
-		SlotId:         slotId,
-		BadmintonSlotId: badmintonSlotId,
-		Status:         1, // Set the initial status
-		CreatedAt:      utils.LocalTime(),
-		UpdatedAt:      utils.LocalTime(),
-	}
-
-	// Insert the booking via repository
-	bookingResult, err := u.bookingRepository.InsertBooking(ctx, facilityName, bookingDoc)
-	if err != nil {
-		return nil, fmt.Errorf("error inserting booking: %w", err)
-	}
-
-	// Prepare and return response
-	// Prepare and return response
-	response := &booking.BookingResponse{ // Change here to use a pointer
-		Id:              bookingResult.Id,
-		UserId:          bookingResult.UserId.Hex(),
-		SlotId:          nil,
-		BadmintonSlotId: nil, // Initialize as nil
-		Status:          bookingResult.Status,
-		CreatedAt:       bookingResult.CreatedAt,
-		UpdatedAt:       bookingResult.UpdatedAt,
-	}
-
-	if bookingResult.SlotId != nil {
-		slotIdStr := bookingResult.SlotId.Hex() // Convert ObjectID to string
-		response.SlotId = &slotIdStr // Set the SlotId field
-	}
-
-	if bookingResult.BadmintonSlotId != nil {
-		badmintonSlotIdStr := bookingResult.BadmintonSlotId.Hex() // Convert ObjectID to string
-		response.BadmintonSlotId = &badmintonSlotIdStr // Set the BadmintonSlotId field
-	}
-
-	return response, nil // Return a pointer
+    return bookingResponse, nil
 }
+
 
 
 
