@@ -99,43 +99,83 @@ func (r *bookingRepository) UpOffset(pctx context.Context, newOffset int64) erro
 }
 
 func (r *bookingRepository) checkSlotAvailability(pctx context.Context, facilityName string, req *booking.Booking) (*facility.Slot, error) {
+	// Connect to the facility DB (specific to each facility)
 	facilityDb := r.facilityDbConn(pctx, facilityName)
 	slotCol := facilityDb.Collection("slots")
 
 	var slot facility.Slot
 	var err error
 
+	// Check for normal SlotId
 	if req.SlotId != nil {
-		err = slotCol.FindOne(pctx, bson.M{"_id": req.SlotId}).Decode(&slot)
-	} else if req.BadmintonSlotId != nil {
-		err = slotCol.FindOne(pctx, bson.M{"_id": req.BadmintonSlotId}).Decode(&slot)
+		id, _ := primitive.ObjectIDFromHex(*req.SlotId)
+		err = slotCol.FindOne(pctx, bson.M{"_id": id}).Decode(&slot)
+	} 
+	// Check for BadmintonSlotId
+	if req.BadmintonSlotId != nil {
+		id, _ := primitive.ObjectIDFromHex(*req.BadmintonSlotId)
+		err = slotCol.FindOne(pctx, bson.M{"_id": id}).Decode(&slot)
 	}
 
+	// If error occurred, return the appropriate message
 	if err != nil {
-		return nil, fmt.Errorf("slot not found or invalid slot ID")
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("slot not found or invalid slot ID")
+		}
+		log.Printf("Error: checkSlotAvailability: %s", err.Error())
+		return nil, err
 	}
 
 	return &slot, nil
 }
 
-func (r *bookingRepository) updateSlotCurrentBooking(pctx context.Context, facilityName string, slotId primitive.ObjectID, increament int) error {
+
+func (r *bookingRepository) updateSlotCurrentBooking(pctx context.Context, facilityName string, slotId primitive.ObjectID, increment int) error {
+	// Connect to the facility DB
 	facilityDb := r.facilityDbConn(pctx, facilityName)
 	slotCol := facilityDb.Collection("slots")
 
-	//Update the current booking count
+	// Update the current booking count
 	_, err := slotCol.UpdateOne(
 		pctx,
 		bson.M{"_id": slotId},
-		bson.M{"$inc": bson.M{"current_booking": increament}},
+		bson.M{"$inc": bson.M{"current_bookings": increment}},
 	)
 
+	// Handle error during update
 	if err != nil {
 		log.Printf("Error: updateSlotCurrentBooking failed: %s", err.Error())
-		return errors.New("error: updateSlotCurrentBooking failed")
+		return fmt.Errorf("error: updateSlotCurrentBooking failed: %w", err)
 	}
 
 	return nil
 }
+
+func (r * bookingRepository) checkUserBookingExists (pctx context.Context, userId string, facilityName string, slotId *primitive.ObjectID, badmintonSlotId *primitive.ObjectID) (bool, error) {
+	
+	db := r.bookingDbConn(pctx)
+	col := db.Collection("booking_transaction")
+
+	filter := bson.M{
+		"user_id": userId,
+	}
+
+	if slotId != nil {
+		filter["slot_id"] = slotId
+	}
+	if badmintonSlotId != nil {
+		filter["badminton_slot_id"] = badmintonSlotId
+	}
+
+	count, err := col.CountDocuments(pctx, filter)
+	if err != nil {
+		log.Printf("Error: checkUserBookingExists failed: %s", err.Error())
+		return false, fmt.Errorf("error: checkUserBookingExists failed: %w", err)
+	}
+
+	return count > 0, nil
+}
+
 
 
 func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName string, req *booking.Booking) (*booking.Booking, error) {
@@ -148,7 +188,7 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
 	req.CreatedAt = time.Now()
 	req.UpdatedAt = time.Now()
 
-	//Validate
+	// Validate SlotId and BadmintonSlotId
 	if req.SlotId == nil && req.BadmintonSlotId == nil {
 		return nil, errors.New("error: SlotId or BadmintonSlotId is required")
 	}
@@ -156,6 +196,32 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
 		return nil, errors.New("error: Only one of SlotId or BadmintonSlotId is required")
 	}
 
+	// Check if the user has already booked the same slot
+	var slotIdObject *primitive.ObjectID
+	var badmintonSlotIdObject *primitive.ObjectID
+	if req.SlotId != nil {
+		slotId, err := primitive.ObjectIDFromHex(*req.SlotId)
+		if err != nil {
+			return nil, fmt.Errorf("invalid SlotId: %w", err)
+		}
+		slotIdObject = &slotId
+	} else if req.BadmintonSlotId != nil {
+		badmintonSlotId, err := primitive.ObjectIDFromHex(*req.BadmintonSlotId)
+		if err != nil {
+			return nil, fmt.Errorf("invalid BadmintonSlotId: %w", err)
+		}
+		badmintonSlotIdObject = &badmintonSlotId
+	}
+
+	exists, err := r.checkUserBookingExists(ctx, req.UserId, facilityName, slotIdObject, badmintonSlotIdObject)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, errors.New("error: user has already booked this slot")
+	}
+
+	// Check slot availability
 	slot, err := r.checkSlotAvailability(pctx, facilityName, req)
 	if err != nil {
 		return nil, err
@@ -165,7 +231,7 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
 		return nil, errors.New("error: Slot is full")
 	}
 
-	//Docs
+	// Create booking document
 	bookingDoc := bson.M{
 		"user_id":    req.UserId,
 		"status":     req.Status,
@@ -179,12 +245,13 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
 		bookingDoc["badminton_slot_id"] = req.BadmintonSlotId
 	}
 
-	// Insert booking into booking transaction collection
+	// Insert booking into booking_transaction collection
 	_, err = col.InsertOne(ctx, bookingDoc)
 	if err != nil {
 		return nil, err
 	}
 
+	// Update slot's current booking count
 	err = r.updateSlotCurrentBooking(pctx, facilityName, slot.Id, 1)
 	if err != nil {
 		return nil, err
@@ -192,6 +259,7 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
 
 	return req, nil
 }
+
 
 
 func (r *bookingRepository) InsertBookingViaQueue(pctx context.Context, cfg *config.Config, req *booking.Booking) error {
