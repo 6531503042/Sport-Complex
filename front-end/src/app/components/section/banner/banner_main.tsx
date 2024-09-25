@@ -134,7 +134,7 @@ const BannerMain: React.FC = () => {
         ))}
       </div>
 
-      <div className="absolute bottom-5 flex space-x-2 justify-center w-full z-20">
+      <div className="absolute bottom-5 flex space-x-2 justify-center w-full z-20 transition-all duration-300">
         {banners.map((_, index) => (
           <span
             key={index}
