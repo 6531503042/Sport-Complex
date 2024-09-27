@@ -114,7 +114,7 @@ function Football_Booking() {
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Enter your name"
-                      className="name-input mt-1 block w-full px-3 py-3"
+                      className="name-input-football mt-1 block w-full px-3 py-3"
                     />
                     {errors.name && (
                       <span className="text-red-500 text-sm">
@@ -132,7 +132,7 @@ function Football_Booking() {
                       value={formData.id}
                       onChange={handleChange}
                       placeholder="Enter your ID"
-                      className="name-input mt-1 block w-full px-3 py-3"
+                      className="name-input-football mt-1 block w-full px-3 py-3"
                     />
                     {errors.id && (
                       <span className="text-red-500 text-sm">{errors.id}</span>
@@ -148,7 +148,7 @@ function Football_Booking() {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="Enter your phone number"
-                      className="name-input mt-1 block w-full px-3 py-3"
+                      className="name-input-football mt-1 block w-full px-3 py-3"
                     />
                     {errors.phone && (
                       <span className="text-red-500 text-sm">
@@ -185,12 +185,12 @@ function Football_Booking() {
                       }
                       ${
                         selectedCard === index && item.isAvailable
-                          ? "bg-green-200 border-green-500 scale-105 shadow-lg"
+                          ? "bg-green-100 border-green-500 scale-105 shadow-lg"
                           : ""
                       }
                       ${
                         !item.isAvailable
-                          ? "bg-gray-100 text-gray-700"
+                          ? "bg-gray-300 text-gray-700"
                           : "hover:bg-green-200"
                       }`}
                     onClick={() => handleCardClick(index, item.isAvailable)}
@@ -240,7 +240,7 @@ function Football_Booking() {
                           value={formData.name}
                           onChange={handleChange}
                           placeholder="Enter your name"
-                          className="name-input mt-1 block w-full px-3 py-3"
+                          className="name-input-football mt-1 block w-full px-3 py-3"
                         />
                         {errors.name && (
                           <span className="text-red-500 text-sm">
@@ -258,7 +258,7 @@ function Football_Booking() {
                           value={formData.id}
                           onChange={handleChange}
                           placeholder="Enter your ID"
-                          className="name-input mt-1 block w-full px-3 py-3"
+                          className="name-input-football mt-1 block w-full px-3 py-3"
                         />
                         {errors.id && (
                           <span className="text-red-500 text-sm">
@@ -276,7 +276,7 @@ function Football_Booking() {
                           value={formData.phone}
                           onChange={handleChange}
                           placeholder="Enter your phone number"
-                          className="name-input mt-1 block w-full px-3 py-3"
+                          className="name-input-football mt-1 block w-full px-3 py-3"
                         />
                         {errors.phone && (
                           <span className="text-red-500 text-sm">
