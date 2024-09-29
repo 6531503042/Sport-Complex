@@ -32,6 +32,8 @@ type (
 		GetOffset(pctx context.Context) (int64, error)
 		UpOffset(pctx context.Context, newOffset int64) error
 		InsertBookingViaQueue(pctx context.Context, cfg *config.Config, req *booking.Booking) error
+
+		clearingBookingAtMidnight(ctx context.Context) error
 	}
 
 	bookingRepository struct {
@@ -46,6 +48,24 @@ func NewBookingRepository(db *mongo.Client) BookingRepositoryService {
 	return &bookingRepository{
 		db:     db,
 		client: db,}
+}
+
+func ScheduleMidnightClearing(bookingRepository BookingRepositoryService) {
+	now := time.Now()
+	nextMidnight := now.Add(time.Hour * 24).Truncate(time.Hour * 24)
+	duration := nextMidnight.Sub(now)
+
+	log.Printf("Next clearing scheduled in %v",duration)
+
+	time.AfterFunc(duration, func() {
+		ctx := context.Background()
+		// if err := bookingRepository.Clea
+		if err := bookingRepository.clearingBookingAtMidnight(ctx); err != nil {
+			log.Printf("Error: clearingBookingAtMidnight: %s", err.Error())
+		}
+
+		ScheduleMidnightClearing(bookingRepository)
+	})
 }
 
 func (r *bookingRepository) bookingDbConn(pctx context.Context) *mongo.Database {
@@ -97,6 +117,60 @@ func (r *bookingRepository) UpOffset(pctx context.Context, newOffset int64) erro
 
 	return nil
 }
+
+func (r *bookingRepository) clearingBookingAtMidnight(ctx context.Context) error {
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	if err := r.MoveOldBookingTransactionToHistory(ctx); err != nil {
+		log.Printf("Error: clearingBookingAtMidnight: %s", err.Error())
+		return errors.New("error: clearingBookingAtMidnight failed")
+	}
+
+	db := r.bookingDbConn(ctx)
+	col := db.Collection("booking_transaction")
+
+	_, err := col.DeleteMany(ctx, bson.M{})
+	if err != nil {
+		log.Printf("Error: clearingBookingAtMidnight: %s", err.Error())
+	}
+
+	return nil
+}
+
+func (r *bookingRepository) MoveOldBookingTransactionToHistory(ctx context.Context) error {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
+
+    db := r.bookingDbConn(ctx)
+    col := db.Collection("booking_transaction")
+    historyCol := db.Collection("histories_transaction")
+
+    cursor, err := col.Find(ctx, bson.M{})
+    if err != nil {
+        log.Printf("Error retrieving bookings: %s", err.Error())
+        return fmt.Errorf("failed to retrieve bookings: %w", err)
+    }
+
+    var bookings []interface{}
+    if err := cursor.All(ctx, &bookings); err != nil {
+        log.Printf("Error reading cursor: %s", err.Error())
+        return fmt.Errorf("failed to read bookings: %w", err)
+    }
+
+    if len(bookings) > 0 {
+        _, err = historyCol.InsertMany(ctx, bookings)
+        if err != nil {
+            log.Printf("Error moving bookings to history: %s", err.Error())
+            return fmt.Errorf("failed to move bookings to history: %w", err)
+        }
+        log.Printf("Moved %d bookings to history", len(bookings))
+    }
+
+    return nil
+}
+
 
 func (r *bookingRepository) checkSlotAvailability(pctx context.Context, facilityName string, req *booking.Booking) (*facility.Slot, error) {
 	// Connect to the facility DB (specific to each facility)
@@ -186,23 +260,35 @@ func (r *bookingRepository) checkUserBookingExists(pctx context.Context, userId 
     return count > 0, nil
 }
 
-
-
+// Validate the booking request
+func validateBookingRequest(req *booking.Booking) error {
+    if req.SlotId == nil && req.BadmintonSlotId == nil {
+        return errors.New("SlotId or BadmintonSlotId is required")
+    }
+    if req.SlotId != nil && req.BadmintonSlotId != nil {
+        return errors.New("only one of SlotId or BadmintonSlotId is required")
+    }
+    // Add additional validations as needed
+    return nil
+}
 
 func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName string, req *booking.Booking) (*booking.Booking, error) {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
-	db := r.bookingDbConn(ctx)
-	col := db.Collection("booking_transaction")
-	req.CreatedAt = time.Now()
-	req.UpdatedAt = time.Now()
-	//Validate
-	if req.SlotId == nil && req.BadmintonSlotId == nil {
-		return nil, errors.New("error: SlotId or BadmintonSlotId is required")
-	}
-	if req.SlotId != nil && req.BadmintonSlotId != nil {
-		return nil, errors.New("error: Only one of SlotId or BadmintonSlotId is required")
-	}
+
+	// Initialize database collection
+    col := r.bookingDbConn(ctx).Collection("booking_transaction")
+	// req.CreatedAt = time.Now()
+	// req.UpdatedAt = time.Now()
+
+	// Validate incoming request
+    if err := validateBookingRequest(req); err != nil {
+        return nil, err
+    }
+
+    // Log booking attempt
+    log.Printf("Attempting to insert booking for userId: %s", req.UserId)
+	
 	// Convert SlotId or BadmintonSlotId to ObjectID
 	var slotIdObject *primitive.ObjectID
 	var badmintonSlotIdObject *primitive.ObjectID
