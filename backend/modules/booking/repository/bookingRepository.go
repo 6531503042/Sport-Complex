@@ -25,8 +25,12 @@ type (
 		FindBooking(ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error)
 
-		//New Logical
+		// Insert a new booking into the booking collection.
+		// The facility name is used to determine the correct database to use.
+		// The booking is inserted with the given request data.
+		// The updated booking is returned with the inserted ID.
 		InsertBooking(pctx context.Context, facilityName string, req *booking.Booking) (*booking.Booking, error)
+		
 
 		//Kafka Interface
 		GetOffset(pctx context.Context) (int64, error)
@@ -273,90 +277,86 @@ func validateBookingRequest(req *booking.Booking) error {
 }
 
 func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName string, req *booking.Booking) (*booking.Booking, error) {
-	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+    defer cancel()
 
-	// Initialize database collection
+    // Initialize database collection
     col := r.bookingDbConn(ctx).Collection("booking_transaction")
-	// req.CreatedAt = time.Now()
-	// req.UpdatedAt = time.Now()
 
-	// Validate incoming request
+    // Validate incoming request
     if err := validateBookingRequest(req); err != nil {
         return nil, err
     }
 
     // Log booking attempt
     log.Printf("Attempting to insert booking for userId: %s", req.UserId)
-	
-	// Convert SlotId or BadmintonSlotId to ObjectID
-	var slotIdObject *primitive.ObjectID
-	var badmintonSlotIdObject *primitive.ObjectID
-	if req.SlotId != nil {
-		slotId, err := primitive.ObjectIDFromHex(*req.SlotId)
-		if err != nil {
-			return nil, fmt.Errorf("invalid SlotId: %w", err)
-		}
-		slotIdObject = &slotId
-	} else if req.BadmintonSlotId != nil {
-		badmintonSlotId, err := primitive.ObjectIDFromHex(*req.BadmintonSlotId)
-		if err != nil {
-			return nil, fmt.Errorf("invalid BadmintonSlotId: %w", err)
-		}
-		badmintonSlotIdObject = &badmintonSlotId
-	}
 
-	// Check if the user has already booked the same slot
-	// Debug the booking request before checking for duplicates
-	log.Printf("InsertBooking called for userId: %s, SlotId: %v, BadmintonSlotId: %v", req.UserId, req.SlotId, req.BadmintonSlotId)
+    // Convert SlotId or BadmintonSlotId to ObjectID
+    var slotIdObject *primitive.ObjectID
+    var badmintonSlotIdObject *primitive.ObjectID
+    if req.SlotId != nil {
+        slotId, err := primitive.ObjectIDFromHex(*req.SlotId)
+        if err != nil {
+            return nil, fmt.Errorf("invalid SlotId: %w", err)
+        }
+        slotIdObject = &slotId
+    } else if req.BadmintonSlotId != nil {
+        badmintonSlotId, err := primitive.ObjectIDFromHex(*req.BadmintonSlotId)
+        if err != nil {
+            return nil, fmt.Errorf("invalid BadmintonSlotId: %w", err)
+        }
+        badmintonSlotIdObject = &badmintonSlotId
+    }
 
-	// Check if the user has already booked the same slot
-	exists, err := r.checkUserBookingExists(ctx, req.UserId, facilityName, slotIdObject, badmintonSlotIdObject)
-	if err != nil {
-		log.Printf("Error while checking if user already booked: %s", err)
-		return nil, err
-	}
-	if exists {
-		log.Printf("User %s has already booked the slot %v/%v", req.UserId, slotIdObject, badmintonSlotIdObject)
-		return nil, errors.New("error: user has already booked this slot")
-	}
-	log.Printf("User %s has not booked the slot, proceeding with booking", req.UserId)
+    // Check if the user has already booked the same slot
+    exists, err := r.checkUserBookingExists(ctx, req.UserId, facilityName, slotIdObject, badmintonSlotIdObject)
+    if err != nil {
+        log.Printf("Error while checking if user already booked: %s", err)
+        return nil, err
+    }
+    if exists {
+        log.Printf("User %s has already booked the slot %v/%v", req.UserId, slotIdObject, badmintonSlotIdObject)
+        return nil, errors.New("error: user has already booked this slot")
+    }
+    log.Printf("User %s has not booked the slot, proceeding with booking", req.UserId)
 
+    // Check slot availability
+    slot, err := r.checkSlotAvailability(ctx, facilityName, req)
+    if err != nil {
+        return nil, err
+    }
+    if slot.CurrentBookings >= slot.MaxBookings {
+        return nil, errors.New("error: Slot is full")
+    }
 
-	slot, err := r.checkSlotAvailability(pctx, facilityName, req)
-	if err != nil {
-		return nil, err
-	}
-	if slot.CurrentBookings >= slot.MaxBookings {
-		return nil, errors.New("error: Slot is full")
-	}
-	//Docs
-	bookingDoc := bson.M{
-		"user_id":    req.UserId,
-		"status":     req.Status,
-		"created_at": req.CreatedAt,
-		"updated_at": req.UpdatedAt,
-	}
-	if req.SlotId != nil {
-		bookingDoc["slot_id"] = req.SlotId
-	} else if req.BadmintonSlotId != nil {
-		bookingDoc["badminton_slot_id"] = req.BadmintonSlotId
-	}
-	// Insert booking into booking transaction collection
-	_, err = col.InsertOne(ctx, bookingDoc)
-	if err != nil {
-		return nil, err
-	}
+    // Create the booking document
+    bookingDoc := bson.M{
+        "user_id":           req.UserId,
+        "slot_id":           slotIdObject,
+        "badminton_slot_id": badmintonSlotIdObject,
+        "status":            "confirmed", // Assuming the initial status is 'confirmed'
+        "created_at":        time.Now(),
+        "updated_at":        time.Now(),
+    }
 
-	// Log the inserted document to verify slot_id is an ObjectID
-	log.Printf("Inserted booking document: %+v", bookingDoc)
+    // Insert the booking document into the collection
+    res, err := col.InsertOne(ctx, bookingDoc)
+    if err != nil {
+        log.Printf("Error inserting booking: %s", err.Error())
+        return nil, fmt.Errorf("error inserting booking: %w", err)
+    }
 
-	err = r.updateSlotCurrentBooking(pctx, facilityName, slot.Id, 1)
-	if err != nil {
-		return nil, err
-	}
-	return req, nil
+    // Update the slot's current booking count
+    err = r.updateSlotCurrentBooking(ctx, facilityName, *slotIdObject, 1) // Increment by 1 for the new booking
+    if err != nil {
+        return nil, err
+    }
+
+    // Return the inserted booking with the new ID
+    req.Id = res.InsertedID.(primitive.ObjectID) // Assign the new ID to the booking
+    return req, nil
 }
+
 
 func (r *bookingRepository) InsertBookingViaQueue(pctx context.Context, cfg *config.Config, req *booking.Booking) error {
 	reqInBytes, err := json.Marshal(req)
