@@ -17,6 +17,9 @@ func (s *server) bookingService() {
 	// Initialize HTTP handlers
 	bookingHttpHandler := handler.NewBookingHttpHandler(s.cfg, bookingUsecase)
 
+	// Schedule midnight clearing
+	// go ScheduleMidnightClearing(bookingRepo)
+
 	// Booking Routes
 	booking := s.app.Group("/booking_v1")
 	// booking.POST("/bookings", bookingHttpHandler.CreateBooking) // Create a booking
