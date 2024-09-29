@@ -53,7 +53,7 @@ const SignUpPage = () => {
         </form>
       </div>
       <div className={styles.right}>
-        <Image src="/assets/loginpicture.png" alt="Sports Image" layout="fill" objectFit="cover" className={styles.rightImage} />
+        <Image src="/assets/loginpicture.png" alt="Sports Image"  objectFit="cover" className={styles.rightImage} width={700} height={600}/>
       </div>
     </div>
   );

@@ -75,7 +75,7 @@
   
   .right {
     width: 50%;
-    position: relative; /* Ensure the container is positioned relatively */
+    position: relative; 
   }
   
   .rightImage {

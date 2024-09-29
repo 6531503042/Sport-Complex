@@ -8,7 +8,7 @@ const LoginPage = () => {
     <div className={styles.container}>
       <div className={styles.left}>
         <Image className={styles.logo} src="/assets/logo-mfu-v2.png" alt="Logo" width={75} height={75} />
-        <h1 className={styles.header}>Welcome Back</h1>
+        <h1 className={styles.header}>Welcome Back </h1>
         <p className={styles.underheader}>Welcome back to MFU Sport complex.</p>
         <form className={styles.form}>
           <div className={styles.input}>
