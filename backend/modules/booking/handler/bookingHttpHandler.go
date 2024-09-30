@@ -30,27 +30,28 @@ func NewBookingHttpHandler(cfg *config.Config, bookingUsecase usecase.BookingUse
 }
 
 func (h *bookingHttpHandler) CreateBooking (c echo.Context) error {
-	var req booking.CreateBookingRequest
+	// Bind the request body to the CreateBookingRequest DTO
+    var createBookingReq booking.CreateBookingRequest
+    if err := c.Bind(&createBookingReq); err != nil {
+        return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
+    }
 
-	// Bind and validate the request
-	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request format")
-	}
-	if err := c.Validate(req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
+    // Validate the request
+    if err := c.Validate(&createBookingReq); err != nil {
+        return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+    }
 
-	facilityName := c.Param("facility_name") // Assuming the facility name is part of the URL path
+    // Extract the facility name (from URL or context)
+    facilityName := c.Param("facilityName")
 
-	// Call the usecase to insert the booking
-	response, err := h.bookingUsecase.InsertBooking(c.Request().Context(), facilityName, &req)
+    // Call usecase to insert the booking
+    bookingResponse, err := h.bookingUsecase.InsertBooking(c.Request().Context(), facilityName, &createBookingReq)
+    if err != nil {
+        return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+    }
 
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-
-	// Return the successful response
-	return c.JSON(http.StatusCreated, response)
+    // Return the booking response
+    return c.JSON(http.StatusOK, bookingResponse)
 }
 
 
