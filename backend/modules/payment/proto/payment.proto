@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "https://github.com/6531503042/Sport-Complex";
+
+service PaymentService {
+  rpc CreatePayment(PaymentRequest) returns (PaymentResponse);
+  rpc CheckPaymentStatus(PaymentStatusRequest) returns (PaymentStatusResponse);
+}
+
+message PaymentRequest {
+  string user_id = 1;
+  float amount = 2;
+}
+
+message PaymentResponse {
+  string qr_code = 1;
+}
+
+message PaymentStatusRequest {
+  string user_id = 1;
+}
+
+message PaymentStatusResponse {
+  string status = 1;
+}
