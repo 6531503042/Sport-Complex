@@ -247,7 +247,7 @@ func (r *bookingRepository) checkUserBookingExists(pctx context.Context, userId 
 	
 	log.Printf("MongoDB query filter: %+v", filter)
     if badmintonSlotId != nil {
-        filter["badminton_slot_id"] = badmintonSlotId
+        filter["badminton_slot_id"] = badmintonSlotId.Hex()
     }
 	log.Printf("MongoDB query filter: %+v", filter)
 
