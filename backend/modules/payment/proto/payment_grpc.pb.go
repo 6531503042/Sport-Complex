@@ -19,16 +19,23 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PaymentService_CreatePayment_FullMethodName      = "/payment.PaymentService/CreatePayment"
-	PaymentService_CheckPaymentStatus_FullMethodName = "/payment.PaymentService/CheckPaymentStatus"
+	PaymentService_CreatePayment_FullMethodName       = "/payment.PaymentService/CreatePayment"
+	PaymentService_UpdatePaymentStatus_FullMethodName = "/payment.PaymentService/UpdatePaymentStatus"
+	PaymentService_GetPaymentByID_FullMethodName      = "/payment.PaymentService/GetPaymentByID"
 )
 
 // PaymentServiceClient is the client API for PaymentService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// ระบุ gRPC service สำหรับการชำระเงิน
 type PaymentServiceClient interface {
-	CreatePayment(ctx context.Context, in *PaymentRequest, opts ...grpc.CallOption) (*PaymentResponse, error)
-	CheckPaymentStatus(ctx context.Context, in *PaymentStatusRequest, opts ...grpc.CallOption) (*PaymentStatusResponse, error)
+	// RPC สำหรับสร้างรายการชำระเงิน
+	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*CreatePaymentResponse, error)
+	// RPC สำหรับอัปเดตสถานะการชำระเงิน
+	UpdatePaymentStatus(ctx context.Context, in *UpdatePaymentStatusRequest, opts ...grpc.CallOption) (*UpdatePaymentStatusResponse, error)
+	// RPC สำหรับดึงข้อมูลรายการการชำระเงิน
+	GetPaymentByID(ctx context.Context, in *GetPaymentByIDRequest, opts ...grpc.CallOption) (*GetPaymentByIDResponse, error)
 }
 
 type paymentServiceClient struct {
@@ -39,9 +46,9 @@ func NewPaymentServiceClient(cc grpc.ClientConnInterface) PaymentServiceClient {
 	return &paymentServiceClient{cc}
 }
 
-func (c *paymentServiceClient) CreatePayment(ctx context.Context, in *PaymentRequest, opts ...grpc.CallOption) (*PaymentResponse, error) {
+func (c *paymentServiceClient) CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*CreatePaymentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PaymentResponse)
+	out := new(CreatePaymentResponse)
 	err := c.cc.Invoke(ctx, PaymentService_CreatePayment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -49,10 +56,20 @@ func (c *paymentServiceClient) CreatePayment(ctx context.Context, in *PaymentReq
 	return out, nil
 }
 
-func (c *paymentServiceClient) CheckPaymentStatus(ctx context.Context, in *PaymentStatusRequest, opts ...grpc.CallOption) (*PaymentStatusResponse, error) {
+func (c *paymentServiceClient) UpdatePaymentStatus(ctx context.Context, in *UpdatePaymentStatusRequest, opts ...grpc.CallOption) (*UpdatePaymentStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PaymentStatusResponse)
-	err := c.cc.Invoke(ctx, PaymentService_CheckPaymentStatus_FullMethodName, in, out, cOpts...)
+	out := new(UpdatePaymentStatusResponse)
+	err := c.cc.Invoke(ctx, PaymentService_UpdatePaymentStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *paymentServiceClient) GetPaymentByID(ctx context.Context, in *GetPaymentByIDRequest, opts ...grpc.CallOption) (*GetPaymentByIDResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPaymentByIDResponse)
+	err := c.cc.Invoke(ctx, PaymentService_GetPaymentByID_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -62,9 +79,15 @@ func (c *paymentServiceClient) CheckPaymentStatus(ctx context.Context, in *Payme
 // PaymentServiceServer is the server API for PaymentService service.
 // All implementations must embed UnimplementedPaymentServiceServer
 // for forward compatibility.
+//
+// ระบุ gRPC service สำหรับการชำระเงิน
 type PaymentServiceServer interface {
-	CreatePayment(context.Context, *PaymentRequest) (*PaymentResponse, error)
-	CheckPaymentStatus(context.Context, *PaymentStatusRequest) (*PaymentStatusResponse, error)
+	// RPC สำหรับสร้างรายการชำระเงิน
+	CreatePayment(context.Context, *CreatePaymentRequest) (*CreatePaymentResponse, error)
+	// RPC สำหรับอัปเดตสถานะการชำระเงิน
+	UpdatePaymentStatus(context.Context, *UpdatePaymentStatusRequest) (*UpdatePaymentStatusResponse, error)
+	// RPC สำหรับดึงข้อมูลรายการการชำระเงิน
+	GetPaymentByID(context.Context, *GetPaymentByIDRequest) (*GetPaymentByIDResponse, error)
 	mustEmbedUnimplementedPaymentServiceServer()
 }
 
@@ -75,11 +98,14 @@ type PaymentServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedPaymentServiceServer struct{}
 
-func (UnimplementedPaymentServiceServer) CreatePayment(context.Context, *PaymentRequest) (*PaymentResponse, error) {
+func (UnimplementedPaymentServiceServer) CreatePayment(context.Context, *CreatePaymentRequest) (*CreatePaymentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePayment not implemented")
 }
-func (UnimplementedPaymentServiceServer) CheckPaymentStatus(context.Context, *PaymentStatusRequest) (*PaymentStatusResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckPaymentStatus not implemented")
+func (UnimplementedPaymentServiceServer) UpdatePaymentStatus(context.Context, *UpdatePaymentStatusRequest) (*UpdatePaymentStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePaymentStatus not implemented")
+}
+func (UnimplementedPaymentServiceServer) GetPaymentByID(context.Context, *GetPaymentByIDRequest) (*GetPaymentByIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentByID not implemented")
 }
 func (UnimplementedPaymentServiceServer) mustEmbedUnimplementedPaymentServiceServer() {}
 func (UnimplementedPaymentServiceServer) testEmbeddedByValue()                        {}
@@ -103,7 +129,7 @@ func RegisterPaymentServiceServer(s grpc.ServiceRegistrar, srv PaymentServiceSer
 }
 
 func _PaymentService_CreatePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PaymentRequest)
+	in := new(CreatePaymentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -115,25 +141,43 @@ func _PaymentService_CreatePayment_Handler(srv interface{}, ctx context.Context,
 		FullMethod: PaymentService_CreatePayment_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PaymentServiceServer).CreatePayment(ctx, req.(*PaymentRequest))
+		return srv.(PaymentServiceServer).CreatePayment(ctx, req.(*CreatePaymentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PaymentService_CheckPaymentStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PaymentStatusRequest)
+func _PaymentService_UpdatePaymentStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePaymentStatusRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PaymentServiceServer).CheckPaymentStatus(ctx, in)
+		return srv.(PaymentServiceServer).UpdatePaymentStatus(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: PaymentService_CheckPaymentStatus_FullMethodName,
+		FullMethod: PaymentService_UpdatePaymentStatus_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PaymentServiceServer).CheckPaymentStatus(ctx, req.(*PaymentStatusRequest))
+		return srv.(PaymentServiceServer).UpdatePaymentStatus(ctx, req.(*UpdatePaymentStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PaymentService_GetPaymentByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPaymentByIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentServiceServer).GetPaymentByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PaymentService_GetPaymentByID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentServiceServer).GetPaymentByID(ctx, req.(*GetPaymentByIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -150,8 +194,12 @@ var PaymentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PaymentService_CreatePayment_Handler,
 		},
 		{
-			MethodName: "CheckPaymentStatus",
-			Handler:    _PaymentService_CheckPaymentStatus_Handler,
+			MethodName: "UpdatePaymentStatus",
+			Handler:    _PaymentService_UpdatePaymentStatus_Handler,
+		},
+		{
+			MethodName: "GetPaymentByID",
+			Handler:    _PaymentService_GetPaymentByID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
