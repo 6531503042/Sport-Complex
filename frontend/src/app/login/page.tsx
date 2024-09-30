@@ -20,7 +20,7 @@ const LoginPage = () => {
               type="email"
             />
           </div>
-          <div className={styles.input}>
+          <div className={styles.input}>a
             <Input
               fullWidth
               isClearable
