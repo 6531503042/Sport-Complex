@@ -181,12 +181,12 @@ function Swimming_Booking() {
                     }
                     ${
                       selectedCard === index && item.isAvailable
-                        ? "bg-blue-200 border-blue-500 scale-105 shadow-lg"
+                        ? "bg-blue-200 border-blue-400 scale-105 shadow-lg"
                         : ""
                     }
                     ${
                       !item.isAvailable
-                        ? "bg-gray-300 text-gray-700"
+                        ? "bg-gray-200 text-gray-700"
                         : "hover:bg-blue-200"
                     }`}
                     onClick={() => handleCardClick(index, item.isAvailable)}
