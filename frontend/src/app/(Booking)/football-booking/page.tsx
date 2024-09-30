@@ -185,12 +185,12 @@ function Football_Booking() {
                       }
                       ${
                         selectedCard === index && item.isAvailable
-                          ? "bg-green-100 border-green-500 scale-105 shadow-lg"
+                          ? "bg-green-200 border-green-500 scale-105 shadow-lg"
                           : ""
                       }
                       ${
                         !item.isAvailable
-                          ? "bg-gray-300 text-gray-700"
+                          ? "bg-gray-200 text-gray-700"
                           : "hover:bg-green-200"
                       }`}
                     onClick={() => handleCardClick(index, item.isAvailable)}
