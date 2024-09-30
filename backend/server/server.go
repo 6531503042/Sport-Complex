@@ -114,6 +114,8 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 		s.bookingService()
 	case "facility":
 		s.facilityService()
+	case "payment":
+		s.paymentService()
 	}
 
 	// Graceful Shutdown
