@@ -72,6 +72,7 @@ func ScheduleMidnightClearing(bookingRepository BookingRepositoryService) {
 	})
 }
 
+//
 func (r *bookingRepository) bookingDbConn(pctx context.Context) *mongo.Database {
 	return r.db.Database("booking_db")
 }
