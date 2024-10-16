@@ -1,0 +1,16 @@
+version: '3.8'
+
+name: sport-complex-db
+
+services:
+  user-db:
+    image: mongo
+    container_name: user_db
+    ports: 
+      - 27000:27000
+
+  auth-db:
+    image: mongo
+    container_name: auth_db
+    ports: 
+      - 27001:27001

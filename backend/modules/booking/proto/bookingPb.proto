@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+option go_package = "https://github.com/6531503042/Sport-Complex";
+
+import "google/protobuf/timestamp.proto";
+
+message Slot {
+    string id = 1;
+    string start_time = 2;
+    string end_time = 3;
+}
+
+message Booking {
+    string id = 1;
+    string user_id = 2;
+    string slot_id = 3;
+    int32 status = 4;
+    string created_at = 5;
+    string updated_at = 6;
+}
+
+message CreateBookingReq {
+    string user_id = 1;
+    string slot_id = 2;
+}
+
+message UpdateBookingReq {
+    string booking_id = 1;
+    int32 status = 2;
+}
+
+message GetBookingReq {
+    string booking_id = 1;
+}
+
+message GetUserBookingsReq {
+    string user_id = 1;
+}
+
+message GetBookingsResp {
+    repeated Booking bookings = 1;
+}
+
+service BookingService {
+    rpc CreateBooking(CreateBookingReq) returns (Booking);
+    rpc UpdateBooking(UpdateBookingReq) returns (Booking);
+    rpc GetBooking(GetBookingReq) returns (Booking);
+    rpc GetUserBookings(GetUserBookingsReq) returns (GetBookingsResp);
+}
