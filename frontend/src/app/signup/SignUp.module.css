@@ -2,8 +2,6 @@
   display: flex;
   height: 100vh;
   background-color: #f7f7f7;
-  justify-content: center;
-  align-items: center;
 }
 
 .left {
@@ -12,6 +10,7 @@
   align-items: center;
   padding: 2rem;
   width: 50%;
+  justify-content: center;
 }
 
 .logo {
