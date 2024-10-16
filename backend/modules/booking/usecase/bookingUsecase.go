@@ -2,59 +2,97 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"main/config"
 	"main/modules/booking"
+	bm "main/modules/booking"
 	"main/modules/booking/repository"
 	"main/pkg/utils"
+	"time"
 )
 
 type(
 	BookingUsecaseService interface {
-		InsertBooking(ctx context.Context, userId, slotId string) (*booking.Booking, error)
+		// InsertBooking(ctx context.Context, userId, slotId string) (*booking.Booking, error)
 		UpdateBooking (ctx context.Context, bookingId string, status int) (*booking.Booking, error)
 		FindBooking (ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking(ctx context.Context, userId string) ([]booking.Booking, error)
+		InsertBooking(ctx context.Context, facilityName string, req *booking.CreateBookingRequest) (*booking.BookingResponse, error)
+
+		//Kafka Interface
+		GetOffSet(ctx context.Context) (int64, error)
+		UpOffSet(ctx context.Context, newOffset int64) error
 	}
 
 	bookingUsecase struct {
+		cfg              *config.Config
 		bookingRepository repository.BookingRepositoryService
 	}
 )
 
 func NewBookingUsecase(bookingRepository repository.BookingRepositoryService) BookingUsecaseService {
 	return &bookingUsecase{
+		cfg: &config.Config{},
 		bookingRepository: bookingRepository,
 	}
 }
 
-func (u *bookingUsecase) InsertBooking(ctx context.Context, userId, slotId string) (*booking.Booking, error) {
-    // Ensure the user and slot exist, then create a booking
-    newBooking := &booking.Booking{
-        UserId:    userId,
-        SlotId:    slotId,
-        Status:    0, // Initial status
-        CreatedAt: utils.LocalTime(),
-        UpdatedAt: utils.LocalTime(),
-    }
-
-    // Check if the user exists
-    if _, err := u.bookingRepository.FindOneUserBooking(ctx, userId); err != nil {
-        return nil, fmt.Errorf("error: user %s does not exist", userId)
-    }
-
-    // Check if the slot exists
-    if _, err := u.bookingRepository.FindOneSlotBooking(ctx, slotId); err != nil {
-        return nil, fmt.Errorf("error: slot %s does not exist", slotId)
-    }
-
-    // Create the booking
-    createdBooking, err := u.bookingRepository.InsertBooking(ctx, newBooking)
-    if err != nil {
-        return nil, fmt.Errorf("error: failed to create booking: %w", err)
-    }
-
-    return createdBooking, nil
+//Kafka Func
+func (u *bookingUsecase) GetOffSet(ctx context.Context) (int64, error) {
+	return u.bookingRepository.GetOffset(ctx)
 }
+
+func (u *bookingUsecase) UpOffSet(ctx context.Context, newOffset int64) error {
+    return u.bookingRepository.UpOffset(ctx, newOffset)
+}
+
+func (u *bookingUsecase) InsertBooking(ctx context.Context, facilityName string, req *booking.CreateBookingRequest) (*booking.BookingResponse, error) {
+    // Validate slot type and IDs
+    if req.SlotType == "normal" && req.SlotId == nil {
+        return nil, errors.New("error: SlotId is required for normal bookings")
+    }
+    if req.SlotType == "badminton" && req.BadmintonSlotId == nil {
+        return nil, errors.New("error: BadmintonSlotId is required for badminton bookings")
+    }
+    if req.SlotId != nil && req.BadmintonSlotId != nil {
+        return nil, errors.New("error: Only one of SlotId or BadmintonSlotId should be provided")
+    }
+
+    // Create the booking request struct for repository interaction
+    bookingReq := &booking.Booking{
+        UserId:          req.UserId,
+        SlotId:          req.SlotId,
+        BadmintonSlotId: req.BadmintonSlotId,
+        Status:          1, // Assuming status 1 means active or new
+        CreatedAt:       time.Now(),
+        UpdatedAt:       time.Now(),
+    }
+
+    // Insert booking using the repository
+        // Insert booking using the repository
+		booking, err := u.bookingRepository.InsertBooking(ctx, facilityName, bookingReq)
+		if err != nil {
+			return nil, fmt.Errorf("failed to insert booking: %w", err)
+		}
+	
+		// Map the internal booking struct to the response DTO
+		bookingResponse := &bm.BookingResponse{
+			Id:              booking.Id,
+			UserId:          booking.UserId,
+			SlotId:          booking.SlotId,
+			BadmintonSlotId: booking.BadmintonSlotId,
+			SlotType:        req.SlotType,
+			Status:          booking.Status,
+			CreatedAt:       booking.CreatedAt,
+			UpdatedAt:       booking.UpdatedAt,
+		}
+
+    return bookingResponse, nil
+}
+
+
+
 
 func (u *bookingUsecase) UpdateBooking (ctx context.Context, bookingId string, status int) (*booking.Booking, error) {
 	booking, err := u.bookingRepository.FindBooking(ctx, bookingId)

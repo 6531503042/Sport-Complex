@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = "https://github.com/6531503042/Sport-Complex";
+
+message facility {
+    string id = 1;
+    string name = 2;
+    string description = 3;
+    string image = 4;
+    string address = 5;
+    string phone = 6;
+    string email = 7;
+    string created_at = 8;
+    string updated_at = 9;
+}
+

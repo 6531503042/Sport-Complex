@@ -1,34 +1,33 @@
 package server
 
 import (
+	"log"
 	"main/modules/booking/handler"
 	"main/modules/booking/repository"
 	"main/modules/booking/usecase"
 )
 
 func (s *server) bookingService() {
-	// Initialize repository, usecase, and handlers
+	// Initialize repositories
 	bookingRepo := repository.NewBookingRepository(s.db)
-	slotRepo := repository.NewSlotRepository(s.db)
-	slotUsecase := usecase.NewSlotUsecase(slotRepo)
+
+	// Initialize usecases
 	bookingUsecase := usecase.NewBookingUsecase(bookingRepo)
 
-	// Initialize the booking HTTP handler
-	slotHttpHandler := handler.NewSlotHttpHandler(s.cfg, slotUsecase)
+	// Initialize HTTP handlers
 	bookingHttpHandler := handler.NewBookingHttpHandler(s.cfg, bookingUsecase)
 
+	// Schedule midnight clearing
+	// go ScheduleMidnightClearing(bookingRepo)
 
-	//Booking Route
+	// Booking Routes
 	booking := s.app.Group("/booking_v1")
-	booking.POST("/bookings", bookingHttpHandler.InsertBooking)
-	booking.GET("/bookings/:booking_id", bookingHttpHandler.FindBooking)
-	booking.GET("/bookings/user/:user_id", bookingHttpHandler.FindOneUserBooking)
-	booking.PUT("/bookings/:id", bookingHttpHandler.UpdateBooking)
+	// booking.POST("/bookings", bookingHttpHandler.CreateBooking) // Create a booking
+	booking.GET("/bookings/:booking_id", bookingHttpHandler.FindBooking) // Find a specific booking
+	booking.GET("/bookings/user/:user_id", bookingHttpHandler.FindOneUserBooking) // Find all bookings for a specific user
 
-	//Slot Route
-	slots := s.app.Group("/slots_v1")
-	slots.POST("/slots/slots", slotHttpHandler.InsertSlot)
-	slots.PUT("/slots/:slot_id", slotHttpHandler.UpdateSlot)
-	slots.GET("/slots", slotHttpHandler.FindAllSlots)
-	slots.GET("/slots/:slot_id", slotHttpHandler.FindSlot)
+	bookingCreate := booking.Group("/:facilityName")
+	bookingCreate.POST("/booking", bookingHttpHandler.CreateBooking) // Create a booking for a specific facility
+
+	log.Println("Booking service initialized")
 }
