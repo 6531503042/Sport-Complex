@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"main/modules/models"
 	"main/modules/user"
 	"main/pkg/utils"
 	"time"
@@ -26,6 +27,10 @@ type (
 		UpdateOneUser (pctx context.Context, userId string, updateFields bson.M) error
 		DeleteOneUser (pctx context.Context, userId string) error
 		FindManyUser (pctx context.Context) ([]user.UserProfileBson, error)
+
+		//Kafka
+		GetOffset(pctx context.Context) (int64, error)
+		UpserOffset(pctx context.Context, offset int64) error
 	}
 
 	UserRepository struct {
@@ -39,6 +44,39 @@ func NewUserRepository(db *mongo.Client) UserRepositoryService {
 
 func (r *UserRepository) userDbConn(pctx context.Context) *mongo.Database {
 	return r.db.Database("user_db")
+}
+
+func (r *UserRepository) GetOffset(pctx context.Context) (int64, error) {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	defer cancel()
+
+	db := r.userDbConn(ctx)
+	col := db.Collection("user_transactions_queue")
+
+	result := new(models.KafkaOffset)
+	if err := col.FindOne(ctx, bson.M{}).Decode(result); err != nil {
+		log.Printf("Error: GetOffset failed: %s", err.Error())
+		return -1, errors.New("error: GetOffset failed")
+	}
+
+	return result.Offset, nil
+}
+
+func (r *UserRepository) UpserOffset(pctx context.Context, offset int64) error {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	defer cancel()
+
+	db := r.userDbConn(ctx)
+	col := db.Collection("user_transactions_queue")
+
+	result, err := col.UpdateOne(ctx, bson.M{}, bson.M{"$set": bson.M{"offset": offset}}, options.Update().SetUpsert(true))
+	if err != nil {
+		log.Printf("Error: UpserOffset failed: %s", err.Error())
+		return errors.New("error: UpserOffset failed")
+	}
+	log.Printf("Info: UpserOffset result: %v", result)
+
+	return nil
 }
 
 func (r *UserRepository) InsertOneUser (pctx context.Context, req * user.User) (primitive.ObjectID, error) {

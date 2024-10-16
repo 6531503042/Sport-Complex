@@ -24,6 +24,7 @@ func main() {
 	// Connect to the database
 	db := database.DbConn(ctx, &cfg)
 	defer db.Disconnect(ctx)
+	
 
 	// Perform database migrations
 	// migration.AuthMigrate(ctx, &cfg)

@@ -13,6 +13,7 @@ type Config struct {
 	App App
 	Db   Db
 	Grpc Grpc
+	Kafka    Kafka
 	Server ServerConfig
 	Jwt Jwt
 }
@@ -20,6 +21,12 @@ type Config struct {
 // ServerConfig represents the server configuration.
 type ServerConfig struct {
 	Port int
+}
+
+type Kafka struct {
+	Url    string
+	ApiKey string
+	Secret string
 }
 
 // App represents the application configuration.
@@ -97,6 +104,11 @@ func LoadConfig(path string) Config {
 			SwimmingUrl: os.Getenv("GRPC_SWIMMING_URL"),
 			FootballUrl: os.Getenv("GRPC_FOOTBALL_URL"),
 			PaymentUrl: os.Getenv("GRPC_PAYMENT_URL"),
+		},
+		Kafka: Kafka{
+			Url:    os.Getenv("KAFKA_URL"),
+			ApiKey: os.Getenv("KAFKA_API_KEY"),
+			Secret: os.Getenv("KAFKA_SECRET"),
 		},
 	}
 }
