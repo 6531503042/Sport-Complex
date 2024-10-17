@@ -5,7 +5,7 @@ const page = () => {
   return (
     <div className="w-screen h-screen flex flex-row">
       <Sidebar/>
-      <div className="bg-white text-black w-full">Sport</div>
+      <div className="bg-white text-black w-full">facility</div>
     </div>
   );
 };

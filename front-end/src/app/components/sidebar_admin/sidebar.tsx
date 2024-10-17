@@ -1,11 +1,3 @@
-import {
-  faHome,
-  faDumbbell,
-  faSwimmer,
-  faFutbol,
-  faEnvelope,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import React from "react";
 import Logo from "../../assets/Logo.png";
@@ -52,10 +44,10 @@ const sidebar = () => {
         </li>
         <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
           <Link
-            href="/admin_sport"
+            href="/admin_facility"
             className="inline-flex flex-row items-center"
           >
-            <p>Sport</p>
+            <p>Facility</p>
           </Link>
         </li>
         <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
