@@ -33,7 +33,7 @@ const sidebar = () => {
       <div className="border-b"></div>
       <br />
       <br />
-      <ul className="flex flex-col ps-5 gap-10 font-medium uppercase text-sm">
+      <ul className="flex flex-col ps-7 gap-10 font-medium text-base">
         <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
           <Link
             href="/admin_dashboard"
