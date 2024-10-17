@@ -12,7 +12,7 @@ import Logo from "../../assets/Logo.png";
 
 const sidebar = () => {
   return (
-    <div className="bg-red-900 h-screen text-white w-80 flex flex-col p-5 ">
+    <div className="bg-red-900 h-screen text-white w-80 flex flex-col px-5 py-10 ">
       <Link href="/" className="inline-flex flex-row justify-start gap-3.5">
         <img src={Logo.src} alt="Logo" className="w-7 h-min" />
         <span className="flex flex-col border-l-2 w-max whitespace-nowrap">
@@ -29,7 +29,9 @@ const sidebar = () => {
         </span>
       </Link>
       <br />
-      <div className="border-b-2 rounded-lg"></div>
+      <br />
+      <div className="border-b"></div>
+      <br />
       <br />
       <ul className="flex flex-col ps-5 gap-10 font-medium uppercase text-sm">
         <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
@@ -37,7 +39,6 @@ const sidebar = () => {
             href="/admin_dashboard"
             className="inline-flex flex-row items-center"
           >
-            <FontAwesomeIcon icon={faHome} className=" text-white w-14" />
             <p>Dashboard</p>
           </Link>
         </li>
@@ -46,7 +47,6 @@ const sidebar = () => {
             href="/admin_usermanagement"
             className="inline-flex flex-row items-center"
           >
-            <FontAwesomeIcon icon={faDumbbell} className=" text-white w-14" />
             <p>User</p>
           </Link>
         </li>
@@ -55,7 +55,6 @@ const sidebar = () => {
             href="/admin_sport"
             className="inline-flex flex-row items-center"
           >
-            <FontAwesomeIcon icon={faSwimmer} className=" text-white w-14" />
             <p>Sport</p>
           </Link>
         </li>
@@ -64,7 +63,6 @@ const sidebar = () => {
             href="/admin_queue"
             className="inline-flex flex-row items-center"
           >
-            <FontAwesomeIcon icon={faFutbol} className=" text-white w-14" />
             <p>Queue</p>
           </Link>
         </li>
@@ -73,7 +71,6 @@ const sidebar = () => {
             href="/admin_report"
             className="inline-flex flex-row items-center"
           >
-            <FontAwesomeIcon icon={faEnvelope} className=" text-white w-14" />
             <p>Report</p>
           </Link>
         </li>
