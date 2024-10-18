@@ -7,7 +7,7 @@ const page = () => {
     <div className="w-screen h-screen flex flex-row">
       <Sidebar />
       <div className="bg-white text-black w-full p-10 inline-flex justify-between">
-        <div></div>
+        <div className="text-lg font-medium">Username</div>
         <img src={Logo.src} alt="Logo" className="w-7 h-min" />
       </div>
     </div>
