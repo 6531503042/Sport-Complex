@@ -2,13 +2,9 @@ import React, { useState, useEffect } from "react";
 import Banner1Img from "../../../assets/dark_bg.jpg";
 import Banner2Img from "../../../assets/banner_2.jpg";
 import Banner3Img from "../../../assets/banner_1.jpg";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faAngleRight,
-  faChevronLeft,
-  faChevronRight,
-} from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 const BannerMain: React.FC = () => {
   const banners = [
@@ -82,17 +78,17 @@ const BannerMain: React.FC = () => {
   return (
     <div className="banner-container relative flex justify-center items-center overflow-hidden h-[500px] text-white">
       <button
-        className="absolute top-1/2 left-10 z-20 flex items-center justify-center w-12 h-12 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all"
+        className="absolute top-1/2 left-10 z-20 p-2 flex items-center justify-center w-15 h-15 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all"
         onClick={handleLeftClick}
       >
-        <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: "1rem" }} />
+        <NavigateBeforeIcon style={{ fontSize: "2rem" }} />
       </button>
 
       <button
-        className="absolute top-1/2 z-20 right-10 flex items-center justify-center w-12 h-12 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all"
+        className="absolute top-1/2 z-20 right-10 p-2 flex items-center justify-center w-15 h-15 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all"
         onClick={handleRightClick}
       >
-        <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: "1rem" }} />
+        <NavigateNextIcon style={{ fontSize: "2rem" }} />
       </button>
 
       <div
@@ -124,8 +120,10 @@ const BannerMain: React.FC = () => {
                   className="py-2.5 px-3 sm:py-3.5 sm:px-5 lg:py-4.5 lg:px-7 transition-all duration-300 border-2 border-stone-200 text-stone-200 rounded-full text-xs sm:text-sm hover:border-transparent hover:shadow-lg hover:bg-yellow-500 hover:text-white"
                 >
                   <button type="button" className="uppercase">
-                    Learn More{" "}
-                    <FontAwesomeIcon icon={faAngleRight} className="ps-2" />
+                    <span className="inline-flex flex-row items-center">
+                      <p>Learn More</p>
+                      <NavigateNextIcon className="ps-2 text-3xl" />
+                    </span>
                   </button>
                 </Link>
               </div>
