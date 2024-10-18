@@ -20,6 +20,7 @@ func (s *server) bookingService() {
 
     // Schedule midnight clearing
     // go bookingUsecase.ScheduleMidnightClearing()
+    //go
 
     // Booking Routes
     booking := s.app.Group("/booking_v1")
