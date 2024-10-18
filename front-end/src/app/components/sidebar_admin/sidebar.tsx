@@ -46,7 +46,7 @@ const sidebar = () => {
             className="inline-flex flex-row items-center"
           >
             <PeopleAltIcon className="md:hidden"/>
-            <p className="hidden md:block">User</p>
+            <p className="hidden md:block">User Management</p>
           </Link>
         </li>
         <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
