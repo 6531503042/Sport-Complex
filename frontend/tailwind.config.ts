@@ -9,6 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        'custom-gray': '#C1C7D4',
+        'light-gray': '#C1C7D4',
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
@@ -16,4 +18,5 @@ const config: Config = {
   },
   plugins: [],
 };
+
 export default config;
