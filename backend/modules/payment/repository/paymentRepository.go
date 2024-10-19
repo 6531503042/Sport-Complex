@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"main/modules/payment"
+
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -77,22 +79,29 @@ func (r *paymentRepository) UpdatePayment(ctx context.Context, payment *payment.
 
 // FindPayment retrieves a payment by its ID
 func (r *paymentRepository) FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
 
-	db := r.paymentDbConn(ctx)
-	col := db.Collection("payments")
-	result := new(payment.PaymentEntity)
+    db := r.paymentDbConn(ctx)
+    col := db.Collection("payments")
 
-	err := col.FindOne(ctx, bson.M{"_id": paymentId}).Decode(result)
-	if err != nil {
-		log.Printf("Error: FindPayment failed: %s", err.Error())
-		return nil, errors.New("error: FindPayment failed")
-	}
+    // Convert paymentId string to ObjectID
+    objectId, err := primitive.ObjectIDFromHex(paymentId)
+    if err != nil {
+        log.Printf("Error: Invalid ObjectID: %s", err.Error())
+        return nil, errors.New("error: invalid payment ID format")
+    }
 
-	return result, nil
+    // Find the payment by ObjectID
+    result := new(payment.PaymentEntity)
+    err = col.FindOne(ctx, bson.M{"_id": objectId}).Decode(result)
+    if err != nil {
+        log.Printf("Error: FindPayment failed: %s", err.Error())
+        return nil, errors.New("error: FindPayment failed")
+    }
+
+    return result, nil
 }
-
 // FindPaymentsByUser retrieves all payments made by a specific user
 func (r *paymentRepository) FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentEntity, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)

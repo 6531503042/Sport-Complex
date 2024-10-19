@@ -52,7 +52,7 @@ func (h *paymentHttpHandler) CreatePayment(c echo.Context) error {
 
 // GetPayment retrieves payment information by ID
 func (h *paymentHttpHandler) FindPayment(c echo.Context) error {
-	Id := c.Param("_id")
+	Id := c.Param("id")
 	payment, err := h.paymentUsecase.FindPayment(c.Request().Context(), Id)
 	if err != nil {
 		return response.ErrResponse(c, http.StatusNotFound, err.Error())
