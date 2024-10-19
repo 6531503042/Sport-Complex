@@ -17,7 +17,7 @@ const sidebar: React.FC<SidebarProps> = ({ activePage }) => {
   const getActiveClass = (page: string) => {
     return activePage === page
       ? "bg-black text-white py-3 px-5 shadow-lg hover:shadow-2xl rounded-lg"
-      : "hover:scale-110 transition-transform duration-200 ease-in-out ms-1 hover:shadow-lg ";
+      : "hover:scale-110 transition-transform duration-1000 ease-in-out ms-1 hover:shadow-lg ";
   };
 
   return (

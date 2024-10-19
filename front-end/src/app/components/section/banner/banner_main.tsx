@@ -37,7 +37,7 @@ const BannerMain: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       handleRightClick();
-    }, 60000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [currentBanner]);
 
