@@ -7,6 +7,7 @@ import SideBar from "../sidebar/sidebar";
 import SearhBar from "../../components/search_bar/search_bar";
 import "../navbar/navbar.css";
 
+
 type NavBarProps = {
   activePage?: string;
 };
