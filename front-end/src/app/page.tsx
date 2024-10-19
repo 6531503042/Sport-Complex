@@ -1,6 +1,6 @@
 "use client"
 
-import HomePage from './(booking)/homepage/page'
+import HomePage from './(pages)/homepage/page'
 
 export default function Home() {
   return (
