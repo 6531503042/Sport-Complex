@@ -91,11 +91,12 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 		Timeout:      30 * time.Second,
 	}))
 
-	// CORS
+	// CORS setup
 	s.app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		Skipper:      middleware.DefaultSkipper,
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.PATCH, echo.DELETE},
+		AllowOrigins:     []string{"http://localhost:3000"}, // Frontend origin
+		AllowMethods:     []string{echo.GET, echo.POST, echo.HEAD, echo.PUT, echo.DELETE, echo.PATCH, echo.OPTIONS},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowCredentials: true, // Enable credentials handling (e.g., cookies)
 	}))
 
 	// Body Limit

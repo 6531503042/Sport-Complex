@@ -38,6 +38,28 @@ func NewBookingUsecase(bookingRepository repository.BookingRepositoryService) Bo
 	}
 }
 
+// func (u *bookingUsecase) ScheduleMidnightClearing() {
+//     now := time.Now()
+//     nextMidnight := now.Truncate(24 * time.Hour).Add(24 * time.Hour)
+//     duration := nextMidnight.Sub(now)
+
+//     log.Printf("Next clearing scheduled in %v", duration)
+
+//     time.AfterFunc(duration, func() {
+//         ctx := context.Background()
+
+//         // Execute the midnight clearing process
+//         if err := u.bookingRepository.clearingBookingAtMidnight(ctx); err != nil {
+//             log.Printf("Error clearing bookings at midnight: %s", err.Error())
+//         } else {
+//             log.Println("Successfully cleared bookings at midnight")
+//         }
+
+//         // Schedule the next clearing
+//         u.ScheduleMidnightClearing()
+//     })
+// }
+
 //Kafka Func
 func (u *bookingUsecase) GetOffSet(ctx context.Context) (int64, error) {
 	return u.bookingRepository.GetOffset(ctx)
