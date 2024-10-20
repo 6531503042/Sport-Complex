@@ -49,7 +49,7 @@ const UserManagementPage = () => {
   };
 
   return (
-    <div className="w-screen h-screen flex flex-row">
+    <div className="w-[1920px] h-[945px] flex flex-row">
       <Sidebar activePage="admin_usermanagement"/>
       <div className="bg-white text-black w-full p-10 flex flex-col">
         <div className="inline-flex justify-between w-full items-end">

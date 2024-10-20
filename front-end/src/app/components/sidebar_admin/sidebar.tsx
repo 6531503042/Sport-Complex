@@ -4,10 +4,11 @@ import Link from "next/link";
 import React from "react";
 import Logo from "../../assets/Logo.png";
 import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import LocationCityIcon from "@mui/icons-material/LocationCity";
-import EventNoteIcon from "@mui/icons-material/EventNote";
-import FeedIcon from "@mui/icons-material/Feed";
+import BookmarksIcon from '@mui/icons-material/Bookmarks';
+import PaidIcon from '@mui/icons-material/Paid';
+import ArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 
 type SidebarProps = {
   activePage?: string;
@@ -16,8 +17,8 @@ type SidebarProps = {
 const sidebar: React.FC<SidebarProps> = ({ activePage }) => {
   const getActiveClass = (page: string) => {
     return activePage === page
-      ? "border border-white text-white font-semibold shadow-gray-800 hover:shadow-black py-3 px-5 shadow-lg hover:shadow-2xl rounded-lg hover:scale-105 transition-all duration-700 hover:bg-orange-800"
-      : "hover:scale-110 transition-transform duration-1000 ease-in-out ms-1 hover:shadow-lg py-3 px-5 rounded-lg";
+      ? "inline-flex flex-row items-center border border-white text-white font-semibold shadow-gray-800 hover:shadow-black py-3 px-5 shadow-lg hover:shadow-2xl rounded-lg hover:scale-105 transition-all duration-700 hover:bg-orange-800"
+      : "inline-flex flex-row items-center hover:scale-110 transition-transform duration-1000 ease-in-out ms-1 hover:shadow-lg py-3 px-5 rounded-lg";
   };
 
   return (
@@ -36,55 +37,72 @@ const sidebar: React.FC<SidebarProps> = ({ activePage }) => {
             </span>
           </div>
         </span>
-      </Link>   
+      </Link>
       <br />
-      <br />
-      <div className="border-b"></div>
-      <br />
+      <div className="inline-flex w-full justify-center items-center text-center p-5">
+        <button className="p-1 bg-white rounded-full">
+          <ArrowLeftIcon className="text-black" />
+        </button>
+      </div>
       <br />
       <ul className="inline-flex flex-col md:items-start items-center px-5 gap-10">
-        <li className={getActiveClass("admin_dashboard")} style={{cursor:"pointer"}}>
+        <li
+          className={getActiveClass("admin_dashboard")}
+          style={{ cursor: "pointer" }}
+        >
           <Link
             href="/admin_dashboard"
-            className="inline-flex flex-row items-center cursor-pointer"
+            className="inline-flex flex-row items-center cursor-pointer gap-3"
           >
-            <SpaceDashboardIcon className="md:hidden" />
+            <SpaceDashboardIcon className="" />
             <p className="hidden md:block">Dashboard</p>
           </Link>
         </li>
-        <li className={getActiveClass("admin_usermanagement")} style={{cursor:"pointer"}}>
+        <li
+          className={getActiveClass("admin_usermanagement")}
+          style={{ cursor: "pointer" }}
+        >
           <Link
             href="/admin_usermanagement"
-            className="inline-flex flex-row items-center cursor-pointer"
+            className="inline-flex flex-row items-center cursor-pointer gap-3"
           >
-            <PeopleAltIcon className="md:hidden" />
+            <ManageAccountsIcon className="" />
             <p className="hidden md:block">User</p>
           </Link>
         </li>
-        <li className={getActiveClass("admin_facility")} style={{cursor:"pointer"}}>
+        <li
+          className={getActiveClass("admin_facility")}
+          style={{ cursor: "pointer" }}
+        >
           <Link
             href="/admin_facility"
-            className="inline-flex flex-row items-center cursor-pointer"
+            className="inline-flex flex-row items-center cursor-pointer gap-3"
           >
-            <LocationCityIcon className="md:hidden" />
+            <LocationCityIcon className="" />
             <p className="hidden md:block">Facility</p>
           </Link>
         </li>
-        <li className={getActiveClass("admin_booking")} style={{cursor:"pointer"}}>
+        <li
+          className={getActiveClass("admin_booking")}
+          style={{ cursor: "pointer" }}
+        >
           <Link
             href="/admin_booking"
-            className="inline-flex flex-row items-center cursor-pointer"
+            className="inline-flex flex-row items-center cursor-pointer gap-3"
           >
-            <EventNoteIcon className="md:hidden" />
+            <BookmarksIcon className="" />
             <p className="hidden md:block">Booking</p>
           </Link>
         </li>
-        <li className={getActiveClass("admin_payment")} style={{cursor:"pointer"}}>
+        <li
+          className={getActiveClass("admin_payment")}
+          style={{ cursor: "pointer" }}
+        >
           <Link
             href="/admin_payment"
-            className="inline-flex flex-row items-center cursor-pointer"
+            className="inline-flex flex-row items-center cursor-pointer gap-3"
           >
-            <FeedIcon className="md:hidden" />
+            <PaidIcon className="" />
             <p className="hidden md:block">Payment</p>
           </Link>
         </li>
