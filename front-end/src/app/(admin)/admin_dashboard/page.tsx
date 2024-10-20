@@ -3,9 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/sidebar_admin/sidebar";
 import Logo from "../../assets/Logo.png";
-import AddIcon from "@mui/icons-material/Add";
-import Modal from "../../components/popup/popup_addnew_user";
-import { IUser } from "../../models/user";
 
 const UserManagementPage = () => {
   return (
