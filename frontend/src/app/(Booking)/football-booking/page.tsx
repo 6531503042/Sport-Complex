@@ -17,7 +17,6 @@ interface UserDataParams {
 
 function Football_Booking({ params }: UserDataParams) {
   const { id } = params;
-  
 
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -46,33 +45,62 @@ function Football_Booking({ params }: UserDataParams) {
       }
     }
   };
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Prevent default form submission
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newErrors = {
-      name: ownName ? "" : "Name is required.",
-      id: ownId ? "" : "ID is required.",
-      phone: formData.phone ? "" : "Phone number is required.",
-    };
-    setErrors(newErrors);
+    // Form validation: Check if the phone number is filled in
+    if (!formData.phone) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        phone: "Phone number is required",
+      }));
+      return;
+    }
 
-    const hasErrors = Object.values(newErrors).some((error) => error !== "");
-    if (!hasErrors) {
-      console.log("Form submitted successfully", {
-        name: ownName,
-        id: ownId,
-        phone: formData.phone,
-      });
+    try {
+      const bookingData = {
+        user_id: ownId, // User's ID from the state
+        slot_id: slot[selectedCard]?._id, // Slot ID from the selected card
+        status: 1, // Assuming 1 means successful booking
+        slot_type: "normal", // Based on the Postman request, slot_type is 'normal'
+        badminton_slot_id: null, // For football, badminton_slot_id can be null
+      };
+
+      const response = await fetch(
+        "http://localhost:1326/booking_v1/football/booking",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookingData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to book: ${response.statusText} (Status: ${response.status})`
+        );
+      }
+
+      const result = await response.json();
+      console.log("Booking successful:", result);
+
+      // Show the booking success popup
       setIsBookingSuccessful(true);
-  
-      // Clear the form fields
-      setFormData({
-        name: "",
-        id: "",
-        phone: "",
-      });
+
+      // Reset form and selected card
+      setFormData({ name: "", id: "", phone: "" });
       setSelectedCard(null);
-      setIsMobileView(false);
+
+      // Update the list to reflect the successful booking
+      setSlot((prevSlots) =>
+        prevSlots.map((s) =>
+          s._id === bookingData.slot_id ? { ...s, current_bookings: true } : s
+        )
+      );
+    } catch (error) {
+      console.error("Error submitting booking:", error);
     }
   };
 
@@ -160,121 +188,124 @@ function Football_Booking({ params }: UserDataParams) {
           {isMobileView ? (
             // Mobile View: Show the form instead of the time slots
             <div className="block sm:hidden ">
-  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
-    <form onSubmit={handleSubmit}>
-      {/* Flex container for aligning back button and time at the top */}
-      <div className="flex items-center justify-between my-3">
-        <img
-          src={Back.src}
-          alt="back"
-          onClick={handleBackToTimeSlots}
-          className="border shadow-xl p-2 rounded-md cursor-pointer hover:bg-gray-200"
-          width={40}
-        />
-        <h2 className="text-xl font-semibold text-start">
-        {slot[selectedCard].start_time} -{" "}
-        {slot[selectedCard].end_time}
-        </h2>
-      </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
+                <form onSubmit={handleSubmit}>
+                  {/* Flex container for aligning back button and time at the top */}
+                  <div className="flex items-center justify-between my-3">
+                    <img
+                      src={Back.src}
+                      alt="back"
+                      onClick={handleBackToTimeSlots}
+                      className="border shadow-xl p-2 rounded-md cursor-pointer hover:bg-gray-200"
+                      width={40}
+                    />
+                    {selectedCard !== null && slot[selectedCard] && (
+                      <h2 className="text-xl font-semibold text-start">
+                        {slot[selectedCard].start_time} -{" "}
+                        {slot[selectedCard].end_time}
+                      </h2>
+                    )}
+                  </div>
 
-      <label className="block mb-4">
-        <span className="block text-sm font-medium text-gray-700 py-2">
-          Name 
-        </span>
-        <input
-          type="text"
-          name="name"
-          value={ownName}
-          className="name-input-football mt-1 block w-full px-3 py-3"
-        />
-      </label>
+                  <label className="block mb-4">
+                    <span className="block text-sm font-medium text-gray-700 py-2">
+                      Name
+                    </span>
+                    <input
+                      type="text"
+                      name="name"
+                      value={ownName}
+                      className="name-input-football mt-1 block w-full px-3 py-3"
+                    />
+                  </label>
 
-      <label className="block mb-4">
-        <span className="block text-sm font-medium text-gray-700 py-2">
-          Lecturer / Staff / Student ID
-        </span>
-        <input
-          type="text"
-          name="id"
-          value={ownId}
-          className="name-input-football mt-1 block w-full px-3 py-3"
-        />
-      </label>
+                  <label className="block mb-4">
+                    <span className="block text-sm font-medium text-gray-700 py-2">
+                      Lecturer / Staff / Student ID
+                    </span>
+                    <input
+                      type="text"
+                      name="id"
+                      value={ownId}
+                      className="name-input-football mt-1 block w-full px-3 py-3"
+                    />
+                  </label>
 
-      <label className="block mb-4">
-        <span className="block text-sm font-medium text-gray-700 py-2">
-          Phone Number
-        </span>
-        <input
-          type="tel"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          placeholder="Enter your phone number"
-          className="name-input-football mt-1 block w-full px-3 py-3"
-        />
-        {errors.phone && (
-          <span className="text-red-500 text-sm">
-            {errors.phone}
-          </span>
-        )}
-      </label>
+                  <label className="block mb-4">
+                    <span className="block text-sm font-medium text-gray-700 py-2">
+                      Phone Number
+                    </span>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="Enter your phone number"
+                      className="name-input-football mt-1 block w-full px-3 py-3"
+                    />
+                    {errors.phone && (
+                      <span className="text-red-500 text-sm">
+                        {errors.phone}
+                      </span>
+                    )}
+                  </label>
 
-      {/* Center the Booking button */}
-      <div className="flex justify-center">
-        <button
-          type="submit"
-          className="font-bold bg-green-500 text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-green-600"
-        >
-          Booking
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-          
+                  {/* Center the Booking button */}
+                  <div className="flex justify-center">
+                    <button
+                      type="submit"
+                      className="font-bold bg-green-500 text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-green-600"
+                    >
+                      Booking
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           ) : (
             // Normal and larger screen view
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-  {slot.map((lot) => (
-    <div
-    key={lot._id}
-    className={` border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
-      ${lot.current_bookings ? "cursor-not-allowed bg-light-gray text-white" : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"}
+                {slot.map((lot) => (
+                  <div
+                    key={lot._id}
+                    className={` border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
+      ${
+        lot.current_bookings
+          ? "cursor-not-allowed bg-light-gray text-white"
+          : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
+      }
       ${!lot.current_bookings ? "hover:bg-[#005400]" : ""}
     `}
-    onClick={() => {
-      if (!lot.current_bookings) {
-        handleCardClick(lot, lot.status);
-      }
-    }}
-  >
-    <div className="text-lg font-semibold flex justify-between items-center">
-      <div>
-        {lot.start_time} - {lot.end_time}
-      </div>
-      <div>
-        {lot.current_bookings ? (
-          <img
-            src={Unavailable.src}
-            alt="Unavailable"
-            className="w-6 h-6"
-          />
-        ) : (
-          <img
-            src={Available.src}
-            alt="Available"
-            className="w-6 h-6"
-          />
-        )}
-      </div>
-    </div>
-  </div>
-  
-  ))}
-</div>
+                    onClick={() => {
+                      if (!lot.current_bookings) {
+                        handleCardClick(lot, lot.status);
+                      }
+                    }}
+                  >
+                    <div className="text-lg font-semibold flex justify-between items-center">
+                      <div>
+                        {lot.start_time} - {lot.end_time}
+                      </div>
+                      <div>
+                        {lot.current_bookings ? (
+                          <img
+                            src={Unavailable.src}
+                            alt="Unavailable"
+                            className="w-6 h-6"
+                          />
+                        ) : (
+                          <img
+                            src={Available.src}
+                            alt="Available"
+                            className="w-6 h-6"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               <div
                 className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
@@ -374,7 +405,10 @@ function Football_Booking({ params }: UserDataParams) {
               {/* Close Button */}
               <button
                 className="w-full bg-gradient-to-r from-green-500 to-green-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
-                onClick={() => setIsBookingSuccessful(false)}
+                onClick={() => {
+                  setIsBookingSuccessful(false); // Close the popup
+                  setIsMobileView(false); // Return to the time slots view
+                }}
               >
                 Close
               </button>
