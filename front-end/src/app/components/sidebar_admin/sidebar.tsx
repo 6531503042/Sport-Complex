@@ -51,18 +51,25 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
         )}
       </Link>
       <br />
-      <div className=" w-full justify-center p-5 md:inline-flex hidden">
+      <div className="relative flex justify-center items-center">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div
+          className={` w-full h-[2px] bg-white${
+            isCollapsed ? "hidden" : ""
+          }`}></div>
+        </div>
         <button
           onClick={toggleSidebar}
-          className="flex bg-white p-1 opacity-90 rounded-full hover:opacity-100 transition-all ease-in-out duration-500 hover:scale-110 cursor-pointer"
+          className="relative z-10 flex bg-yellow-500 p-1 rounded-full hover:opacity-100 transition-all ease-in-out duration-500 hover:scale-110 cursor-pointer"
         >
           <ArrowLeftIcon
-            className={`text-black transition-transform ${
+            className={`text-white transition-transform ${
               isCollapsed ? "rotate-180" : ""
             }`}
           />
         </button>
       </div>
+
       <br />
       <ul
         className={`inline-flex flex-col px-5 gap-10${
