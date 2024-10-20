@@ -21,7 +21,7 @@ const sidebar: React.FC<SidebarProps> = ({ activePage }) => {
   };
 
   return (
-    <div className="bg-red-900 h-screen text-white md:w-[300px] w-[100px] flex flex-col px-5 py-10">
+    <div className="bg-red-900 h-[945px] text-white md:w-[300px] w-[100px] flex flex-col px-5 py-10">
       <Link href="/" className="inline-flex flex-row justify-center md:gap-3.5">
         <img src={Logo.src} alt="Logo" className="w-7 h-min" />
         <span className="flex flex-col md:border-l-2 border-l-0 w-max whitespace-nowrap font-bold">
