@@ -70,22 +70,22 @@ const sidebar: React.FC<SidebarProps> = ({ activePage }) => {
             <p className="hidden md:block">Facility</p>
           </Link>
         </li>
-        <li className={getActiveClass("admin_queue")} style={{cursor:"pointer"}}>
+        <li className={getActiveClass("admin_booking")} style={{cursor:"pointer"}}>
           <Link
-            href="/admin_queue"
+            href="/admin_booking"
             className="inline-flex flex-row items-center cursor-pointer"
           >
             <EventNoteIcon className="md:hidden" />
-            <p className="hidden md:block">Queue</p>
+            <p className="hidden md:block">Booking</p>
           </Link>
         </li>
-        <li className={getActiveClass("admin_report")} style={{cursor:"pointer"}}>
+        <li className={getActiveClass("admin_payment")} style={{cursor:"pointer"}}>
           <Link
-            href="/admin_report"
+            href="/admin_payment"
             className="inline-flex flex-row items-center cursor-pointer"
           >
             <FeedIcon className="md:hidden" />
-            <p className="hidden md:block">Report</p>
+            <p className="hidden md:block">Payment</p>
           </Link>
         </li>
       </ul>
