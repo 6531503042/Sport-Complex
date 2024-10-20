@@ -1,26 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState, Fragment } from "react";
 import Available from "@/app/assets/available.png";
 import Unavailable from "@/app/assets/unavailable.png";
 import Back from '@/app/assets/back.png'
 import Member from '@/app/assets/member.png'
 import './swimming.css'
-
-interface Data {
-  time: string;
-  isAvailable: boolean;
-  member: string;
+interface UserData {
+  id: string;
+  name: string;
 }
 
-function Swimming_Booking() {
-  const data: Data[] = [
-    { time: "10.00 - 12.00", isAvailable: true, member: "0/30" },
-    { time: "12.00 - 14.00", isAvailable: false, member: "30/30" },
-    { time: "14.00 - 16.00", isAvailable: true, member: "0/30" },
-    { time: "16.00 - 18.00", isAvailable: false, member: "30/30" },
-    { time: "18.00 - 20.00", isAvailable: true, member: "0/30" },
-  ];
+interface UserDataParams {
+  params: UserData;
+}
+
+function Swimming_Booking({ params }: UserDataParams) {
+  const { id } = params;
 
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -36,38 +32,75 @@ function Swimming_Booking() {
   const [isBookingSuccessful, setIsBookingSuccessful] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false); // New state for mobile view
 
-  const handleCardClick = (index: number, isAvailable: boolean) => {
-    if (isAvailable) {
-      setSelectedCard(index === selectedCard ? null : index);
-      setErrors({ name: "", id: "", phone: "" });
+  const handleCardClick = (lot: any, status: any) => {
+    if (!lot.current_bookings) {
+      const index = slot.findIndex((s) => s._id === lot._id); // Get the index of the clicked lot
+      if (index !== -1) {
+        setSelectedCard(index === selectedCard ? null : index);
+        setErrors({ name: "", id: "", phone: "" });
 
-      if (window.innerWidth < 640) { // Mobile screen size (sm breakpoint in Tailwind)
-        setIsMobileView(true); // Switch to form view in mobile
+        if (window.innerWidth < 640) {
+          setIsMobileView(true); // Switch to form view in mobile
+        }
       }
     }
   };
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Prevent default form submission
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newErrors = {
-      name: formData.name ? "" : "Name is required.",
-      id: formData.id ? "" : "ID is required.",
-      phone: formData.phone ? "" : "Phone number is required.",
-    };
-    setErrors(newErrors);
+    // Form validation: Check if the phone number is filled in
+    if (!formData.phone) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        phone: "Phone number is required",
+      }));
+      return;
+    }
 
-    const hasErrors = Object.values(newErrors).some((error) => error !== "");
-    if (!hasErrors) {
-      console.log("Form submitted successfully", formData);
+    try {
+      const bookingData = {
+        user_id: ownId, // User's ID from the state
+        slot_id: slot[selectedCard]?._id, // Slot ID from the selected card
+        status: 1, // Assuming 1 means successful booking
+        slot_type: "normal", // Based on the Postman request, slot_type is 'normal'
+        badminton_slot_id: null, // For football, badminton_slot_id can be null
+      };
+
+      const response = await fetch(
+        "http://localhost:1326/booking_v1/swimming/booking",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookingData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to book: ${response.statusText} (Status: ${response.status})`
+        );
+      }
+
+      const result = await response.json();
+      console.log("Booking successful:", result);
+
+      // Show the booking success popup
       setIsBookingSuccessful(true);
 
-      setFormData({
-        name: "",
-        id: "",
-        phone: "",
-      });
+      // Reset form and selected card
+      setFormData({ name: "", id: "", phone: "" });
       setSelectedCard(null);
-      setIsMobileView(false); // Reset view after booking
+
+      // Update the list to reflect the successful booking
+      setSlot((prevSlots) =>
+        prevSlots.map((s) =>
+          s._id === bookingData.slot_id ? { ...s, current_bookings: true } : s
+        )
+      );
+    } catch (error) {
+      console.error("Error submitting booking:", error);
     }
   };
 
@@ -79,7 +112,69 @@ function Swimming_Booking() {
   };
 
   const handleBackToTimeSlots = () => {
-    setIsMobileView(false); // Go back to time slots in mobile
+    setIsMobileView(false);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [slot, setSlot] = useState<any[]>([]);
+  const getSlot = async () => {
+    try {
+      const resSlot = await fetch(
+        "http://localhost:1335/facility_v1/swimming/slot_v1/slots",
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
+
+      if (!resSlot.ok) {
+        throw new Error(
+          `Failed to fetch: ${resSlot.statusText} (Status: ${resSlot.status})`
+        );
+      }
+      const slotData = await resSlot.json();
+      setSlot(slotData);
+    } catch (error) {
+      console.error("Error fetching slot data:", error);
+    }
+  };
+
+  useEffect(() => {
+    getSlot();
+    getUserData(id); // Use the id from params when calling getUserData
+
+    const intervalId = setInterval(() => {
+      getSlot();
+    }, 10000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [id]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [userData, setUserData] = useState<any[]>([]);
+  const [ownName, setOwnName] = useState("");
+  const [ownId, setOwnId] = useState("");
+  const getUserData = async (id: string) => {
+    try {
+      const resUserData = await fetch(
+        `http://localhost:1325/user_v1/users/67126e06b320204c9d3434b7`,
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
+      if (!resUserData.ok) {
+        throw new Error("Failed to fetch the user");
+      }
+      const userData: UserData = await resUserData.json();
+      setUserData(userData);
+      setOwnName(userData.name);
+      setOwnId(userData.id);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -95,8 +190,21 @@ function Swimming_Booking() {
             <div className="block sm:hidden ">
               <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
                 <form onSubmit={handleSubmit}>
-                  <div className="my-3 ">
-                    <img src={Back.src} alt="back" onClick={handleBackToTimeSlots} className="border shadow-xl p-2 rounded-md cursor-pointer hover:bg-gray-200" width={40}/>
+                  {/* Flex container for aligning back button and time at the top */}
+                  <div className="flex items-center justify-between my-3">
+                    <img
+                      src={Back.src}
+                      alt="back"
+                      onClick={handleBackToTimeSlots}
+                      className="border shadow-xl p-2 rounded-md cursor-pointer hover:bg-gray-200"
+                      width={40}
+                    />
+                    {selectedCard !== null && slot[selectedCard] && (
+                      <h2 className="text-xl font-semibold text-start">
+                        {slot[selectedCard].start_time} -{" "}
+                        {slot[selectedCard].end_time}
+                      </h2>
+                    )}
                   </div>
 
                   <label className="block mb-4">
@@ -106,17 +214,11 @@ function Swimming_Booking() {
                     <input
                       type="text"
                       name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Enter your name"
+                      value={ownName}
                       className="name-input-swimming mt-1 block w-full px-3 py-3"
                     />
-                    {errors.name && (
-                      <span className="text-red-500 text-sm">
-                        {errors.name}
-                      </span>
-                    )}
                   </label>
+
                   <label className="block mb-4">
                     <span className="block text-sm font-medium text-gray-700 py-2">
                       Lecturer / Staff / Student ID
@@ -124,21 +226,17 @@ function Swimming_Booking() {
                     <input
                       type="text"
                       name="id"
-                      value={formData.id}
-                      onChange={handleChange}
-                      placeholder="Enter your ID"
+                      value={ownId}
                       className="name-input-swimming mt-1 block w-full px-3 py-3"
                     />
-                    {errors.id && (
-                      <span className="text-red-500 text-sm">{errors.id}</span>
-                    )}
                   </label>
+
                   <label className="block mb-4">
                     <span className="block text-sm font-medium text-gray-700 py-2">
                       Phone Number
                     </span>
                     <input
-                      type="number"
+                      type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
@@ -152,16 +250,15 @@ function Swimming_Booking() {
                     )}
                   </label>
 
-                  <button
-                    type="submit"
-                    className="font-bold bg-blue-500 text-white px-5 py-2.5 my-5 rounded-md drop-shadow-2xl hover:bg-blue-600"
-                  >
-                    Booking
-                  </button>
-
-                  <h2 className="text-xl font-bold mb-4 text-end">
-                    {selectedCard !== null && data[selectedCard].time}
-                  </h2>
+                  {/* Center the Booking button */}
+                  <div className="flex justify-center">
+                    <button
+                      type="submit"
+                      className="font-bold bg-green-500 text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-green-600"
+                    >
+                      Booking
+                    </button>
+                  </div>
                 </form>
               </div>
             </div>
@@ -170,55 +267,54 @@ function Swimming_Booking() {
             // Normal screen view
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                {data.map((item, index) => (
-                  <div
-                  key={index}
-                  className={`bg-white border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
-                    ${
-                      item.isAvailable
-                        ? "cursor-pointer hover:scale-105 hover:shadow-lg"
-                        : "cursor-not-allowed"
-                    }
-                    ${
-                      selectedCard === index && item.isAvailable
-                        ? "bg-blue-200 border-blue-400 scale-105 shadow-lg"
-                        : ""
-                    }
-                    ${
-                      !item.isAvailable
-                        ? "bg-gray-200 text-gray-700"
-                        : "hover:bg-blue-200"
-                    }`}
-                    onClick={() => handleCardClick(index, item.isAvailable)}
-                  >
-                    <div className="text-lg font-semibold mb-2 flex justify-between">
-                      <div>{item.time}</div>
-                      <div
-                        className={`text-l ${item.isAvailable ? "text-black" : "text-gray-500"}`}
-                      >
-                        <div className="flex"><img src={Member.src} alt="member" width={24}/> <span className="mx-1"></span>
-                        {item.member}</div>
-                        
-                      </div>
-                    </div>
+              {slot.map((lot) => {
+  const isSlotFull = lot.current_bookings >= lot.max_bookings; // Check if the slot is fully booked
 
-                    <div>
-                        {item.isAvailable ? (
-                          <div className="flex"><img
-                            src={Available.src}
-                            alt="Available"
-                            className="w-6 h-6"
-                          /><span className="ml-2">Available</span></div>
-                        ) : (
-                          <div className="flex"><img
-                            src={Unavailable.src}
-                            alt="Unavailable"
-                            className="w-6 h-6"
-                          /><span className="ml-2">Unavailable</span></div>
-                        )}
-                      </div>
-                  </div>
-                ))}
+  return (
+    <div
+      key={lot._id}
+      className={`border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
+      ${
+        isSlotFull
+          ? "cursor-not-allowed bg-light-gray text-white"
+          : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
+      }
+      ${!isSlotFull ? "hover:bg-[#005400]" : ""}
+    `}
+      onClick={() => {
+        if (!isSlotFull) {
+          handleCardClick(lot, lot.status);
+        }
+      }}
+    >
+      <div className="text-lg font-semibold flex justify-between items-center">
+        <div>
+          {lot.start_time} - {lot.end_time}
+        </div>
+        <div>
+          {isSlotFull ? (
+            <img
+              src={Unavailable.src}
+              alt="Unavailable"
+              className="w-6 h-6"
+            />
+          ) : (
+            <img
+              src={Available.src}
+              alt="Available"
+              className="w-6 h-6"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Display Current and Maximum Bookings */}
+      <div className="mt-2 text-sm text-white">
+        {lot.current_bookings} / {lot.max_bookings}
+      </div>
+    </div>
+  );
+})}
               </div>
 
               <div
@@ -226,78 +322,79 @@ function Swimming_Booking() {
                   selectedCard !== null ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"
                 }`}
               >
-                {selectedCard !== null && data[selectedCard].isAvailable && (
-                  <>
-                    <h2 className="text-xl font-bold mb-4">
-                      Booking for {data[selectedCard].time}
-                    </h2>
-                    <form onSubmit={handleSubmit}>
-                      <label className="block mb-4">
-                        <span className="block text-sm font-medium text-gray-700 py-2">
-                          Name
-                        </span>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          placeholder="Enter your name"
-                          className="name-input-swimming mt-1 block w-full px-3 py-3"
-                        />
-                        {errors.name && (
-                          <span className="text-red-500 text-sm">
-                            {errors.name}
+                {selectedCard !== null &&
+                  !slot[selectedCard]?.current_bookings && ( // Check if current_bookings is false
+                    <>
+                      <h2 className="text-xl font-bold mb-4">
+                        Booking for {slot[selectedCard].start_time} -{" "}
+                        {slot[selectedCard].end_time}
+                      </h2>
+                      <form onSubmit={handleSubmit}>
+                        <label className="block mb-4">
+                          <span className="block text-sm font-medium text-gray-700 py-2">
+                            Name
                           </span>
-                        )}
-                      </label>
-                      <label className="block mb-4">
-                        <span className="block text-sm font-medium text-gray-700 py-2">
-                          Lecturer / Staff / Student ID
-                        </span>
-                        <input
-                          type="text"
-                          name="id"
-                          value={formData.id}
-                          onChange={handleChange}
-                          placeholder="Enter your ID"
-                          className="name-input-swimming mt-1 block w-full px-3 py-3"
-                        />
-                        {errors.id && (
-                          <span className="text-red-500 text-sm">
-                            {errors.id}
+                          <input
+                            type="text"
+                            name="name"
+                            value={ownName}
+                            // placeholder={ownName}
+                            className="name-input-swimming mt-1 block w-full px-3 py-3"
+                          />
+                          {errors.name && (
+                            <span className="text-red-500 text-sm">
+                              {errors.name}
+                            </span>
+                          )}
+                        </label>
+                        <label className="block mb-4">
+                          <span className="block text-sm font-medium text-gray-700 py-2">
+                            Lecturer / Staff / Student ID
                           </span>
-                        )}
-                      </label>
-                      <label className="block mb-4">
-                        <span className="block text-sm font-medium text-gray-700 py-2">
-                          Phone Number
-                        </span>
-                        <input
-                          type="number"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          placeholder="Enter your phone number"
-                          className="name-input-swimming mt-1 block w-full px-3 py-3"
-                        />
-                        {errors.phone && (
-                          <span className="text-red-500 text-sm">
-                            {errors.phone}
+                          <input
+                            type="text"
+                            name="id"
+                            value={ownId}
+                            // placeholder={ownId}
+                            className="name-input-swimming mt-1 block w-full px-3 py-3"
+                          />
+                          {errors.id && (
+                            <span className="text-red-500 text-sm">
+                              {errors.id}
+                            </span>
+                          )}
+                        </label>
+                        <label className="block mb-4">
+                          <span className="block text-sm font-medium text-gray-700 py-2">
+                            Phone Number
                           </span>
-                        )}
-                      </label>
-                      {/* Center the button */}
-                      <div className="flex justify-center">
-                        <button
-                          type="submit"
-                          className="font-semibold bg-blue-500 text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-blue-600"
-                        >
-                          Booking
-                        </button>
-                      </div>
-                    </form>
-                  </>
-                )}
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            placeholder="Enter your phone number"
+                            className="name-input-swimming mt-1 block w-full px-3 py-3"
+                          />
+
+                          {errors.phone && (
+                            <span className="text-red-500 text-sm">
+                              {errors.phone}
+                            </span>
+                          )}
+                        </label>
+                        {/* Center the button */}
+                        <div className="flex justify-center">
+                          <button
+                            type="submit"
+                            className="font-semibold bg-green-500 text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-green-600"
+                          >
+                            Booking
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
               </div>
             </>
           )}
@@ -315,8 +412,11 @@ function Swimming_Booking() {
 
               {/* Close Button */}
               <button
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
-                onClick={() => setIsBookingSuccessful(false)}
+                className="w-full bg-gradient-to-r from-green-500 to-green-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
+                onClick={() => {
+                  setIsBookingSuccessful(false); // Close the popup
+                  setIsMobileView(false); // Return to the time slots view
+                }}
               >
                 Close
               </button>
