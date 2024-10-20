@@ -54,20 +54,21 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
       <div className="relative flex justify-center items-center">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div
-          className={` w-full h-[2px] bg-white${
-            isCollapsed ? "hidden" : ""
-          }`}></div>
+            className={` w-full h-[2px] bg-white${isCollapsed ? "hidden" : ""}`}
+          ></div>
         </div>
-        <button
-          onClick={toggleSidebar}
-          className="relative z-10 flex bg-yellow-500 p-1 rounded-full hover:opacity-100 transition-all ease-in-out duration-500 hover:scale-110 cursor-pointer"
-        >
-          <ArrowLeftIcon
-            className={`text-white transition-transform ${
-              isCollapsed ? "rotate-180" : ""
-            }`}
-          />
-        </button>
+        <div className="relative z-10 p-2 bg-red-900">
+          <button
+            onClick={toggleSidebar}
+            className="relative z-10 flex bg-yellow-500 p-1 rounded-full hover:opacity-100 transition-all ease-in-out duration-500 hover:scale-110 cursor-pointer"
+          >
+            <ArrowLeftIcon
+              className={`text-white transition-transform ${
+                isCollapsed ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       <br />
