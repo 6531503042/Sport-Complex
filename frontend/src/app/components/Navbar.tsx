@@ -51,7 +51,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
         <ul className="inline-flex flex-row flex-none w-9/12 gap-12 justify-start font-semibold pt-6">
           <li className={getActiveClass("gym")}>
             <Link
-              href="/gym"
+              href="/gym-booking"
               className="text-white hover:text-gray-400 flex items-center pb-6 me-2"
             >
               Gym Booking
