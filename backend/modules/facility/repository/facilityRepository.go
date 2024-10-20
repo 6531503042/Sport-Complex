@@ -23,9 +23,9 @@ type (
 		InsertFacility (pctx context.Context, req * facility.Facilitiy) (primitive.ObjectID, error)
 		IsUniqueName(pctx context.Context, facilityName string) bool
 		UpdateOneFacility (pctx context.Context, facilityId, facilityName string, updateFields bson.M) error
-		DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error
 		FindOneFacility(pctx context.Context, facilityId,facilityName string) (*facility.FacilityBson, error)
 		FindManyFacility(ctx context.Context) ([]facility.FacilityBson, error)
+		DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error
 
 		//Slot
 		InsertSlot (pctx context.Context, facilityName string, slot facility.Slot) (*facility.Slot, error)
@@ -33,12 +33,17 @@ type (
 		FindManySlot (ctx context.Context, facilityName string) ([]facility.Slot, error)
 		UpdateSlot (ctx context.Context, facilityName string, req *facility.Slot) (*facility.Slot, error)
 		EnableOrDisableSlot (ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error)
+		DeleteSlot(ctx context.Context, facilityName, slotId string) error
 
 		//Badminton
 		InsertBadCourt(ctx context.Context, court *facility.BadmintonCourt) (primitive.ObjectID, error)
 		FindBadmintonCourt (ctx context.Context) ([]facility.BadmintonCourt, error)
 		InsertBadmintonSlot(ctx context.Context, req *facility.BadmintonSlot) (primitive.ObjectID, error)
 		FindBadmintonSlot (ctx context.Context) ([]facility.BadmintonSlot, error)
+		UpdateBadmintonSlot(ctx context.Context, req *facility.BadmintonSlot) error
+		UpdateBadCourt(ctx context.Context, courtId string, updateFields bson.M) error
+		DeleteBadmintonCourt(ctx context.Context, courtId string) error
+		DeleteBadmintonSlot(ctx context.Context, slotId string) error
 	}
 
 	facilitiyReposiory struct {
@@ -130,33 +135,30 @@ func (r *facilitiyReposiory) IsUniqueName(pctx context.Context, facilityName str
 
 
 
-func (r *facilitiyReposiory) UpdateOneFacility (pctx context.Context, facilityId, facilityName string, updateFields bson.M) error {
-	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
-	defer cancel()
+func (r *facilitiyReposiory) UpdateOneFacility(pctx context.Context, facilityId, facilityName string, updateFields bson.M) error {
+    ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+    defer cancel()
 
-	db := r.facilityDbConn(ctx, facilityName)
-	col := db.Collection("facilities")
+    db := r.facilityDbConn(ctx, facilityName)
+    col := db.Collection("facilities")
 
-	updateResult, err := col.UpdateOne(
-		ctx,
-		bson.M{"_id": utils.ConvertToObjectId(facilityId)},
-		bson.M{"$set": updateFields},
-	)
-	if err != nil {
-		log.Printf("Error: UpdateOneFacility: %s", err.Error())
-		return errors.New("error: update one facility failed")
-	}
+    updateResult, err := col.UpdateOne(
+        ctx,
+        bson.M{"_id": utils.ConvertToObjectId(facilityId)},
+        bson.M{"$set": updateFields},
+    )
+    if err != nil {
+        log.Printf("Error: UpdateOneFacility: %s", err.Error())
+        return errors.New("error: update one facility failed")
+    }
 
-	if updateResult.MatchedCount == 0 {
-		return errors.New("error: facility not found")
-	}
+    if updateResult.MatchedCount == 0 {
+        return errors.New("error: facility not found")
+    }
 
-	if updateResult.ModifiedCount == 0 {
-		return errors.New("error: nothing to update")
-	}
-
-	return nil
+    return nil
 }
+
 
 func (r *facilitiyReposiory) DeleteOneFacility(pctx context.Context, facilityId, facilityName string) error {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
@@ -345,20 +347,21 @@ func (r *facilitiyReposiory) FindManySlot (ctx context.Context, facilityName str
 	return result, nil
 }
 
-func (r *facilitiyReposiory) UpdateSlot (ctx context.Context, facilityName string, req *facility.Slot) (*facility.Slot, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+func (r *facilitiyReposiory) UpdateSlot(ctx context.Context, facilityName string, req *facility.Slot) (*facility.Slot, error) {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
 
-	db := r.facilityDbConn(ctx, facilityName)
-	col := db.Collection("slots")
+    db := r.slotDbConn(ctx, facilityName)
+    col := db.Collection("slots")
 
-	_, err := col.UpdateOne(ctx, bson.M{"_id": req.Id}, bson.M{"$set": req})
-	if err != nil {
-		log.Printf("Error: UpdateSlot: %s", err.Error())
+    _, err := col.UpdateOne(ctx, bson.M{"_id": req.Id}, bson.M{"$set": req})
+    if err != nil {
+        log.Printf("Error: UpdateSlot: %s", err.Error())
         return nil, fmt.Errorf("error: update slot failed: %w", err)
-	}
-	return req, nil
+    }
+    return req, nil
 }
+
 
 func (r *facilitiyReposiory) EnableOrDisableSlot (ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -374,6 +377,27 @@ func (r *facilitiyReposiory) EnableOrDisableSlot (ctx context.Context, facilityN
 	}
 	return r.FindOneSlot(ctx, facilityName, slotId)
 }
+
+func (r *facilitiyReposiory) DeleteSlot(ctx context.Context, facilityName, slotId string) error {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
+
+    db := r.slotDbConn(ctx, facilityName)
+    col := db.Collection("slots")
+
+    result, err := col.DeleteOne(ctx, bson.M{"_id": utils.ConvertToObjectId(slotId)})
+    if err != nil {
+        log.Printf("Error: DeleteSlot: %s", err.Error())
+        return fmt.Errorf("error: delete slot failed: %w", err)
+    }
+
+    if result.DeletedCount == 0 {
+        return fmt.Errorf("error: slot %s not found", slotId)
+    }
+
+    return nil
+}
+
 
 func (r *facilitiyReposiory) InsertBadCourt(ctx context.Context, court *facility.BadmintonCourt) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -401,6 +425,52 @@ func (r *facilitiyReposiory) InsertBadCourt(ctx context.Context, court *facility
 
 	return courtID, nil
 }
+
+func (r *facilitiyReposiory) UpdateBadCourt(ctx context.Context, courtId string, updateFields bson.M) error {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
+
+    db := r.courtDbConn(ctx)
+    col := db.Collection("court")
+
+    updateResult, err := col.UpdateOne(
+        ctx,
+        bson.M{"_id": utils.ConvertToObjectId(courtId)},
+        bson.M{"$set": updateFields},
+    )
+    if err != nil {
+        log.Printf("Error: UpdateBadCourt: %s", err.Error())
+        return fmt.Errorf("error: update badminton court failed: %w", err)
+    }
+
+    if updateResult.MatchedCount == 0 {
+        return errors.New("error: court not found")
+    }
+
+    return nil
+}
+
+func (r *facilitiyReposiory) DeleteBadmintonCourt(ctx context.Context, courtId string) error {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
+
+    db := r.courtDbConn(ctx)
+    col := db.Collection("court")
+
+    result, err := col.DeleteOne(ctx, bson.M{"_id": utils.ConvertToObjectId(courtId)})
+    if err != nil {
+        log.Printf("Error: DeleteBadmintonCourt: %s", err.Error())
+        return fmt.Errorf("error: delete badminton court failed: %w", err)
+    }
+
+    if result.DeletedCount == 0 {
+        return fmt.Errorf("error: badminton court %s not found", courtId)
+    }
+
+    return nil
+}
+
+
 
 func (r *facilitiyReposiory) FindBadmintonCourt (ctx context.Context) ([]facility.BadmintonCourt, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -459,6 +529,22 @@ func (r *facilitiyReposiory) InsertBadmintonSlot(ctx context.Context, req *facil
 	return slotID, nil
 }
 
+func (r *facilitiyReposiory) UpdateBadmintonSlot(ctx context.Context, req *facility.BadmintonSlot) error {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
+
+    db := r.courtDbConn(ctx)
+    col := db.Collection("slots")
+
+    _, err := col.UpdateOne(ctx, bson.M{"_id": req.Id}, bson.M{"$set": req})
+    if err != nil {
+        log.Printf("Error: UpdateBadmintonSlot: %s", err.Error())
+        return fmt.Errorf("error: update badminton slot failed: %w", err)
+    }
+    return nil
+}
+
+
 func (r *facilitiyReposiory) FindBadmintonSlot(ctx context.Context) ([]facility.BadmintonSlot, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -497,6 +583,23 @@ func (r *facilitiyReposiory) FindBadmintonSlot(ctx context.Context) ([]facility.
 	return result, nil
 }
 
+func (r *facilitiyReposiory) DeleteBadmintonSlot(ctx context.Context, slotId string) error {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
 
+    db := r.courtDbConn(ctx)
+    col := db.Collection("slots")
 
+    result, err := col.DeleteOne(ctx, bson.M{"_id": utils.ConvertToObjectId(slotId)})
+    if err != nil {
+        log.Printf("Error: DeleteBadmintonSlot: %s", err.Error())
+        return fmt.Errorf("error: delete badminton slot failed: %w", err)
+    }
+
+    if result.DeletedCount == 0 {
+        return fmt.Errorf("error: badminton slot %s not found", slotId)
+    }
+
+    return nil
+}
 
