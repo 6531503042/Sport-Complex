@@ -40,6 +40,8 @@ type (
 		ClearingBookingAtMidnight(ctx context.Context) error
 		MoveOldBookingTransactionToHistory(ctx context.Context) error 
         ResetFacilitySlots(ctx context.Context, facilityName string) error
+        ResetPendingBooking(ctx context.Context, facilityName string) error
+        FindUnconfirmedBookings(ctx context.Context, cutoff time.Time) ([]booking.Booking, error)
         
 	}
 
@@ -175,6 +177,29 @@ func (r *bookingRepository) ResetFacilitySlots(ctx context.Context, facilityName
 
     log.Printf("Successfully reset slots for facility %s", facilityName)
     return nil
+}
+
+// FindUnconfirmedBookings retrieves bookings that are older than the specified time and are not confirmed.
+func (r *bookingRepository) FindUnconfirmedBookings(ctx context.Context, cutoff time.Time) ([]booking.Booking, error) {
+    col := r.bookingDbConn(ctx).Collection("booking_transaction")
+
+    var bookings []booking.Booking
+    filter := bson.M{
+        "created_at": bson.M{"$lt": cutoff},
+        "confirmed":  false, // Assuming you have a field to indicate if the booking is confirmed
+    }
+
+    cursor, err := col.Find(ctx, filter)
+    if err != nil {
+        return nil, err
+    }
+    defer cursor.Close(ctx)
+
+    if err := cursor.All(ctx, &bookings); err != nil {
+        return nil, err
+    }
+
+    return bookings, nil
 }
 
 
@@ -378,7 +403,7 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
     // Create the booking document
     bookingDoc := bson.M{
         "user_id":    req.UserId,
-        "status":     "confirmed", // Assuming the initial status is 'confirmed'
+        "status":     "pending", 
         "created_at": time.Now(),
         "updated_at": time.Now(),
     }
@@ -412,8 +437,50 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
     return req, nil
 }
 
+func (r * bookingRepository) ResetPendingBooking(ctx context.Context, facilityName string) error {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
 
+    db := r.bookingDbConn(ctx)
+    col := db.Collection("booking_transaction")
 
+    timeoutTime := time.Now().Add(-15 *time.Minute)
+
+    filter := bson.M{
+        "status": "pending",
+        "created_at": bson.M{"$lt": timeoutTime},
+    }
+
+    cursor, err := col.Find(ctx, filter)
+    if err != nil {
+        log.Printf("Error finding pending booking: %s", err.Error())
+        return fmt.Errorf("error finding pending booking %w", err)
+    }
+
+    defer cursor.Close(ctx)
+
+    for cursor.Next(ctx) {
+        var booking booking.Booking
+        if err := cursor.Decode(&booking); err != nil {
+            log.Printf("Error updating booking status to failed: %s", err.Error())
+            continue
+        }
+
+        if booking.SlotId != nil {
+            if err := r.ResetFacilitySlots(ctx, facilityName); err != nil {
+                log.Printf("Error resetting facility slots: %s", err.Error())
+            }
+        }
+    }
+
+    if err := cursor.Err(); err !=nil {
+        log.Printf("Cursor error: %s", err.Error())
+        return fmt.Errorf("cursor error: %w", err)
+    }
+
+    log.Printf("Successfully reset slots for facility %s", facilityName)
+    return nil
+}
 
 func (r *bookingRepository) InsertBookingViaQueue(pctx context.Context, cfg *config.Config, req *booking.Booking) error {
 	reqInBytes, err := json.Marshal(req)
