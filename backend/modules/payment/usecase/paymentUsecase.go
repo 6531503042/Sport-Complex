@@ -8,6 +8,7 @@ import (
 	"main/modules/payment/repository"
 	"main/pkg/utils"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type (
@@ -16,6 +17,7 @@ type (
 		UpdatePayment(ctx context.Context, paymentId string, status string) (*payment.PaymentEntity, error)
 		FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error)
 		FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentEntity, error)
+		
 	}
 
 	paymentUsecase struct {
@@ -35,12 +37,13 @@ func NewPaymentUsecase(paymentRepository repository.PaymentRepositoryService) Pa
 func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, bookingId string, amount float64) (*payment.PaymentResponse, error) {
 
 	// Create the payment object to pass to the repository
-	paymentDoc := &payment.PaymentEntity{
+	paymentDoc := &payment.PaymentEntity{           
+		PaymentID:     primitive.NewObjectID().Hex(),         // สร้าง payment_id ทันที
 		UserID:        userId,
 		BookingID:     bookingId,
 		Amount:        amount,
-		Currency:      "THB", // Set your currency here
-		PaymentMethod: "PromptPay", // Or any other payment method
+		Currency:      "THB",                                 // Set your currency here
+		PaymentMethod: "PromptPay",                           // Or any other payment method
 		Status:        payment.Pending,
 		CreatedAt:     utils.LocalTime(),
 		UpdatedAt:     utils.LocalTime(),
@@ -55,6 +58,7 @@ func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, booki
 	// Prepare and return response
 	response := &payment.PaymentResponse{
 		Id:          paymentResult.Id.Hex(),
+		PaymentID:   paymentResult.PaymentID,
 		UserId:      paymentResult.UserID,
 		BookingId:   paymentResult.BookingID,
 		Amount:      paymentResult.Amount,
