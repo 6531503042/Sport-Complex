@@ -63,6 +63,7 @@ func jwtTimeDurationCal(t int64) *jwt.NumericDate {
 func jwtTimeRepeatAdapter(t int64) *jwt.NumericDate {
 	return jwt.NewNumericDate(time.Unix(t, 0))
 }
+
 func NewAccessToken(secret string, expiredAt int64, claims *Claims) AuthFactory {
 	return &accessToken{
 		authConcrete: &authConcrete{
@@ -71,7 +72,7 @@ func NewAccessToken(secret string, expiredAt int64, claims *Claims) AuthFactory 
 				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
-					Subject:    "bengi.com",
+					Subject:   "bengi.com",
 					Audience:  []string{"bengi.com"},
 					ExpiresAt: jwtTimeDurationCal(expiredAt),
 					NotBefore: jwt.NewNumericDate(now()),
@@ -82,7 +83,9 @@ func NewAccessToken(secret string, expiredAt int64, claims *Claims) AuthFactory 
 	}
 }
 
-func NewRefreshToken(secret string, expiredAt int64, claims *Claims) AuthFactory {
+func NewRefreshToken(secret string, claims *Claims) AuthFactory {
+	// Expiration set to 3 days (259200 seconds)
+	expiredAt := int64(259200) // 3 days in seconds
 	return &refreshToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
@@ -167,7 +170,7 @@ func ParseToken(secret string, tokenString string) (*AuthMapClaims, error) {
 	}
 }
 
-// Apikey  generator
+// Apikey generator
 var apiKeyInstant string
 var once sync.Once
 
