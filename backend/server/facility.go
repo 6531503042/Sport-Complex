@@ -15,7 +15,6 @@ func (s *server) facilityService() {
 	facility.GET("/facility/facilities", httpHandler.FindManyFacility)
 	facility.GET("/facility/:facility_id", httpHandler.FindOneFacility)
 	facility.POST("/facility/facility", httpHandler.CreateFacility)
-	//Admin
 	// facility.PUT("/facility/:facility_id",httpHandler.UpdateOneFacility)
 	// facility.DELETE("/facility/:facility_id",httpHandler.DeleteOneFacility)
 
