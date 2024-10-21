@@ -17,12 +17,15 @@
     "@mui/icons-material": "^6.1.1",
     "@mui/material": "^6.1.1",
     "@types/mongoose": "^5.11.97",
+    "chart.js": "^4.4.5",
     "dotenv": "^16.4.5",
     "flowbite": "^2.5.1",
     "flowbite-react": "^0.10.1",
+    "lucide-react": "^0.453.0",
     "mongoose": "^8.7.2",
     "next": "14.2.13",
     "react": "^18",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "^18"
   },
   "devDependencies": {

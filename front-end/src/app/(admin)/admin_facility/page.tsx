@@ -12,7 +12,7 @@ const page = () => {
           <img src={Logo.src} alt="Logo" className="w-7 h-min" />
         </div>
         <br />
-        <div className="border-b rounded-lg border-black"></div>
+        <div className="bg-zinc-500 h-[1px] rounded-lg"></div>
         <br />
         <div className="w-full flex justify-center"></div>
         <br />
