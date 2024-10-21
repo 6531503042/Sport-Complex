@@ -51,7 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
         )}
       </Link>
       <br />
-      <div className="relative flex justify-center items-center">
+      <div className="relative justify-center items-center md:inline-flex hidden">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div
             className={` w-full h-[2px] bg-white${isCollapsed ? "hidden" : ""}`}
