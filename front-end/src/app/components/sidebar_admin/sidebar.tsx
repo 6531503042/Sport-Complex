@@ -23,13 +23,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
 
   const getActiveClass = (page: string) => {
     return activePage === page
-      ? "inline-flex flex-row items-center border border-white text-white font-semibold shadow-gray-800 hover:shadow-black py-3 px-5 shadow-lg hover:shadow-2xl rounded-lg hover:scale-105 transition-all duration-700 hover:bg-orange-800"
-      : "inline-flex flex-row items-center hover:scale-110 transition-transform duration-1000 ease-in-out ms-1 hover:shadow-lg py-3 px-5 rounded-lg";
+      ? "inline-flex flex-row items-center border border-white text-white font-semibold shadow-gray-800 hover:shadow-black py-3 px-5 shadow-lg hover:shadow-2xl rounded-md hover:scale-105 transition-all duration-700 hover:bg-orange-800"
+      : "inline-flex flex-row items-center hover:scale-110 transition-transform duration-1000 ease-in-out ms-1 hover:shadow-lg py-3 px-5 rounded-md";
   };
 
   return (
     <div
-      className={`bg-red-900 text-white flex flex-col px-5 py-10 transition-all duration-700 ${
+      className={`bg-red-900 text-white flex flex-col px-5 py-10 transition-all duration-500 ${
         isCollapsed ? "w-28" : "md:w-72"
       }`}
     >
@@ -54,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
       <div className="relative justify-center items-center md:inline-flex hidden">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div
-            className={` w-full h-[2px] bg-white${isCollapsed ? "" : ""}`}
+            className={` w-full h-0.5 bg-white${isCollapsed ? "" : ""}`}
           ></div>
         </div>
         <div className="relative z-10 p-2 bg-red-900">
