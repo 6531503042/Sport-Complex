@@ -21,8 +21,7 @@ func (s *server) bookingService() {
 	bookingHttpHandler := handler.NewBookingHttpHandler(s.cfg, bookingUsecase, paymentClient)
 
 	// Schedule midnight clearing
-	// go bookingUsecase.ScheduleMidnightClearing()
-	//go
+	go bookingUsecase.ScheduleMidnightClearing()
 
 	// Booking Routes
 	booking := s.app.Group("/booking_v1")
