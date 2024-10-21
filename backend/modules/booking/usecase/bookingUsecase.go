@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"main/config"
 	"main/modules/booking"
 	bm "main/modules/booking"
@@ -23,6 +24,7 @@ type(
 		//Kafka Interface
 		GetOffSet(ctx context.Context) (int64, error)
 		UpOffSet(ctx context.Context, newOffset int64) error
+		ScheduleMidnightClearing()
 	}
 
 	bookingUsecase struct {
@@ -38,27 +40,48 @@ func NewBookingUsecase(bookingRepository repository.BookingRepositoryService) Bo
 	}
 }
 
+// ScheduleMidnightClearing schedules the clearing of bookings at midnight every day.
+func (u *bookingUsecase) ScheduleMidnightClearing() {
+    now := time.Now()
+    nextMidnight := now.Truncate(24 * time.Hour).Add(24 * time.Hour)
+    duration := nextMidnight.Sub(now)
+
+    log.Printf("Next clearing scheduled in %v", duration)
+
+    time.AfterFunc(duration, func() {
+        ctx := context.Background()
+
+        // Execute the midnight clearing process
+        if err := u.bookingRepository.ClearingBookingAtMidnight(ctx); err != nil {
+            log.Printf("Error clearing bookings at midnight: %s", err.Error())
+        } else {
+            log.Println("Successfully cleared bookings at midnight")
+        }
+
+        // Schedule the next clearing
+        u.ScheduleMidnightClearing()
+    })
+}
+
 // func (u *bookingUsecase) ScheduleMidnightClearing() {
-//     now := time.Now()
-//     nextMidnight := now.Truncate(24 * time.Hour).Add(24 * time.Hour)
-//     duration := nextMidnight.Sub(now)
+//     log.Println("Clearing process scheduled to run every 1 minute")
 
-//     log.Printf("Next clearing scheduled in %v", duration)
-
-//     time.AfterFunc(duration, func() {
+//     // Set up the schedule to run every 1 minute
+//     time.AfterFunc(time.Minute, func() {
 //         ctx := context.Background()
 
-//         // Execute the midnight clearing process
-//         if err := u.bookingRepository.clearingBookingAtMidnight(ctx); err != nil {
-//             log.Printf("Error clearing bookings at midnight: %s", err.Error())
+//         // Execute the clearing process
+//         if err := u.bookingRepository.ClearingBookingAtMidnight(ctx); err != nil {
+//             log.Printf("Error clearing bookings: %s", err.Error())
 //         } else {
-//             log.Println("Successfully cleared bookings at midnight")
+//             log.Println("Successfully cleared bookings")
 //         }
 
-//         // Schedule the next clearing
+//         // Schedule the next clearing after 1 minute
 //         u.ScheduleMidnightClearing()
 //     })
 // }
+
 
 //Kafka Func
 func (u *bookingUsecase) GetOffSet(ctx context.Context) (int64, error) {
