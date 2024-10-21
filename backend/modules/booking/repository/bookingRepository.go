@@ -98,11 +98,8 @@ func (r *bookingRepository) ClearingBookingAtMidnight(ctx context.Context) error
              return fmt.Errorf("error resetting slots for facility %s: %w", facilityName, err)
          }
      }
- 
      log.Println("Successfully cleared booking transactions and reset facility slots")
      return nil
-
-    return nil
 }
 
 func (r *bookingRepository) MoveOldBookingTransactionToHistory(ctx context.Context) error {
