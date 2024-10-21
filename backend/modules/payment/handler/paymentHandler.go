@@ -1,6 +1,7 @@
 package handler
 
 import (
+	client "main/client/payment"
 	"main/config"
 	"main/modules/payment"
 	"main/modules/payment/usecase"
@@ -13,20 +14,24 @@ import (
 type PaymentHttpHandlerService interface {
 	CreatePayment(c echo.Context) error
 	FindPayment(c echo.Context) error
+	HandlePaymentSuccess(c echo.Context) error
 }
 
 type paymentHttpHandler struct {
 	cfg            *config.Config
 	paymentUsecase usecase.PaymentUsecaseService
+	paymentClient  *client.PaymentClient
 }
 
 // NewPaymentHttpHandler creates a new PaymentHttpHandler
-func NewPaymentHttpHandler(cfg *config.Config, paymentUsecase usecase.PaymentUsecaseService) PaymentHttpHandlerService {
+func NewPaymentHttpHandler(cfg *config.Config, paymentUsecase usecase.PaymentUsecaseService, paymentClient *client.PaymentClient) PaymentHttpHandlerService {
 	return &paymentHttpHandler{
 		cfg:            cfg,
 		paymentUsecase: paymentUsecase,
+		paymentClient:  paymentClient, 
 	}
 }
+
 
 // CreatePayment handles the creation of a new payment
 func (h *paymentHttpHandler) CreatePayment(c echo.Context) error {
@@ -59,3 +64,20 @@ func (h *paymentHttpHandler) FindPayment(c echo.Context) error {
 	}
 	return response.SuccessResponse(c, http.StatusOK, payment)
 }
+
+func (h *paymentHttpHandler) HandlePaymentSuccess(c echo.Context) error {
+    paymentID := c.Param("payment_id")
+    if paymentID == "" {
+        return echo.NewHTTPError(http.StatusBadRequest, "Payment ID is required")
+    }
+
+    // อัปเดตสถานะการชำระเงินเป็น "COMPLETED"
+    err := h.paymentClient.UpdatePaymentStatus(paymentID, "COMPLETED")
+    if err != nil {
+        return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update payment status: " + err.Error()})
+    }
+
+    return c.JSON(http.StatusOK, map[string]string{"message": "Payment status updated to completed"})
+}
+
+
