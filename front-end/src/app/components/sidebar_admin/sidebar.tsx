@@ -29,8 +29,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
 
   return (
     <div
-      className={`bg-red-900 text-white flex flex-col px-5 py-10 transition-all duration-500 ${
-        isCollapsed ? "w-[100px]" : "md:w-[300px]"
+      className={`bg-red-900 text-white flex flex-col px-5 py-10 transition-all duration-700 ${
+        isCollapsed ? "w-28" : "md:w-72"
       }`}
     >
       <Link href="/" className="inline-flex flex-row justify-center md:gap-3.5">
@@ -60,10 +60,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
         <div className="relative z-10 p-2 bg-red-900">
           <button
             onClick={toggleSidebar}
-            className="relative z-10 flex bg-yellow-500 p-1 rounded-full hover:opacity-100 transition-all ease-in-out duration-500 hover:scale-110 cursor-pointer"
+            className="relative z-10 flex bg-yellow-500 p-1 rounded-full hover:opacity-100 transition-all ease-in-out duration-500 hover:scale-110 cursor-pointer "
           >
             <ArrowLeftIcon
-              className={`text-white transition-transform ${
+              className={`text-white transition-transform duration-500 ${
                 isCollapsed ? "rotate-180" : ""
               }`}
             />
