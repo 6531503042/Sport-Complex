@@ -37,10 +37,10 @@ type (
 		UpOffset(pctx context.Context, newOffset int64) error
 
 		//Clearing system
-		clearingBookingAtMidnight(ctx context.Context) error
-		MoveOldBookingTransactionToHistory(ctx context.Context) error
-
-
+		ClearingBookingAtMidnight(ctx context.Context) error
+		MoveOldBookingTransactionToHistory(ctx context.Context) error 
+        ResetFacilitySlots(ctx context.Context, facilityName string) error
+        
 	}
 
 	bookingRepository struct {
@@ -57,24 +57,6 @@ func NewBookingRepository(db *mongo.Client) BookingRepositoryService {
 		client: db,}
 }
 
-// func ScheduleMidnightClearing(bookingRepository BookingRepositoryService) {
-// 	now := time.Now()
-// 	nextMidnight := now.Add(time.Hour * 24).Truncate(time.Hour * 24)
-// 	duration := nextMidnight.Sub(now)
-
-// 	log.Printf("Next clearing scheduled in %v",duration)
-
-// 	time.AfterFunc(duration, func() {
-// 		ctx := context.Background()
-// 		// if err := bookingRepository.Clea
-// 		if err := bookingRepository.clearingBookingAtMidnight(ctx); err != nil {
-// 			log.Printf("Error: clearingBookingAtMidnight: %s", err.Error())
-// 		}
-
-// 		ScheduleMidnightClearing(bookingRepository)
-// 	})
-// }
-
 //
 func (r *bookingRepository) bookingDbConn(pctx context.Context) *mongo.Database {
 	return r.db.Database("booking_db")
@@ -86,14 +68,15 @@ func (r *bookingRepository) facilityDbConn(pctx context.Context, facilityName st
 	return r.client.Database(databaseName) // This will create the DB if it doesn't exist
 }
 
-func (r *bookingRepository) clearingBookingAtMidnight(ctx context.Context) error {
+
+func (r *bookingRepository) ClearingBookingAtMidnight(ctx context.Context) error {
     ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
     defer cancel()
 
     // Step 1: Transfer old bookings to history
     if err := r.MoveOldBookingTransactionToHistory(ctx); err != nil {
-        log.Printf("Error: clearingBookingAtMidnight: %s", err.Error())
-        return errors.New("error: clearingBookingAtMidnight failed during transferring bookings")
+        log.Printf("Error clearing bookings at midnight: %s", err.Error())
+        return err
     }
 
     // Step 2: Clear all bookings from booking_transaction
@@ -105,19 +88,97 @@ func (r *bookingRepository) clearingBookingAtMidnight(ctx context.Context) error
         return fmt.Errorf("error: clearingBookingAtMidnight failed during deleting bookings: %w", err)
     }
 
-    // Step 3: Reset current_bookings in facilities_slot
-    slotCol := db.Collection("facilities_slot")
-    update := bson.M{"$set": bson.M{"current_bookings": 0}}
-    _, err = slotCol.UpdateMany(ctx, bson.M{}, update)
-    if err != nil {
-        log.Printf("Error resetting current_bookings: %s", err.Error())
-        return fmt.Errorf("error resetting current_bookings: %w", err)
-    }
+    //Reset facilitty 
+     // Step 3: Reset facility slots for each facility type
+     facilities := []string{"fitness", "swimming", "badminton", "football"}
 
-    log.Println("Successfully cleared booking transactions and reset current_bookings")
+     for _, facilityName := range facilities {
+         if err := r.ResetFacilitySlots(ctx, facilityName); err != nil {
+             log.Printf("Error resetting slots for facility %s: %s", facilityName, err.Error())
+             return fmt.Errorf("error resetting slots for facility %s: %w", facilityName, err)
+         }
+     }
+ 
+     log.Println("Successfully cleared booking transactions and reset facility slots")
+     return nil
+
     return nil
 }
 
+func (r *bookingRepository) MoveOldBookingTransactionToHistory(ctx context.Context) error {
+    col := r.bookingDbConn(ctx).Collection("booking_transaction")
+    historyCol := r.bookingDbConn(ctx).Collection("histories_transaction")
+
+    // Define criteria to find bookings older than today
+    now := time.Now().Truncate(24 * time.Hour)
+    filter := bson.M{"created_at": bson.M{"$lt": now}}
+
+    // Find old bookings
+    cursor, err := col.Find(ctx, filter)
+    if err != nil {
+        log.Printf("Error retrieving bookings: %s", err.Error())
+        return fmt.Errorf("failed to retrieve bookings: %w", err)
+    }
+    defer cursor.Close(ctx)
+
+    var bookings []interface{}
+    if err := cursor.All(ctx, &bookings); err != nil {
+        log.Printf("Error reading bookings: %s", err.Error())
+        return fmt.Errorf("failed to read bookings: %w", err)
+    }
+
+    if len(bookings) > 0 {
+        // Transfer bookings to the history collection
+        _, err = historyCol.InsertMany(ctx, bookings)
+        if err != nil {
+            log.Printf("Error moving bookings to history: %s", err.Error())
+            return fmt.Errorf("failed to move bookings to history: %w", err)
+        }
+
+        // Only delete if the transfer was successful
+        _, err = col.DeleteMany(ctx, filter)
+        if err != nil {
+            log.Printf("Error deleting old bookings: %s", err.Error())
+            return fmt.Errorf("failed to delete old bookings: %w", err)
+        }
+
+        log.Printf("Moved %d bookings to history and deleted from booking_transaction", len(bookings))
+    } else {
+        log.Println("No old bookings to transfer")
+    }
+
+    return nil
+}
+
+
+func (r *bookingRepository) ResetFacilitySlots(ctx context.Context, facilityName string) error {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
+
+    // Connect to the correct facility database
+    db := r.facilityDbConn(ctx, facilityName)
+    col := db.Collection("slots") // Use the "slots" collection for the facility
+
+    var update bson.M
+
+    if facilityName == "badminton" {
+        // For badminton, reset the status field to "available"
+        update = bson.M{"$set": bson.M{"status": "available"}}
+    } else {
+        // For other facilities, reset current_bookings to 0
+        update = bson.M{"$set": bson.M{"current_bookings": 0}}
+    }
+
+    // Update the slots collection for the specific facility
+    _, err := col.UpdateMany(ctx, bson.M{}, update)
+    if err != nil {
+        log.Printf("Error resetting slots for facility %s: %s", facilityName, err.Error())
+        return fmt.Errorf("error resetting slots for facility %s: %w", facilityName, err)
+    }
+
+    log.Printf("Successfully reset slots for facility %s", facilityName)
+    return nil
+}
 
 
 // Kaka Repo Func
@@ -158,72 +219,6 @@ func (r *bookingRepository) UpOffset(pctx context.Context, newOffset int64) erro
 
 	return nil
 }
-
-// func (r *bookingRepository) clearingBookingAtMidnight(ctx context.Context) error {
-
-// 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-// 	defer cancel()
-
-// 	if err := r.MoveOldBookingTransactionToHistory(ctx); err != nil {
-// 		log.Printf("Error: clearingBookingAtMidnight: %s", err.Error())
-// 		return errors.New("error: clearingBookingAtMidnight failed")
-// 	}
-
-// 	db := r.bookingDbConn(ctx)
-// 	col := db.Collection("booking_transaction")
-
-// 	_, err := col.DeleteMany(ctx, bson.M{})
-// 	if err != nil {
-// 		log.Printf("Error: clearingBookingAtMidnight: %s", err.Error())
-// 	}
-
-// 	return nil
-// }
-
-func (r *bookingRepository) MoveOldBookingTransactionToHistory(ctx context.Context) error {
-    col := r.bookingDbConn(ctx).Collection("booking_transaction")
-    historyCol := r.bookingDbConn(ctx).Collection("histories_transaction")
-
-    // Define criteria to find bookings older than today
-    now := time.Now().Truncate(24 * time.Hour)
-    filter := bson.M{"created_at": bson.M{"$lt": now}}
-
-    // Find and insert old bookings into history
-    cursor, err := col.Find(ctx, filter)
-    if err != nil {
-        log.Printf("Error retrieving bookings: %s", err.Error())
-        return fmt.Errorf("failed to retrieve bookings: %w", err)
-    }
-    defer cursor.Close(ctx)
-
-    var bookings []interface{}
-    if err := cursor.All(ctx, &bookings); err != nil {
-        log.Printf("Error reading bookings: %s", err.Error())
-        return fmt.Errorf("failed to read bookings: %w", err)
-    }
-
-    if len(bookings) > 0 {
-        _, err = historyCol.InsertMany(ctx, bookings)
-        if err != nil {
-            log.Printf("Error moving bookings to history: %s", err.Error())
-            return fmt.Errorf("failed to move bookings to history: %w", err)
-        }
-
-        // Delete moved bookings from the original collection
-        _, err = col.DeleteMany(ctx, filter)
-        if err != nil {
-            log.Printf("Error deleting old bookings: %s", err.Error())
-            return fmt.Errorf("failed to delete old bookings: %w", err)
-        }
-
-        log.Printf("Moved %d bookings to history and deleted from booking_transaction", len(bookings))
-    } else {
-        log.Println("No old bookings to transfer")
-    }
-
-    return nil
-}
-
 
 func (r *bookingRepository) checkSlotAvailability(pctx context.Context, facilityName string, req *booking.Booking) (*facility.Slot, error) {
 	// Connect to the facility DB (specific to each facility)
