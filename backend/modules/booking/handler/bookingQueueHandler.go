@@ -1,28 +1,18 @@
 package handler
 
 import (
-	"context"
-	"encoding/json"
-	"log"
 	"main/config"
-	"main/modules/booking"
 	"main/modules/booking/usecase"
-	"main/pkg/queue"
-	"os"
-	"os/signal"
-	"syscall"
-
-	"github.com/IBM/sarama"
 )
 
 type (
 	BookingQueueHttpHandlerService interface {
-		AddBooking()
+		// AddBooking(newBooking *booking.Booking) error
 	}
 
 	bookingQueueHandler struct {
 		cfg              *config.Config
-		bookingUsecase usecase.BookingUsecaseService
+		bookingUsecase   usecase.BookingUsecaseService
 	}
 )
 
@@ -30,76 +20,103 @@ func NewBookingQueueHandler(cfg *config.Config, bookingUsecase usecase.BookingUs
 	return &bookingQueueHandler{cfg: cfg, bookingUsecase: bookingUsecase}
 }
 
-func (h * bookingQueueHandler) BookingConsumer (pctx context.Context) (sarama.PartitionConsumer, error) {
-	worker, err := queue.ConnectConsumer([]string{h.cfg.Kafka.Url}, h.cfg.Kafka.ApiKey, h.cfg.Kafka.Secret)
-	if err != nil {
-		return nil, err
-	}
+// BookingConsumer listens to the Kafka "booking" topic, consumes messages,
+// and processes bookings by updating the Kafka offset after each successful booking.
+// func (h *bookingQueueHandler) BookingConsumer(pctx context.Context) (sarama.PartitionConsumer, error) {
+// 	// Connect to Kafka consumer
+// 	worker, err := queue.ConnectConsumer([]string{h.cfg.Kafka.Url}, h.cfg.Kafka.ApiKey, h.cfg.Kafka.Secret)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	offset, err := h.bookingUsecase.GetOffSet(pctx)
-	if err != nil {
-		return nil, err
-	}
-	consumer, err := worker.ConsumePartition("booking", 0, offset)
-	if err != nil {
-		log.Println("Trying to set offset as 0")
-		consumer, err = worker.ConsumePartition("booking", 0, 0)
-		if err != nil {
-			log.Println("Error: BookingConsumer failed: ", err.Error())
-			return nil, err
-		}
-	}
+// 	// Get the last processed Kafka offset
+// 	offset, err := h.bookingUsecase.GetOffSet(pctx)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return consumer, nil
-}
+// 	// Start consuming messages from the Kafka topic "booking"
+// 	consumer, err := worker.ConsumePartition("booking", 0, offset)
+// 	if err != nil {
+// 		log.Println("Trying to set offset as 0")
+// 		consumer, err = worker.ConsumePartition("booking", 0, 0)
+// 		if err != nil {
+// 			log.Printf("Error consuming Kafka partition: %s", err.Error())
+// 			return nil, err
+// 		}
+// 	}
 
-func (h *bookingQueueHandler) AddBooking() {
-    ctx := context.Background()
+// 	// Listen for system interrupts to stop the consumer gracefully
+// 	signals := make(chan os.Signal, 1)
+// 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 
-    consumer, err := h.BookingConsumer(ctx)
-    if err != nil {
-        log.Println("Error: AddBooking failed: ", err.Error())
-        return
-    }
-    defer consumer.Close()
+// 	go func() {
+// 		defer consumer.Close()
 
-    log.Println("Start listening for new booking messages...")
+// 		for {
+// 			select {
+// 			case msg := <-consumer.Messages():
+// 				log.Printf("Consumed message offset %d\n", msg.Offset)
+// 				h.processBookingMessage(pctx, msg)
 
-    sigchan := make(chan os.Signal, 1)
-    signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
+// 				// Update the offset after processing the message
+// 				if err := h.bookingUsecase.UpOffSet(pctx, msg.Offset+1); err != nil {
+// 					log.Printf("Error updating offset: %s", err.Error())
+// 				}
+// 			case <-signals:
+// 				log.Println("Received interrupt signal, shutting down consumer.")
+// 				return
+// 			case err := <-consumer.Errors():
+// 				log.Printf("Error consuming message: %s", err.Error())
+// 			}
+// 		}
+// 	}()
 
-    for {
-        select {
-        case err := <-consumer.Errors():
-            log.Println("Error: AddBooking failed: ", err.Error())
-            continue
-        case msg := <-consumer.Messages():
-            if string(msg.Key) == "booking" {
-                // Update the offset
-                if err := h.bookingUsecase.UpOffSet(ctx, msg.Offset+1); err != nil {
-                    log.Println("Error: failed to update offset: ", err.Error())
-                    continue
-                }
+// 	return consumer, nil
+// }
 
-                // Decode the booking request from Kafka message
-                req := new(booking.Booking)
-                if err := json.Unmarshal(msg.Value, req); err != nil {
-                    log.Println("Error: failed to unmarshal booking message: ", err.Error())
-                    continue
-                }
+// processBookingMessage processes a single booking message.
+// func (h *bookingQueueHandler) processBookingMessage(ctx context.Context, msg *sarama.ConsumerMessage) {
+// 	var bookingRequest booking.Booking
+// 	if err := json.Unmarshal(msg.Value, &bookingRequest); err != nil {
+// 		log.Printf("Error unmarshalling booking message: %s", err.Error())
+// 		return
+// 	}
 
-                // Process the booking request (inserting it into the system)
-                _, err := h.bookingUsecase.InsertBooking(ctx, req.UserId, req.SlotId)
-                if err != nil {
-                    log.Println("Error: failed to insert booking: ", err.Error())
-                    continue
-                }
+// 	// Process the booking (you can modify this as per your logic)
+// 	createdBooking, err := h.bookingUsecase.InsertBooking(ctx, bookingRequest.UserId, bookingRequest.SlotId)
+// 	if err != nil {
+// 		log.Printf("Error processing booking: %s", err.Error())
+// 		return
+// 	}
 
-                log.Println("Successfully processed and inserted booking for user:", req.UserId)
-            }
-        case sig := <-sigchan:
-            log.Printf("Received signal %v, shutting down...", sig)
-            return
-        }
-    }
-}
+// 	log.Printf("Successfully processed booking for UserID %s, SlotID %s, BookingID %s", createdBooking.UserId, createdBooking.SlotId, createdBooking.Id.Hex())
+// }
+
+// func (h *bookingQueueHandler) AddBooking(newBooking *booking.Booking) error {
+// 	// Connect to Kafka producer
+// 	producer, err := queue.ConnectProducer([]string{h.cfg.Kafka.Url}, h.cfg.Kafka.ApiKey, h.cfg.Kafka.Secret)
+// 	if err != nil {
+// 		return fmt.Errorf("Error connecting to Kafka producer: %s", err.Error())
+// 	}
+
+// 	// Serialize the booking object to JSON
+// 	bookingData, err := json.Marshal(newBooking)
+// 	if err != nil {
+// 		return fmt.Errorf("Error marshalling booking: %s", err.Error())
+// 	}
+
+// 	// Push the booking message to the Kafka topic "booking"
+// 	msg := &sarama.ProducerMessage{
+// 		Topic: "booking",
+// 		Value: sarama.StringEncoder(bookingData),
+// 	}
+
+// 	_, _, err = producer.SendMessage(msg)
+// 	if err != nil {
+// 		return fmt.Errorf("Error sending booking to Kafka: %s", err.Error())
+// 	}
+
+// 	log.Println("Successfully added booking to Kafka")
+// 	return nil
+// }

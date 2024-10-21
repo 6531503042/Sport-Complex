@@ -3,7 +3,7 @@ module main
 go 1.21.5
 
 require (
-	github.com/go-playground/validator/v10 v10.22.0
+	github.com/go-playground/validator/v10 v10.22.1
 	google.golang.org/protobuf v1.34.1
 )
 

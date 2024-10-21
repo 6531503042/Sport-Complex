@@ -24,23 +24,13 @@ go run main.go ./env/dev/.env.booking
 go run main.go ./env/dev/.env.user
 ```
 ```bash
-go run main.go ./env/dev/.env.gym
-```
-```bash
-go run main.go ./env/dev/.env.football
-```
-```bash
-go run main.go ./env/dev/.env.swimming
-```
-```bash
-go run main.go ./env/dev/.env.badminton
+go run main.go ./env/dev/.env.facility
 ```
 ```bash
 go run main.go ./env/dev/.env.payment
 ```
-```bash
-go run main.go ./env/dev/.env.notification
-```
+
+
 
 <p>Migration</p>
 
@@ -50,11 +40,8 @@ go run main.go ./env/dev/.env.notification
 go run ./pkg/database/script/migration.go ./env/dev/.env.user && \
 go run ./pkg/database/script/migration.go ./env/dev/.env.auth && \
 go run ./pkg/database/script/migration.go ./env/dev/.env.booking && \
-go run ./pkg/database/script/migration.go ./env/dev/.env.gym && \
-go run ./pkg/database/script/migration.go ./env/dev/.env.swimming && \
-go run ./pkg/database/script/migration.go ./env/dev/.env.badminton && \
-go run ./pkg/database/script/migration.go ./env/dev/.env.football && \
-go run ./pkg/database/script/migration.go ./env/dev/.env.payment
+go run ./pkg/database/script/migration.go ./env/dev/.env.facility && \
+
 ```
 
 <h2>🍰 Generate a Proto File Command</h2>
@@ -112,3 +99,4 @@ protoc --go_out=. --go_opt=paths=source_relative \
 ```bash
 docker build -t 6531503042/Sport-Complexp:latest -f build/auth/Dockerfile .
 ```
+//
