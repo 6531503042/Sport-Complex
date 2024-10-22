@@ -17,15 +17,11 @@ import (
 
 type (
 	BookingRepositoryService interface {
-		// InsertBooking(ctx context.Context, booking *booking.Booking) (*booking.Booking, error)
+
 		UpdateBooking (ctx context.Context, booking *booking.Booking) (*booking.Booking, error)
 		FindBooking(ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error)
 
-		// Insert a new booking into the booking collection.
-		// The facility name is used to determine the correct database to use.
-		// The booking is inserted with the given request data.
-		// The updated booking is returned with the inserted ID.
 		InsertBooking(pctx context.Context, facilityName string, req *booking.Booking) (*booking.Booking, error)
 		
 
@@ -53,7 +49,6 @@ func NewBookingRepository(db *mongo.Client) BookingRepositoryService {
 		client: db,}
 }
 
-//
 func (r *bookingRepository) bookingDbConn(ctx context.Context) *mongo.Database {
 	return r.db.Database("booking_db")
 }
