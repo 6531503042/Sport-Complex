@@ -40,9 +40,6 @@ type (
 		ClearingBookingAtMidnight(ctx context.Context) error
 		MoveOldBookingTransactionToHistory(ctx context.Context) error 
         ResetFacilitySlots(ctx context.Context, facilityName string) error
-        ResetPendingBooking(ctx context.Context, facilityName string) error
-        FindUnconfirmedBookings(ctx context.Context, cutoff time.Time) ([]booking.Booking, error)
-        
 	}
 
 	bookingRepository struct {
@@ -103,6 +100,7 @@ func (r *bookingRepository) ClearingBookingAtMidnight(ctx context.Context) error
      log.Println("Successfully cleared booking transactions and reset facility slots")
      return nil
 }
+
 
 func (r *bookingRepository) MoveOldBookingTransactionToHistory(ctx context.Context) error {
     col := r.bookingDbConn(ctx).Collection("booking_transaction")
@@ -179,28 +177,6 @@ func (r *bookingRepository) ResetFacilitySlots(ctx context.Context, facilityName
     return nil
 }
 
-// FindUnconfirmedBookings retrieves bookings that are older than the specified time and are not confirmed.
-func (r *bookingRepository) FindUnconfirmedBookings(ctx context.Context, cutoff time.Time) ([]booking.Booking, error) {
-    col := r.bookingDbConn(ctx).Collection("booking_transaction")
-
-    var bookings []booking.Booking
-    filter := bson.M{
-        "created_at": bson.M{"$lt": cutoff},
-        "confirmed":  false, // Assuming you have a field to indicate if the booking is confirmed
-    }
-
-    cursor, err := col.Find(ctx, filter)
-    if err != nil {
-        return nil, err
-    }
-    defer cursor.Close(ctx)
-
-    if err := cursor.All(ctx, &bookings); err != nil {
-        return nil, err
-    }
-
-    return bookings, nil
-}
 
 
 // Kaka Repo Func
@@ -390,7 +366,7 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
 
     var slot *facility.Slot
     if !isBadminton {
-        // Check slot availability for normal slots
+        // Check slot availability for noßrmal slots
         slot, err = r.checkSlotAvailability(ctx, facilityName, req)
         if err != nil {
             return nil, err
