@@ -6,6 +6,7 @@ import Unavailable from "@/app/assets/unavailable.png";
 import Back from "@/app/assets/back.png";
 import Member from "@/app/assets/member.png";
 import "./gym.css";
+
 interface UserData {
   id: string;
   name: string;
@@ -33,10 +34,14 @@ function Gym_Booking({ params }: UserDataParams) {
   const [isMobileView, setIsMobileView] = useState(false); // New state for mobile view
 
   const handleCardClick = (lot: any, status: any) => {
-    if (!lot.current_bookings) {
+    // Allow booking if the slot is not fully booked
+    const isSlotFull = lot.current_bookings >= lot.max_bookings;
+
+    // Check if the slot is full
+    if (!isSlotFull) {
       const index = slot.findIndex((s) => s._id === lot._id); // Get the index of the clicked lot
       if (index !== -1) {
-        setSelectedCard(index === selectedCard ? null : index);
+        setSelectedCard(index === selectedCard ? null : index); // Toggle selected card
         setErrors({ name: "", id: "", phone: "" });
 
         if (window.innerWidth < 640) {
@@ -45,6 +50,7 @@ function Gym_Booking({ params }: UserDataParams) {
       }
     }
   };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
 
@@ -96,7 +102,9 @@ function Gym_Booking({ params }: UserDataParams) {
       // Update the list to reflect the successful booking
       setSlot((prevSlots) =>
         prevSlots.map((s) =>
-          s._id === bookingData.slot_id ? { ...s, current_bookings: true } : s
+          s._id === bookingData.slot_id
+            ? { ...s, current_bookings: s.current_bookings + 1 } // Increment the current bookings
+            : s
         )
       );
     } catch (error) {
@@ -145,7 +153,7 @@ function Gym_Booking({ params }: UserDataParams) {
 
     const intervalId = setInterval(() => {
       getSlot();
-    }, 10000);
+    }, 5000);
 
     return () => {
       clearInterval(intervalId);
@@ -159,7 +167,7 @@ function Gym_Booking({ params }: UserDataParams) {
   const getUserData = async (id: string) => {
     try {
       const resUserData = await fetch(
-        `http://localhost:1325/user_v1/users/67126e06b320204c9d3434b7`,
+        `http://localhost:1325/user_v1/users/67154428020f073e06e896d5`,
         {
           method: "GET",
           cache: "no-store",
@@ -317,86 +325,77 @@ function Gym_Booking({ params }: UserDataParams) {
               </div>
 
               <div
-                className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
-                  selectedCard !== null
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-5 opacity-0"
-                }`}
-              >
-                {selectedCard !== null &&
-                  !slot[selectedCard]?.current_bookings && ( // Check if current_bookings is false
-                    <>
-                      <h2 className="text-xl font-bold mb-4">
-                        Booking for {slot[selectedCard].start_time} -{" "}
-                        {slot[selectedCard].end_time}
-                      </h2>
-                      <form onSubmit={handleSubmit}>
-                        <label className="block mb-4">
-                          <span className="block text-sm font-medium text-gray-700 py-2">
-                            Name
-                          </span>
-                          <input
-                            type="text"
-                            name="name"
-                            value={ownName}
-                            // placeholder={ownName}
-                            className="name-input-gym mt-1 block w-full px-3 py-3"
-                          />
-                          {errors.name && (
-                            <span className="text-red-500 text-sm">
-                              {errors.name}
-                            </span>
-                          )}
-                        </label>
-                        <label className="block mb-4">
-                          <span className="block text-sm font-medium text-gray-700 py-2">
-                            Lecturer / Staff / Student ID
-                          </span>
-                          <input
-                            type="text"
-                            name="id"
-                            value={ownId}
-                            // placeholder={ownId}
-                            className="name-input-gym mt-1 block w-full px-3 py-3"
-                          />
-                          {errors.id && (
-                            <span className="text-red-500 text-sm">
-                              {errors.id}
-                            </span>
-                          )}
-                        </label>
-                        <label className="block mb-4">
-                          <span className="block text-sm font-medium text-gray-700 py-2">
-                            Phone Number
-                          </span>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            placeholder="Enter your phone number"
-                            className="name-input-gym mt-1 block w-full px-3 py-3"
-                          />
+  className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
+    selectedCard !== null
+      ? "translate-y-0 opacity-100"
+      : "translate-y-5 opacity-0"
+  }`}
+>
+  {selectedCard !== null && ( // Always show the form if a card is selected
+    <>
+      <h2 className="text-xl font-bold mb-4">
+        Booking for {slot[selectedCard].start_time} -{" "}
+        {slot[selectedCard].end_time}
+      </h2>
+      <form onSubmit={handleSubmit}>
+        <label className="block mb-4">
+          <span className="block text-sm font-medium text-gray-700 py-2">
+            Name
+          </span>
+          <input
+            type="text"
+            name="name"
+            value={ownName}
+            className="name-input-gym mt-1 block w-full px-3 py-3"
+          />
+          {errors.name && (
+            <span className="text-red-500 text-sm">{errors.name}</span>
+          )}
+        </label>
+        <label className="block mb-4">
+          <span className="block text-sm font-medium text-gray-700 py-2">
+            Lecturer / Staff / Student ID
+          </span>
+          <input
+            type="text"
+            name="id"
+            value={ownId}
+            className="name-input-gym mt-1 block w-full px-3 py-3"
+          />
+          {errors.id && (
+            <span className="text-red-500 text-sm">{errors.id}</span>
+          )}
+        </label>
+        <label className="block mb-4">
+          <span className="block text-sm font-medium text-gray-700 py-2">
+            Phone Number
+          </span>
+          <input
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="Enter your phone number"
+            className="name-input-gym mt-1 block w-full px-3 py-3"
+          />
+          {errors.phone && (
+            <span className="text-red-500 text-sm">{errors.phone}</span>
+          )}
+        </label>
+        {/* Center the button */}
+        <div className="flex justify-center">
+          <button
+            type="submit"
+            className="font-semibold bg-green-500 text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-green-600"
+          >
+            Booking
+          </button>
+        </div>
+      </form>
+    </>
+  )}
+</div>
 
-                          {errors.phone && (
-                            <span className="text-red-500 text-sm">
-                              {errors.phone}
-                            </span>
-                          )}
-                        </label>
-                        {/* Center the button */}
-                        <div className="flex justify-center">
-                          <button
-                            type="submit"
-                            className="font-semibold bg-green-500 text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-green-600"
-                          >
-                            Booking
-                          </button>
-                        </div>
-                      </form>
-                    </>
-                  )}
-              </div>
             </>
           )}
         </div>
