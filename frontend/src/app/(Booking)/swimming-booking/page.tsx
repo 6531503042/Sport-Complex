@@ -3,9 +3,10 @@
 import React, { useEffect, useState, Fragment } from "react";
 import Available from "@/app/assets/available.png";
 import Unavailable from "@/app/assets/unavailable.png";
-import Back from '@/app/assets/back.png'
-import Member from '@/app/assets/member.png'
-import './swimming.css'
+import Back from "@/app/assets/back.png";
+import Member from "@/app/assets/member.png";
+import "./swimming.css";
+
 interface UserData {
   id: string;
   name: string;
@@ -33,10 +34,14 @@ function Swimming_Booking({ params }: UserDataParams) {
   const [isMobileView, setIsMobileView] = useState(false); // New state for mobile view
 
   const handleCardClick = (lot: any, status: any) => {
-    if (!lot.current_bookings) {
+    // Allow booking if the slot is not fully booked
+    const isSlotFull = lot.current_bookings >= lot.max_bookings;
+
+    // Check if the slot is full
+    if (!isSlotFull) {
       const index = slot.findIndex((s) => s._id === lot._id); // Get the index of the clicked lot
       if (index !== -1) {
-        setSelectedCard(index === selectedCard ? null : index);
+        setSelectedCard(index === selectedCard ? null : index); // Toggle selected card
         setErrors({ name: "", id: "", phone: "" });
 
         if (window.innerWidth < 640) {
@@ -45,6 +50,7 @@ function Swimming_Booking({ params }: UserDataParams) {
       }
     }
   };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
 
@@ -96,7 +102,9 @@ function Swimming_Booking({ params }: UserDataParams) {
       // Update the list to reflect the successful booking
       setSlot((prevSlots) =>
         prevSlots.map((s) =>
-          s._id === bookingData.slot_id ? { ...s, current_bookings: true } : s
+          s._id === bookingData.slot_id
+            ? { ...s, current_bookings: s.current_bookings + 1 } // Increment the current bookings
+            : s
         )
       );
     } catch (error) {
@@ -145,7 +153,7 @@ function Swimming_Booking({ params }: UserDataParams) {
 
     const intervalId = setInterval(() => {
       getSlot();
-    }, 10000);
+    }, 5000);
 
     return () => {
       clearInterval(intervalId);
@@ -159,7 +167,7 @@ function Swimming_Booking({ params }: UserDataParams) {
   const getUserData = async (id: string) => {
     try {
       const resUserData = await fetch(
-        `http://localhost:1325/user_v1/users/67126e06b320204c9d3434b7`,
+        `http://localhost:1325/user_v1/users/67154428020f073e06e896d5`,
         {
           method: "GET",
           cache: "no-store",
@@ -182,7 +190,7 @@ function Swimming_Booking({ params }: UserDataParams) {
       <div className="flex flex-col items-center h-screen p-6">
         <div className="w-full max-w-[1189px] bg-[#FEFFFE] border-gray border rounded-3xl drop-shadow-2xl p-5">
           <h1 className="text-4xl font-bold my-10 text-black text-center">
-            Swimming Booking
+           Swimming Booking
           </h1>
 
           {isMobileView ? (
@@ -227,7 +235,7 @@ function Swimming_Booking({ params }: UserDataParams) {
                       type="text"
                       name="id"
                       value={ownId}
-                      className="name-input-swimming mt-1 block w-full px-3 py-3"
+                      className="name-input-swmming mt-1 block w-full px-3 py-3"
                     />
                   </label>
 
@@ -263,139 +271,131 @@ function Swimming_Booking({ params }: UserDataParams) {
               </div>
             </div>
           ) : (
-
             // Normal screen view
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-              {slot.map((lot) => {
-  const isSlotFull = lot.current_bookings >= lot.max_bookings; // Check if the slot is fully booked
+                {slot.map((lot) => {
+                  const isSlotFull = lot.current_bookings >= lot.max_bookings; // Check if the slot is fully booked
 
-  return (
-    <div
-      key={lot._id}
-      className={`border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
+                  return (
+                    <div
+                      key={lot._id}
+                      className={`border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
       ${
         isSlotFull
           ? "cursor-not-allowed bg-light-gray text-white"
-          : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
+          : "cursor-pointer bg-[#4169E1] text-white border-blue-300 hover:scale-105 hover:shadow-lg"
       }
-      ${!isSlotFull ? "hover:bg-[#005400]" : ""}
+      ${!isSlotFull ? "hover:bg-[#000080]" : ""}
     `}
-      onClick={() => {
-        if (!isSlotFull) {
-          handleCardClick(lot, lot.status);
-        }
-      }}
-    >
-      <div className="text-lg font-semibold flex justify-between items-center">
-        <div>
-          {lot.start_time} - {lot.end_time}
-        </div>
-        <div>
-          {isSlotFull ? (
-            <img
-              src={Unavailable.src}
-              alt="Unavailable"
-              className="w-6 h-6"
-            />
-          ) : (
-            <img
-              src={Available.src}
-              alt="Available"
-              className="w-6 h-6"
-            />
-          )}
-        </div>
-      </div>
+                      onClick={() => {
+                        if (!isSlotFull) {
+                          handleCardClick(lot, lot.status);
+                        }
+                      }}
+                    >
+                      <div className="text-lg font-semibold flex justify-between items-center">
+                        <div>
+                          {lot.start_time} - {lot.end_time}
+                        </div>
+                        <div>
+                          {isSlotFull ? (
+                            <img
+                              src={Unavailable.src}
+                              alt="Unavailable"
+                              className="w-8 h-8"
+                            />
+                          ) : (
+                            <img
+                              src={Available.src}
+                              alt="Available"
+                              className="w-8 h-8"
+                            />
+                          )}
+                        </div>
+                      </div>
 
-      {/* Display Current and Maximum Bookings */}
-      <div className="mt-2 text-sm text-white">
-        {lot.current_bookings} / {lot.max_bookings}
-      </div>
-    </div>
-  );
-})}
+                      {/* Display Current and Maximum Bookings */}
+                      <div className="mt-2 text-sm text-white">
+                        {lot.current_bookings} / {lot.max_bookings}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div
-                className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
-                  selectedCard !== null ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"
-                }`}
-              >
-                {selectedCard !== null &&
-                  !slot[selectedCard]?.current_bookings && ( // Check if current_bookings is false
-                    <>
-                      <h2 className="text-xl font-bold mb-4">
-                        Booking for {slot[selectedCard].start_time} -{" "}
-                        {slot[selectedCard].end_time}
-                      </h2>
-                      <form onSubmit={handleSubmit}>
-                        <label className="block mb-4">
-                          <span className="block text-sm font-medium text-gray-700 py-2">
-                            Name
-                          </span>
-                          <input
-                            type="text"
-                            name="name"
-                            value={ownName}
-                            // placeholder={ownName}
-                            className="name-input-swimming mt-1 block w-full px-3 py-3"
-                          />
-                          {errors.name && (
-                            <span className="text-red-500 text-sm">
-                              {errors.name}
-                            </span>
-                          )}
-                        </label>
-                        <label className="block mb-4">
-                          <span className="block text-sm font-medium text-gray-700 py-2">
-                            Lecturer / Staff / Student ID
-                          </span>
-                          <input
-                            type="text"
-                            name="id"
-                            value={ownId}
-                            // placeholder={ownId}
-                            className="name-input-swimming mt-1 block w-full px-3 py-3"
-                          />
-                          {errors.id && (
-                            <span className="text-red-500 text-sm">
-                              {errors.id}
-                            </span>
-                          )}
-                        </label>
-                        <label className="block mb-4">
-                          <span className="block text-sm font-medium text-gray-700 py-2">
-                            Phone Number
-                          </span>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            placeholder="Enter your phone number"
-                            className="name-input-swimming mt-1 block w-full px-3 py-3"
-                          />
+  className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
+    selectedCard !== null
+      ? "translate-y-0 opacity-100"
+      : "translate-y-5 opacity-0"
+  }`}
+>
+  {selectedCard !== null && ( // Always show the form if a card is selected
+    <>
+      <h2 className="text-xl font-bold mb-4">
+        Booking for {slot[selectedCard].start_time} -{" "}
+        {slot[selectedCard].end_time}
+      </h2>
+      <form onSubmit={handleSubmit}>
+        <label className="block mb-4">
+          <span className="block text-sm font-medium text-gray-700 py-2">
+            Name
+          </span>
+          <input
+            type="text"
+            name="name"
+            value={ownName}
+            className="name-input-swimming mt-1 block w-full px-3 py-3"
+          />
+          {errors.name && (
+            <span className="text-red-500 text-sm">{errors.name}</span>
+          )}
+        </label>
+        <label className="block mb-4">
+          <span className="block text-sm font-medium text-gray-700 py-2">
+            Lecturer / Staff / Student ID
+          </span>
+          <input
+            type="text"
+            name="id"
+            value={ownId}
+            className="name-input-swimming mt-1 block w-full px-3 py-3"
+          />
+          {errors.id && (
+            <span className="text-red-500 text-sm">{errors.id}</span>
+          )}
+        </label>
+        <label className="block mb-4">
+          <span className="block text-sm font-medium text-gray-700 py-2">
+            Phone Number
+          </span>
+          <input
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="Enter your phone number"
+            className="name-input-swimming mt-1 block w-full px-3 py-3"
+          />
+          {errors.phone && (
+            <span className="text-red-500 text-sm">{errors.phone}</span>
+          )}
+        </label>
+        {/* Center the button */}
+        <div className="flex justify-center">
+          <button
+            type="submit"
+            className="font-semibold bg-[#4169E1] text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-[#000080]"
+          >
+            Booking
+          </button>
+        </div>
+      </form>
+    </>
+  )}
+</div>
 
-                          {errors.phone && (
-                            <span className="text-red-500 text-sm">
-                              {errors.phone}
-                            </span>
-                          )}
-                        </label>
-                        {/* Center the button */}
-                        <div className="flex justify-center">
-                          <button
-                            type="submit"
-                            className="font-semibold bg-green-500 text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-green-600"
-                          >
-                            Booking
-                          </button>
-                        </div>
-                      </form>
-                    </>
-                  )}
-              </div>
             </>
           )}
         </div>
@@ -412,7 +412,7 @@ function Swimming_Booking({ params }: UserDataParams) {
 
               {/* Close Button */}
               <button
-                className="w-full bg-gradient-to-r from-green-500 to-green-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-[#000080] via-[#2A52BE] to-[#4169E1] text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
                 onClick={() => {
                   setIsBookingSuccessful(false); // Close the popup
                   setIsMobileView(false); // Return to the time slots view
