@@ -2,15 +2,12 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
-	"main/config"
 	"main/modules/booking"
 	"main/modules/facility"
 	"main/modules/models"
-	"main/pkg/queue"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -57,11 +54,11 @@ func NewBookingRepository(db *mongo.Client) BookingRepositoryService {
 }
 
 //
-func (r *bookingRepository) bookingDbConn(pctx context.Context) *mongo.Database {
+func (r *bookingRepository) bookingDbConn(ctx context.Context) *mongo.Database {
 	return r.db.Database("booking_db")
 }
 
-func (r *bookingRepository) facilityDbConn(pctx context.Context, facilityName string) *mongo.Database {
+func (r *bookingRepository) facilityDbConn(ctx context.Context, facilityName string) *mongo.Database {
 	// Use the facility name to dynamically create the database name
 	databaseName := fmt.Sprintf("%s_facility", facilityName)
 	return r.client.Database(databaseName) // This will create the DB if it doesn't exist
@@ -411,76 +408,6 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
     // Return the inserted booking with the new ID
     req.Id = res.InsertedID.(primitive.ObjectID) // Assign the new ID to the booking
     return req, nil
-}
-
-func (r * bookingRepository) ResetPendingBooking(ctx context.Context, facilityName string) error {
-    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-    defer cancel()
-
-    db := r.bookingDbConn(ctx)
-    col := db.Collection("booking_transaction")
-
-    timeoutTime := time.Now().Add(-15 *time.Minute)
-
-    filter := bson.M{
-        "status": "pending",
-        "created_at": bson.M{"$lt": timeoutTime},
-    }
-
-    cursor, err := col.Find(ctx, filter)
-    if err != nil {
-        log.Printf("Error finding pending booking: %s", err.Error())
-        return fmt.Errorf("error finding pending booking %w", err)
-    }
-
-    defer cursor.Close(ctx)
-
-    for cursor.Next(ctx) {
-        var booking booking.Booking
-        if err := cursor.Decode(&booking); err != nil {
-            log.Printf("Error updating booking status to failed: %s", err.Error())
-            continue
-        }
-
-        if booking.SlotId != nil {
-            if err := r.ResetFacilitySlots(ctx, facilityName); err != nil {
-                log.Printf("Error resetting facility slots: %s", err.Error())
-            }
-        }
-    }
-
-    if err := cursor.Err(); err !=nil {
-        log.Printf("Cursor error: %s", err.Error())
-        return fmt.Errorf("cursor error: %w", err)
-    }
-
-    log.Printf("Successfully reset slots for facility %s", facilityName)
-    return nil
-}
-
-func (r *bookingRepository) InsertBookingViaQueue(pctx context.Context, cfg *config.Config, req *booking.Booking) error {
-	reqInBytes, err := json.Marshal(req)
-	if err != nil {
-		log.Printf("Error: InsertBookingViaQueue failed: %s", err.Error())
-		return errors.New("error: InsertBookingViaQueue failed")
-	}
-
-
-	bookingID := req.Id.Hex() // Convert Object to string
-
-	if err := queue.PushMessageWithKeyToQueue(
-		[]string{cfg.Kafka.Url},
-		cfg.Kafka.ApiKey,
-		cfg.Kafka.Secret,
-		"booking",
-		bookingID,
-		reqInBytes,
-	); err != nil {
-		log.Printf("Error: InsertBookingViaQueue failed: %s", err.Error())
-		return errors.New("error: InsertBookingViaQueue failed")
-	}
-
-	return nil
 }
 
 
