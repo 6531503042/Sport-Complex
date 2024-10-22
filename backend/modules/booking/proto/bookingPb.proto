@@ -19,31 +19,37 @@ message Booking {
     google.protobuf.Timestamp updated_at = 6;
 }
 
-message CreateBookingReq {
+message InsertBookingRequest {
     string user_id = 1;
-    string slot_id = 2;
+    string facilityName = 2;
+    string slot_id = 3;
 }
 
-message UpdateBookingReq {
-    string booking_id = 1;
+message InsertBookingResponse {
+    string bookingId = 1;
     string status = 2;
-}
+  }
 
-message GetBookingReq {
+message UpdateBookingRequest {
     string booking_id = 1;
+    string facilityName = 2;
 }
 
-message GetUserBookingsReq {
-    string user_id = 1;
-}
+message UpdateBookingResponse {
+    string status = 1;
+  }
 
-message GetBookingsResp {
-    repeated Booking bookings = 1;
-}
+message FindBookingRequest {
+    string bookingId = 1;
+  }
+  
+  message FindBookingResponse {
+    string bookingId = 1;
+    string status = 2;
+  }
 
-service BookingService {
-    rpc CreateBooking(CreateBookingReq) returns (Booking);
-    rpc UpdateBooking(UpdateBookingReq) returns (Booking);
-    rpc GetBooking(GetBookingReq) returns (Booking);
-    rpc GetUserBookings(GetUserBookingsReq) returns (GetBookingsResp);
-}
+  service BookingService {
+    rpc InsertBooking (InsertBookingRequest) returns (InsertBookingResponse);
+    rpc UpdateBooking (UpdateBookingRequest) returns (UpdateBookingResponse);
+    rpc FindBooking (FindBookingRequest) returns (FindBookingResponse);
+  }
