@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"log"
 	"math"
 	"sync"
 	"time"
@@ -16,11 +15,9 @@ import (
 type (
 	AuthFactory interface {
 		SignToken() string
-		SignToken() string
 	}
 
 	Claims struct {
-		UserId   string `json:"user_id"`
 		UserId   string `json:"user_id"`
 		RoleCode int    `json:"role_code"`
 	}
@@ -49,10 +46,7 @@ type (
 )
 
 func (a *authConcrete) SignToken() string {
-func (a *authConcrete) SignToken() string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, a.Claims)
-	ss, _ := token.SignedString(a.Secret)
-	return ss
 	ss, _ := token.SignedString(a.Secret)
 	return ss
 }
@@ -76,7 +70,6 @@ func NewAccessToken(secret string, expiredAt int64, claims *Claims) AuthFactory 
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
 				Claims: claims,
-				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
 					Subject:   "bengi.com",
@@ -98,7 +91,6 @@ func NewRefreshToken(secret string, claims *Claims) AuthFactory {
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
 				Claims: claims,
-				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
 					Subject:   "refresh-token",
@@ -113,12 +105,10 @@ func NewRefreshToken(secret string, claims *Claims) AuthFactory {
 }
 
 func ReloadToken(secret string, expiredAt int64, claims *Claims) string {
-func ReloadToken(secret string, expiredAt int64, claims *Claims) string {
 	obj := &refreshToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
-				Claims: claims,
 				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
@@ -133,7 +123,6 @@ func ReloadToken(secret string, expiredAt int64, claims *Claims) string {
 	}
 
 	return obj.SignToken()
-	return obj.SignToken()
 }
 
 func NewApiKey(secret string) AuthFactory {
@@ -141,7 +130,6 @@ func NewApiKey(secret string) AuthFactory {
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
 			Claims: &AuthMapClaims{
-				Claims: &Claims{},
 				Claims: &Claims{},
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
@@ -157,8 +145,6 @@ func NewApiKey(secret string) AuthFactory {
 }
 
 func ParseToken(secret string, tokenString string) (*AuthMapClaims, error) {
-	log.Printf("Parsing token: %s", tokenString)
-
 	log.Printf("Parsing token: %s", tokenString)
 
 	token, err := jwt.ParseWithClaims(tokenString, &AuthMapClaims{}, func(t *jwt.Token) (interface{}, error) {
@@ -190,7 +176,6 @@ var once sync.Once
 
 func SetApiKey(secret string) {
 	once.Do(func() {
-		apiKeyInstant = NewApiKey(secret).SignToken()
 		apiKeyInstant = NewApiKey(secret).SignToken()
 	})
 }
