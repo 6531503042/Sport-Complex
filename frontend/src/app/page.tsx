@@ -1,17 +1,15 @@
 "use client";
 import React from 'react';
 import { useAuth } from '../app/context/AuthContext';
+import HomePage from '@/app/(pages)/homepage/page'
 
-const HomePage = () => {
+const Main = () => {
   const { user, logout } = useAuth();
 
   return (
     <div>
       {user ? (
-        <div>
-          <h1>Welcome, {user.name}</h1>
-          <button onClick={logout}>Logout</button>
-        </div>
+        <HomePage/>
       ) : (
         <p>Loading...</p>
       )}
@@ -19,4 +17,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default Main;

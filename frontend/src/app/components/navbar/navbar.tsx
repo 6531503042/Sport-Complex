@@ -5,7 +5,6 @@ import Link from "next/link";
 import Logo from "../../assets/Logo.png";
 import SideBar from "../../../../../frontend/src/app/components/sidebar/sidebar";
 import SearhBar from "../search_bar/search_bar";
-import "./navbar.css";
 
 
 type NavBarProps = {
