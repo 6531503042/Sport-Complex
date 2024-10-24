@@ -38,7 +38,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
       <header>
         <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5">
           <Link
-            href="/"
+            href="/homepage"
             className="inline-flex flex-row items-center  gap-3.5 w-1/5"
           >
             <img src={Logo.src} alt="Logo" className="w-7" />
