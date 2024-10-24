@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package payment;
+
+
+option go_package = "github.com/Sport-Complex/backend/modules/payment/proto";
+
+// ระบุ gRPC service สำหรับการชำระเงิน
+service PaymentService {
+  // RPC สำหรับสร้างรายการชำระเงิน
+  rpc CreatePayment (CreatePaymentRequest) returns (CreatePaymentResponse);
+
+  // RPC สำหรับอัปเดตสถานะการชำระเงิน
+  rpc UpdatePaymentStatus (UpdatePaymentStatusRequest) returns (UpdatePaymentStatusResponse);
+
+  // RPC สำหรับดึงข้อมูลรายการการชำระเงิน
+  rpc GetPaymentByID (GetPaymentByIDRequest) returns (GetPaymentByIDResponse);
+}
+
+// นิยาม PaymentStatus เพื่อเก็บสถานะต่าง ๆ ของการชำระเงิน
+enum PaymentStatus {
+  PENDING = 0;
+  COMPLETED = 1;
+  FAILED = 2;
+  CANCELED = 3;
+}
+
+// Message สำหรับสร้างรายการชำระเงิน (Request)
+message CreatePaymentRequest {
+  string user_id = 1;          // ID ของผู้ใช้
+  string booking_id = 2;       // ID ของการจอง
+  double amount = 3;           // จำนวนเงินที่ต้องชำระ
+  string currency = 4;         // สกุลเงิน
+  string payment_method = 5;   // วิธีการชำระเงิน เช่น PromptPay, CreditCard
+}
+
+// Message สำหรับการตอบกลับเมื่อสร้างรายการชำระเงิน (Response)
+message CreatePaymentResponse {
+  string payment_id = 1;       // ID ของการชำระเงินที่สร้างขึ้น
+  string qr_code_url = 2;      // URL ของ QR Code สำหรับการชำระเงิน (ถ้ามี)
+  PaymentStatus status = 3;    // สถานะของการชำระเงิน
+  string message = 4;          // ข้อความเพิ่มเติม
+}
+
+// Message สำหรับการอัปเดตสถานะการชำระเงิน (Request)
+message UpdatePaymentStatusRequest {
+  string payment_id = 1;       // ID ของการชำระเงินที่ต้องการอัปเดต
+  PaymentStatus status = 2;    // สถานะใหม่ที่ต้องการอัปเดต
+}
+
+// Message สำหรับการตอบกลับหลังจากอัปเดตสถานะการชำระเงิน (Response)
+message UpdatePaymentStatusResponse {
+  bool success = 1;            // ระบุว่าการอัปเดตสำเร็จหรือไม่
+  string message = 2;          // ข้อความเพิ่มเติม
+}
+
+// Message สำหรับการค้นหาข้อมูลการชำระเงินโดยใช้ ID (Request)
+message GetPaymentByIDRequest {
+  string payment_id = 1;       // ID ของการชำระเงินที่ต้องการค้นหา
+}
+
+// Message สำหรับการตอบกลับเมื่อค้นหาข้อมูลการชำระเงิน (Response)
+message GetPaymentByIDResponse {
+  string payment_id = 1;       // ID ของการชำระเงิน
+  string user_id = 2;          // ID ของผู้ใช้
+  string booking_id = 3;       // ID ของการจอง
+  double amount = 4;           // จำนวนเงินที่ต้องชำระ
+  string currency = 5;         // สกุลเงิน
+  string payment_method = 6;   // วิธีการชำระเงิน
+  string qr_code_url = 7;      // URL ของ QR Code สำหรับการชำระเงิน (ถ้ามี)
+  PaymentStatus status = 8;    // สถานะของการชำระเงิน
+  string created_at = 9;       // เวลาที่สร้างรายการ
+  string updated_at = 10;      // เวลาที่อัปเดตล่าสุด
+}

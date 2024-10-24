@@ -1,0 +1,10 @@
+.banner_blur {
+    filter: blur(2px);
+    transition: filter 0.5s ease-in-out;
+  }
+  
+  .banner_visible {
+    filter: blur(0);
+    transition: filter 0.5s ease-in-out;
+  }
+  

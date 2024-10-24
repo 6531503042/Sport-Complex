@@ -2,3 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+@import 'flowbite';
+
+* {
+    font-family: 'Arial', sans-serif;
+    box-sizing:border-box;
+    -webkit-box-sizing: border-box;
+}
+
+html, body {
+    min-width: 500px;
+    max-width: 1920px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+
+@media (max-width: 1360px) {
+    .NavBar_res {
+        display: none;
+}
+    .NavBar_container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .login_button {
+        display: none;
+
+    }
+    .login_and_sidebar {
+        display: flex;
+        justify-content: end;
+    }
+  }
+
+  @media (max-width: 860px) {
+    .banner_container {
+        height: 600px;
+
+    }
+  }
+
+  @media (max-width: 560px) {
+    .banner_container {
+        height: 700px;
+
+    }
+  }
+
+@media (max-width: 1000px) {
+    .searchbar_field {
+        display:none;
+    }
+    .NavBar_container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}

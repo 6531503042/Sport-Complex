@@ -216,8 +216,9 @@ func (r *authRepository) AccessToken(cfg *config.Config, claims *jwt.Claims) str
 }
 
 // RefreshToken generates a new refresh token.
+// RefreshToken generates a new refresh token.
 func (r *authRepository) RefreshToken(cfg *config.Config, claims *jwt.Claims) string {
-	return jwt.NewRefreshToken(cfg.Jwt.RefreshSecretKey, cfg.Jwt.RefreshDuration, &jwt.Claims{
+	return jwt.NewRefreshToken(cfg.Jwt.RefreshSecretKey, &jwt.Claims{
 		UserId:   claims.UserId,
 		RoleCode: int(claims.RoleCode),
 	}).SignToken()

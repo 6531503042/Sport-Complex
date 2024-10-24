@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	client "main/client/payment"
 	"main/config"
 	"main/modules/booking"
 	"main/modules/booking/usecase"
@@ -22,37 +24,75 @@ type (
 	bookingHttpHandler struct {
 		cfg            *config.Config
 		bookingUsecase usecase.BookingUsecaseService
+		paymentClient  *client.PaymentClient
 	}
 )
 
-func NewBookingHttpHandler(cfg *config.Config, bookingUsecase usecase.BookingUsecaseService) NewBookingHttpHandlerService {
-	return &bookingHttpHandler{cfg: cfg, bookingUsecase: bookingUsecase}
+func NewBookingHttpHandler(cfg *config.Config, bookingUsecase usecase.BookingUsecaseService, paymentClient *client.PaymentClient) NewBookingHttpHandlerService {
+	return &bookingHttpHandler{cfg: cfg, bookingUsecase: bookingUsecase, paymentClient: paymentClient} // ส่ง payment client
 }
 
-func (h *bookingHttpHandler) CreateBooking (c echo.Context) error {
-	// Bind the request body to the CreateBookingRequest DTO
-    var createBookingReq booking.CreateBookingRequest
-    if err := c.Bind(&createBookingReq); err != nil {
-        return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
-    }
+func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
+	var createBookingReq booking.CreateBookingRequest
+	if err := c.Bind(&createBookingReq); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
+	}
 
-    // Validate the request
-    if err := c.Validate(&createBookingReq); err != nil {
-        return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-    }
+	if err := c.Validate(&createBookingReq); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
 
-    // Extract the facility name (from URL or context)
-    facilityName := c.Param("facilityName")
+	facilityName := c.Param("facilityName")
+	bookingResponse, err := h.bookingUsecase.InsertBooking(c.Request().Context(), facilityName, &createBookingReq)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to insert booking: " + err.Error()})
+	}
 
-    // Call usecase to insert the booking
-    bookingResponse, err := h.bookingUsecase.InsertBooking(c.Request().Context(), facilityName, &createBookingReq)
-    if err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-    }
+	// เรียก API เพื่อรับข้อมูลของสนาม
+	facilityURL := "http://localhost:1335/facility_v1/facility/facilities"
+	resp, err := http.Get(facilityURL)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get facility: " + err.Error()})
+	}
+	defer resp.Body.Close()
 
-    // Return the booking response
-    return c.JSON(http.StatusOK, bookingResponse)
+	var facilities []struct {
+		ID          string  `json:"id"`
+		Name        string  `json:"name"`
+		PriceInsider float64 `json:"price_insider"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&facilities); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to decode facility response: " + err.Error()})
+	}
+
+	var priceInsider float64
+	for _, facility := range facilities {
+		if facility.Name == facilityName {
+			priceInsider = facility.PriceInsider
+			break
+		}
+	}
+
+	// ใช้ bookingResponse.Id เพื่อดึง ID ที่ถูกต้อง
+	paymentRequest := client.CreatePaymentRequest{
+		Amount:        priceInsider,
+		UserID:       bookingResponse.UserId,
+		BookingID:    bookingResponse.Id.Hex(), 
+		PaymentMethod: "PromptPay",
+		Currency:     "THB",
+	}
+
+	_, err = h.paymentClient.CreatePayment(paymentRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create payment: " + err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, bookingResponse)
 }
+
+
+
 
 
 
