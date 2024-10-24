@@ -14,6 +14,7 @@ import (
 )
 
 type(
+type(
 	BookingUsecaseService interface {
 		// InsertBooking(ctx context.Context, userId, slotId string) (*booking.Booking, error)
 		UpdateBooking (ctx context.Context, bookingId string, status string) (*booking.Booking, error)
@@ -29,12 +30,14 @@ type(
 
 	bookingUsecase struct {
 		cfg              *config.Config
+		cfg              *config.Config
 		bookingRepository repository.BookingRepositoryService
 	}
 )
 
 func NewBookingUsecase(bookingRepository repository.BookingRepositoryService) BookingUsecaseService {
 	return &bookingUsecase{
+		cfg: &config.Config{},
 		cfg: &config.Config{},
 		bookingRepository: bookingRepository,
 	}

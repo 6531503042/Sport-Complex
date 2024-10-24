@@ -2,9 +2,12 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"fmt"
 	"log"
+	"main/config"
 	"main/modules/booking"
 	"main/modules/facility"
 	"main/modules/models"
@@ -15,6 +18,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type (
 type (
 	BookingRepositoryService interface {
 
@@ -43,7 +47,12 @@ type (
 
 // NewBookingRepository returns a new instance of BookingRepositoryService using the given mongo client.
 // It provides access to the booking database and its collections.
+// NewBookingRepository returns a new instance of BookingRepositoryService using the given mongo client.
+// It provides access to the booking database and its collections.
 func NewBookingRepository(db *mongo.Client) BookingRepositoryService {
+	return &bookingRepository{
+		db:     db,
+		client: db,}
 	return &bookingRepository{
 		db:     db,
 		client: db,}
@@ -192,6 +201,11 @@ func (r *bookingRepository) GetOffset(pctx context.Context) (int64, error) {
 func (r *bookingRepository) UpOffset(pctx context.Context, newOffset int64) error {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
+
+	if err := r.MoveOldBookingTransactionToHistory(ctx); err != nil {
+		log.Printf("Error: clearingBookingAtMidnight: %s", err.Error())
+		return errors.New("error: clearingBookingAtMidnight failed")
+	}
 
 	db := r.bookingDbConn(ctx)
 	col := db.Collection("booking_queue")
@@ -431,10 +445,32 @@ func (r *bookingRepository) FindBooking(ctx context.Context, bookingId string) (
     if err != nil {
         return nil, err
     }
+	col := db.Collection("bookings")
+	_, err := col.UpdateOne(ctx, bson.M{"_id": booking.Id}, bson.M{"$set": booking})
+    if err != nil {
+        return nil, err
+    }
 
+    return booking, nil
+}
+
+func (r *bookingRepository) FindBooking(ctx context.Context, bookingId string) (*booking.Booking, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	db := r.bookingDbConn(ctx)
+	col := db.Collection("bookings")
+	result := new(booking.Booking)
+    err := col.FindOne(ctx, bson.M{"_id": bookingId}).Decode(result)
+    if err != nil {
+        return nil, err
+    }
+
+    return result, nil
     return result, nil
 }
 
+func (r*bookingRepository) FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error) {
 func (r*bookingRepository) FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -442,7 +478,11 @@ func (r*bookingRepository) FindOneUserBooking (ctx context.Context, userId strin
 	db := r.bookingDbConn(ctx)
 	col := db.Collection("bookings")
 	cursor, err := col.Find(ctx, bson.M{"user_id": userId})
+	col := db.Collection("bookings")
+	cursor, err := col.Find(ctx, bson.M{"user_id": userId})
 	if err != nil {
+		log.Printf("Error: FindOneUserBooking: %s", err.Error())
+		return nil, errors.New("error: find one user booking failed")
 		log.Printf("Error: FindOneUserBooking: %s", err.Error())
 		return nil, errors.New("error: find one user booking failed")
 	}
@@ -452,7 +492,13 @@ func (r*bookingRepository) FindOneUserBooking (ctx context.Context, userId strin
 	if err = cursor.All(ctx, &result); err != nil {
 		log.Printf("Error: FindOneUserBooking: %s", err.Error())
 		return nil, errors.New("error: find one user booking failed")
+	var result []booking.Booking
+	if err = cursor.All(ctx, &result); err != nil {
+		log.Printf("Error: FindOneUserBooking: %s", err.Error())
+		return nil, errors.New("error: find one user booking failed")
 	}
 
 	return result, nil
+	return result, nil
 }
+

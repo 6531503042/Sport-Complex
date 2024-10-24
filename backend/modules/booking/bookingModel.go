@@ -5,6 +5,11 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type (
 	// CreateBookingRequest supports booking either a normal slot or a badminton slot
@@ -51,3 +56,4 @@ type (
 		Status string `json:"status" validate:"required"`
 	}
 )
+
