@@ -9,11 +9,6 @@ import (
 	"main/pkg/response"
 	"net/http"
 
-	"main/pkg/response"
-	"net/http"
-
-	"github.com/labstack/echo/v4"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -23,19 +18,10 @@ type (
 
 		FindBooking(c echo.Context) error
 		FindOneUserBooking(c echo.Context) error
-		CreateBooking(c echo.Context) error
-	}
-
-	NewBookingHttpHandlerService interface {
-		// InsertBooking(c echo.Context) error
-
-		FindBooking(c echo.Context) error
-		FindOneUserBooking(c echo.Context) error
-		CreateBooking(c echo.Context) error
+		CreateBooking (c echo.Context) error
 	}
 
 	bookingHttpHandler struct {
-		cfg            *config.Config
 		cfg            *config.Config
 		bookingUsecase usecase.BookingUsecaseService
 		paymentClient  *client.PaymentClient
@@ -71,8 +57,8 @@ func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
 	defer resp.Body.Close()
 
 	var facilities []struct {
-		ID           string  `json:"id"`
-		Name         string  `json:"name"`
+		ID          string  `json:"id"`
+		Name        string  `json:"name"`
 		PriceInsider float64 `json:"price_insider"`
 	}
 
@@ -91,10 +77,10 @@ func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
 	// ใช้ bookingResponse.Id เพื่อดึง ID ที่ถูกต้อง
 	paymentRequest := client.CreatePaymentRequest{
 		Amount:        priceInsider,
-		UserID:        bookingResponse.UserId,
-		BookingID:     bookingResponse.Id.Hex(),
+		UserID:       bookingResponse.UserId,
+		BookingID:    bookingResponse.Id.Hex(), 
 		PaymentMethod: "PromptPay",
-		Currency:      "THB",
+		Currency:     "THB",
 	}
 
 	_, err = h.paymentClient.CreatePayment(paymentRequest)
@@ -104,6 +90,12 @@ func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, bookingResponse)
 }
+
+
+
+
+
+
 
 func (h *bookingHttpHandler) FindBooking(c echo.Context) error {
 	bookingId := c.Param("booking_id") // Ensure the same parameter name as UpdateBooking
