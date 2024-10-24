@@ -193,11 +193,6 @@ func (r *bookingRepository) UpOffset(pctx context.Context, newOffset int64) erro
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
-	if err := r.MoveOldBookingTransactionToHistory(ctx); err != nil {
-		log.Printf("Error: clearingBookingAtMidnight: %s", err.Error())
-		return errors.New("error: clearingBookingAtMidnight failed")
-	}
-
 	db := r.bookingDbConn(ctx)
 	col := db.Collection("booking_queue")
 

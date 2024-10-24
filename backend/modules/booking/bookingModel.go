@@ -52,4 +52,3 @@ type (
 		Status string `json:"status" validate:"required"`
 	}
 )
-
