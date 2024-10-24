@@ -17,9 +17,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/go-playground/validator/v10"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -27,26 +24,12 @@ type (
 	server struct {
 		app        *echo.Echo
 		db         *mongo.Client
-		app        *echo.Echo
-		db         *mongo.Client
 		cfg        *config.Config
 		middleware middlewarehttphandler.MiddlewareHttpHandlerService
-		validator  *validator.Validate
 		validator  *validator.Validate
 	}
 )
 
-// CustomValidator wraps go-playground/validator and integrates it with Echo
-type CustomValidator struct {
-	validator *validator.Validate
-}
-
-// Validate implements the echo.Validator interface
-func (cv *CustomValidator) Validate(i interface{}) error {
-	return cv.validator.Struct(i)
-}
-
-// newMiddleware initializes your custom middleware service
 // CustomValidator wraps go-playground/validator and integrates it with Echo
 type CustomValidator struct {
 	validator *validator.Validate
@@ -62,13 +45,10 @@ func newMiddleware(cfg *config.Config) middlewarehttphandler.MiddlewareHttpHandl
 	repo := middlewarerepository.NewMiddlewareRepository()
 	usecase := middlewareusecase.NewMiddlewareUsecase(repo)
 	return middlewarehttphandler.NewMiddlewareHttpHandler(cfg, usecase)
-	return middlewarehttphandler.NewMiddlewareHttpHandler(cfg, usecase)
 }
 
 func (s *server) httpListening() {
 	log.Printf("Starting HTTP server on %s", s.cfg.App.Url)
-	err := s.app.Start(s.cfg.App.Url)
-	if err != nil && err != http.ErrServerClosed {
 	err := s.app.Start(s.cfg.App.Url)
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatalf("HTTP server error: %v", err)
@@ -77,37 +57,24 @@ func (s *server) httpListening() {
 
 func (s *server) gracefulShutdown(pctx context.Context, quit <-chan os.Signal) {
 	log.Printf("Start service: %s", s.cfg.App.Name)
-func (s *server) gracefulShutdown(pctx context.Context, quit <-chan os.Signal) {
-	log.Printf("Start service: %s", s.cfg.App.Name)
 
 	<-quit
 	log.Printf("Shutting down service: %s", s.cfg.App.Name)
-	log.Printf("Shutting down service: %s", s.cfg.App.Name)
 
-	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
-	if err := s.app.Shutdown(ctx); err != nil {
-		log.Fatalf("Error: %v", err)
 	if err := s.app.Shutdown(ctx); err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 }
 
 func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
-func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 	s := &server{
-		app:        echo.New(),
-		db:         db,
 		app:        echo.New(),
 		db:         db,
 		cfg:        cfg,
 		middleware: newMiddleware(cfg),
-		validator:  validator.New(),
-	}
-
-	// Set API Key for JWT
 		validator:  validator.New(),
 	}
 
@@ -157,9 +124,7 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	go s.gracefulShutdown(pctx, quit)
-	go s.gracefulShutdown(pctx, quit)
 
-	// Start HTTP Server
 	// Start HTTP Server
 	s.httpListening()
 }
