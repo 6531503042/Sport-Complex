@@ -48,7 +48,6 @@ func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to insert booking: " + err.Error()})
 	}
 
-	// เรียก API เพื่อรับข้อมูลของสนาม
 	facilityURL := "http://localhost:1335/facility_v1/facility/facilities"
 	resp, err := http.Get(facilityURL)
 	if err != nil {
@@ -74,7 +73,6 @@ func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
 		}
 	}
 
-	// ใช้ bookingResponse.Id เพื่อดึง ID ที่ถูกต้อง
 	paymentRequest := client.CreatePaymentRequest{
 		Amount:        priceInsider,
 		UserID:       bookingResponse.UserId,
@@ -83,15 +81,27 @@ func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
 		Currency:     "THB",
 	}
 
-	_, err = h.paymentClient.CreatePayment(paymentRequest)
+	paymentResponse, err := h.paymentClient.CreatePayment(paymentRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create payment: " + err.Error()})
 	}
 
+	// ตรวจสอบสถานะการชำระเงิน
+	paymentStatus, err := h.paymentClient.CheckPaymentStatus(paymentResponse.ID) // ใช้ paymentResponse.ID
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check payment status: " + err.Error()})
+	}
+
+	if paymentStatus.Status != "COMPLETED" { // ใช้ paymentStatus.Status
+		return c.JSON(http.StatusPaymentRequired, map[string]string{"error": "Payment is not completed"})
+	}
+
+	// รวมข้อมูลการชำระเงินกลับไปใน response
+	bookingResponse.PaymentID = paymentResponse.ID
+	bookingResponse.QRCodeURL = paymentResponse.QRCodeURL
+
 	return c.JSON(http.StatusOK, bookingResponse)
 }
-
-
 
 
 

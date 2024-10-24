@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	client "main/client/payment"
 	"main/config"
 	"main/modules/payment"
@@ -80,4 +81,9 @@ func (h *paymentHttpHandler) HandlePaymentSuccess(c echo.Context) error {
     return c.JSON(http.StatusOK, map[string]string{"message": "Payment status updated to completed"})
 }
 
+func generateQRCodeURL(payment *payment.PaymentEntity) string {
+    baseURL := "https://your-payment-gateway.com/pay"
+    return fmt.Sprintf("%s?amount=%.2f&currency=%s&user_id=%s&booking_id=%s",
+        baseURL, payment.Amount, payment.Currency, payment.UserID, payment.BookingID)
+}
 

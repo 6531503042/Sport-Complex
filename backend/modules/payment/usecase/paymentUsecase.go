@@ -49,26 +49,30 @@ func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, booki
 		UpdatedAt:     utils.LocalTime(),
 	}
 
-	// Insert the payment via repository
-	paymentResult, err := u.paymentRepository.InsertPayment(ctx, paymentDoc)
-	if err != nil {
-		return nil, fmt.Errorf("error creating payment: %w", err)
-	}
+// Generate QR Code URL
+qrCodeData := fmt.Sprintf("http://example.com/payment/%s", paymentDoc.PaymentID)
+paymentDoc.QRCodeURL = qrCodeData // Set the QR code URL in the payment document
 
-	// Prepare and return response
-	response := &payment.PaymentResponse{
-		Id:          paymentResult.Id.Hex(),
-		PaymentID:   paymentResult.PaymentID,
-		UserId:      paymentResult.UserID,
-		BookingId:   paymentResult.BookingID,
-		Amount:      paymentResult.Amount,
-		Currency:    paymentResult.Currency,
-		Status:      paymentResult.Status,
-		CreatedAt:   paymentResult.CreatedAt,
-		UpdatedAt:   paymentResult.UpdatedAt,
-	}
+// Insert the payment via repository
+paymentResult, err := u.paymentRepository.InsertPayment(ctx, paymentDoc)
+if err != nil {
+	return nil, fmt.Errorf("error creating payment: %w", err)
+}
 
-	return response, nil
+response := &payment.PaymentResponse{
+	Id:          paymentResult.Id.Hex(),
+	PaymentID:   paymentResult.PaymentID,
+	UserId:      paymentResult.UserID,
+	BookingId:   paymentResult.BookingID,
+	Amount:      paymentResult.Amount,
+	Currency:    paymentResult.Currency,
+	Status:      paymentResult.Status,
+	CreatedAt:   paymentResult.CreatedAt,
+	UpdatedAt:   paymentResult.UpdatedAt,
+	QRCodeURL:   paymentResult.QRCodeURL,
+}
+
+return response, nil
 }
 
 func (u *paymentUsecase) UpdatePayment(ctx context.Context, paymentId string, status string) (*payment.PaymentEntity, error) {

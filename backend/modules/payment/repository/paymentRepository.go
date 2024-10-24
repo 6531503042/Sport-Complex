@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -50,10 +51,9 @@ func (r *paymentRepository) InsertPayment(ctx context.Context, payment *payment.
 	payment.UpdatedAt = time.Now()
 
 	// Insert payment into payments collection
-	_, err := col.InsertOne(ctx, payment)
-	if err != nil {
+	if _, err := col.InsertOne(ctx, payment); err != nil {
 		log.Printf("Error: InsertPayment failed: %s", err.Error())
-		return nil, errors.New("error: InsertPayment failed")
+		return nil, fmt.Errorf("InsertPayment failed: %w", err)
 	}
 
 	return payment, nil

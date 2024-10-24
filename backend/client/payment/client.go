@@ -17,25 +17,56 @@ func NewPaymentClient(baseURL string) *PaymentClient {
 }
 
 type CreatePaymentRequest struct {
-	Amount        float64 `json:"amount" `                        // ต้องมี
-	UserID        string  `json:"user_id" validate:"required"`    // ต้องมี
-	BookingID     string  `json:"booking_id" validate:"required"` // ต้องมี
-	PaymentMethod string  `json:"payment_method"`                 // สามารถไม่มีได้
-	Currency      string  `json:"currency" validate:"required"`   // ต้องมี
+	Amount        float64 `json:"amount" validate:"required"`
+	UserID        string  `json:"user_id" validate:"required"`
+	BookingID     string  `json:"booking_id" validate:"required"`
+	PaymentMethod string  `json:"payment_method"`  // e.g., "PROMPTPAY"
+	Currency      string  `json:"currency" validate:"required"`
+	AccountID     string  `json:"account_id,omitempty"` // This field is required for PromptPay
 }
 
 type PaymentResponse struct {
-	// ใส่ฟิลด์ที่ต้องการใน response
 	ID        string  `json:"id"`
 	Status    string  `json:"status"`
 	Amount    float64 `json:"amount"`
 	Currency  string  `json:"currency"`
 	BookingID string  `json:"booking_id"`
 	Message   string  `json:"message,omitempty"`
-	
+	QRCodeURL string  `json:"qr_code_url,omitempty"` // Add this field to return the QR code URL
 }
 
+
 func (c *PaymentClient) CreatePayment(req CreatePaymentRequest) (*PaymentResponse, error) {
+	// Handle specific logic for PromptPay
+	if req.PaymentMethod == "PROMPTPAY" {
+		// Add logic to generate PromptPay QR code
+		body, err := json.Marshal(req)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal request: %w", err)
+		}
+
+		// Send the request to your service to create a PromptPay payment
+		resp, err := http.Post(c.baseURL+"/payments/promptpay", "application/json", bytes.NewBuffer(body))
+		if err != nil {
+			return nil, fmt.Errorf("failed to send request: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			respBody, _ := ioutil.ReadAll(resp.Body)
+			return nil, fmt.Errorf("failed to create payment, status: %s, response: %s", resp.Status, string(respBody))
+		}
+
+		var paymentResp PaymentResponse
+		if err := json.NewDecoder(resp.Body).Decode(&paymentResp); err != nil {
+			return nil, fmt.Errorf("failed to decode response: %w", err)
+		}
+
+		// Return the response, which should include the QR code URL
+		return &paymentResp, nil
+	}
+
+	// For other payment methods
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -60,6 +91,7 @@ func (c *PaymentClient) CreatePayment(req CreatePaymentRequest) (*PaymentRespons
 	return &paymentResp, nil
 }
 
+
 // CheckPaymentStatusRequest ฟังก์ชันสำหรับรับ request การตรวจสอบสถานะการชำระเงิน
 type CheckPaymentStatusRequest struct {
 	PaymentID string `json:"payment_id" validate:"required"`
@@ -67,23 +99,19 @@ type CheckPaymentStatusRequest struct {
 
 // CheckPaymentStatus ฟังก์ชันสำหรับตรวจสอบสถานะการชำระเงิน
 func (c *PaymentClient) CheckPaymentStatus(paymentID string) (*PaymentResponse, error) {
-	// สร้าง URL สำหรับตรวจสอบสถานะการชำระเงิน โดยใช้ paymentID
-	url := fmt.Sprintf("%s/payments/%s/status", c.baseURL, paymentID)
+	url := fmt.Sprintf("%s/payments/promptpay/%s/status", c.baseURL, paymentID)
 
-	// ส่ง request ไปยัง payment service
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// ตรวจสอบสถานะการตอบกลับ
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := ioutil.ReadAll(resp.Body)
 		return nil, fmt.Errorf("failed to check payment status, status: %s, response: %s", resp.Status, string(respBody))
 	}
 
-	// แปลง response body เป็น PaymentResponse
 	var paymentResp PaymentResponse
 	if err := json.NewDecoder(resp.Body).Decode(&paymentResp); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
@@ -91,6 +119,7 @@ func (c *PaymentClient) CheckPaymentStatus(paymentID string) (*PaymentResponse, 
 
 	return &paymentResp, nil
 }
+
 
 func (c *PaymentClient) UpdatePaymentStatus(paymentID string, status string) error {
 	updateRequest := struct {
