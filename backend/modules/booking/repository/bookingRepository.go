@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+
 	"errors"
 	"fmt"
 	"log"
+
 	"main/modules/booking"
 	"main/modules/facility"
 	"main/modules/models"
@@ -192,6 +194,11 @@ func (r *bookingRepository) GetOffset(pctx context.Context) (int64, error) {
 func (r *bookingRepository) UpOffset(pctx context.Context, newOffset int64) error {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
+
+	if err := r.MoveOldBookingTransactionToHistory(ctx); err != nil {
+		log.Printf("Error: clearingBookingAtMidnight: %s", err.Error())
+		return errors.New("error: clearingBookingAtMidnight failed")
+	}
 
 	db := r.bookingDbConn(ctx)
 	col := db.Collection("booking_queue")

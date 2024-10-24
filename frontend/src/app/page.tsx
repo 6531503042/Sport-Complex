@@ -1,11 +1,22 @@
-"use client"
+"use client";
+import React from 'react';
+import { useAuth } from '../app/context/AuthContext';
 
-import HomePage from './(pages)/homepage/page'
+const HomePage = () => {
+  const { user, logout } = useAuth();
 
-export default function Home() {
   return (
-    <main className=''>
-      <HomePage/>
-    </main>
+    <div>
+      {user ? (
+        <div>
+          <h1>Welcome, {user.name}</h1>
+          <button onClick={logout}>Logout</button>
+        </div>
+      ) : (
+        <p>Loading...</p>
+      )}
+    </div>
   );
-}
+};
+
+export default HomePage;
