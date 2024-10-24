@@ -5,6 +5,14 @@ import Link from "next/link";
 import Logo from "../../assets/Logo.png";
 import SideBar from "../../../../../frontend/src/app/components/sidebar/sidebar";
 import SearhBar from "../search_bar/search_bar";
+import GymIcon from '@mui/icons-material/FitnessCenter';
+import BadmintonIcon from '@mui/icons-material/SportsTennis'; 
+import SwimmingIcon from '@mui/icons-material/Pool'; 
+import FootballIcon from '@mui/icons-material/SportsSoccer';
+import RuleIcon from '@mui/icons-material/AssignmentLate'; 
+import ContactIcon from '@mui/icons-material/Mail'; 
+import PaymentIcon from '@mui/icons-material/Payment'; 
+
 
 
 type NavBarProps = {
@@ -65,69 +73,49 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
         </div>
       </header>
       <ul className="NavBar_res inline-flex flex-row px-10 gap-16 justify-center items-center font-semibold pt-4 text-sm">
-        <li className={getActiveClass("gym")}>
-          <Link
-            href="/gym"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <i className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>exercise</i>
-            Gym Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("badminton")}>
-          <Link
-            href="/badminton"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <i className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>sports_tennis</i>
-            Badminton Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("swimming")}>
-          <Link
-            href="/swimming"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <i className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>pool</i>
-            Swimming Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("football")}>
-          <Link
-            href="/football"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>sports_soccer</i>
-            Football Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("rule")}>
-          <Link
-            href="/rule"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>assignment_late</i>
-            Rules
-          </Link>
-        </li>
-        <li className={getActiveClass("contact")}>
-          <Link
-            href="/contact"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>mail</i>
-            Contact
-          </Link>
-        </li>
-        <li className={getActiveClass("payment")}>
-          <Link
-            href="/payment"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>wallet</i>
-            Payment
-          </Link>
-        </li>
+      <li className={getActiveClass("gym")}>
+  <Link href="/gym" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+    <GymIcon className="mx-2.5" style={{ fontSize: '1.3rem' }} />
+    Gym Booking
+  </Link>
+</li>
+<li className={getActiveClass("badminton")}>
+  <Link href="/badminton" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+    <BadmintonIcon className="mx-2.5" style={{ fontSize: '1.3rem' }} />
+    Badminton Booking
+  </Link>
+</li>
+<li className={getActiveClass("swimming")}>
+  <Link href="/swimming" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+    <SwimmingIcon className="mx-2.5" style={{ fontSize: '1.3rem' }} />
+    Swimming Booking
+  </Link>
+</li>
+<li className={getActiveClass("football")}>
+  <Link href="/football" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+    <FootballIcon className="mx-2.5" style={{ fontSize: '1.3rem' }} />
+    Football Booking
+  </Link>
+</li>
+<li className={getActiveClass("rule")}>
+  <Link href="/rule" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+    <RuleIcon className="mx-2.5" style={{ fontSize: '1.3rem' }} />
+    Rules
+  </Link>
+</li>
+<li className={getActiveClass("contact")}>
+  <Link href="/contact" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+    <ContactIcon className="mx-2.5" style={{ fontSize: '1.3rem' }} />
+    Contact
+  </Link>
+</li>
+<li className={getActiveClass("payment")}>
+  <Link href="/payment" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+    <PaymentIcon className="mx-2.5" style={{ fontSize: '1.3rem' }} />
+    Payment
+  </Link>
+</li>
+
       </ul>
     </div>
   );
