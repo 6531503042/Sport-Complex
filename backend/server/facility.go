@@ -19,13 +19,13 @@ func (s *server) facilityService() {
 	// facility.DELETE("/facility/:facility_id",httpHandler.DeleteOneFacility)
 
 	// Slot Routes
-	facilitySlot := facility.Group("/:facilityName/slot_v1") 
-	facilitySlot.POST("/slots", httpHandler.InsertSlot)         
-	facilitySlot.GET("/slots/:slot_id", httpHandler.FindOneSlot) 
-	facilitySlot.GET("/slots", httpHandler.FindAllSlots)      
+	facilitySlot := facility.Group("/:facilityName/slot_v1")
+	facilitySlot.POST("/slots", httpHandler.InsertSlot)
+	facilitySlot.GET("/slots/:slot_id", httpHandler.FindOneSlot)
+	facilitySlot.GET("/slots", httpHandler.FindAllSlots)
 	// facilitySlot.PUT("/slots/:slot_id", httpHandler.UpdateOneSlot)
 	// facilitySlot.DELETE("/slots/:slot_id", httpHandler.DeleteOneSlot)
-	
+
 	//Badminton
 	badminton := facility.Group("/badminton_v1")
 	badminton.POST("/court", httpHandler.InsertBadCourt)
@@ -35,6 +35,5 @@ func (s *server) facilityService() {
 	// badminton.GET("/court/:court_id", httpHandler.FindOneCourt)
 	// badminton.PUT("/court/:court_id", httpHandler.UpdateOneCourt)
 	// badminton.DELETE("/court/:court_id", httpHandler.DeleteOneCourt)
-	
 
 }
