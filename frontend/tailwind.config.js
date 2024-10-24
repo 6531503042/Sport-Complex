@@ -1,18 +1,23 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './pages/**/*.{js,ts,jsx,tsx}',
+    './pages/**/*.{js,ts,jsx,tsx}', 
     './components/**/*.{js,ts,jsx,tsx}',
-    './app/**/*.{js,ts,jsx,tsx}',
+    './node_modules/flowbite/**/*.js',
+    './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        fade: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+      },
+      animation: {
+        fade: 'fade 0.5s ease-in-out',
+      },
+    },
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('daisyui'),
-  ],
-  daisyui: {
-    themes: ["light", "dark"], // Adjust themes as needed
-  },
+  plugins: [require("flowbite/plugin")],
 };
