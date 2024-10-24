@@ -2,11 +2,9 @@ import React, { useState, useEffect } from "react";
 import Banner1Img from "../../../assets/dark_bg.jpg";
 import Banner2Img from "../../../assets/banner_2.jpg";
 import Banner3Img from "../../../assets/banner_1.jpg";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faChevronLeft,
-  faChevronRight,
-} from "@fortawesome/free-solid-svg-icons";
+import Link from "next/link";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 const BannerMain: React.FC = () => {
   const banners = [
@@ -15,7 +13,7 @@ const BannerMain: React.FC = () => {
       title: "Welcome to Sport Complex",
       description:
         "Reserve your spot and never miss out! Easily schedule your favorite sports activities with just a few clicks.",
-      link: "/pages/registration",
+      link: "/registration",
     },
     {
       image: Banner2Img,
@@ -34,109 +32,118 @@ const BannerMain: React.FC = () => {
   ];
 
   const [currentBanner, setCurrentBanner] = useState(0);
-  const [isFading, setIsFading] = useState(false);
+  const [isSliding, setIsSliding] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIsFading(true);
+      handleRightClick();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [currentBanner]);
+
+  const handleLeftClick = () => {
+    if (!isSliding) {
+      setIsSliding(true);
+      setTimeout(() => {
+        setCurrentBanner((prev) =>
+          prev === 0 ? banners.length - 1 : prev - 1
+        );
+        setIsSliding(false);
+      }, 100);
+    }
+  };
+
+  const handleRightClick = () => {
+    if (!isSliding) {
+      setIsSliding(true);
       setTimeout(() => {
         setCurrentBanner((prev) =>
           prev === banners.length - 1 ? 0 : prev + 1
         );
-        setIsFading(false);
+        setIsSliding(false);
       }, 100);
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [banners.length]);
-
-  const handleLeftClick = () => {
-    setIsFading(true);
-    setTimeout(() => {
-      setCurrentBanner((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
-      setIsFading(false);
-    }, 100);
-  };
-
-  const handleRightClick = () => {
-    setIsFading(true);
-    setTimeout(() => {
-      setCurrentBanner((prev) => (prev === banners.length - 1 ? 0 : prev + 1));
-      setIsFading(false);
-    }, 100);
+    }
   };
 
   const handleDotClick = (index: number) => {
-    setIsFading(true);
-    setTimeout(() => {
-      setCurrentBanner(index);
-      setIsFading(false);
-    }, 100);
+    if (!isSliding) {
+      setIsSliding(true);
+      setTimeout(() => {
+        setCurrentBanner(index);
+        setIsSliding(false);
+      }, 100);
+    }
   };
 
   return (
-    <div className="banner_container flex items-center h-[500px] text-white bg-cover bg-center">
+    <div className="banner-container relative flex justify-center items-center overflow-hidden h-[500px] text-white">
+      <button
+        className="absolute top-1/2 left-10 z-20 p-2 flex items-center justify-center w-15 h-15 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all"
+        onClick={handleLeftClick}
+      >
+        <NavigateBeforeIcon style={{ fontSize: "2rem" }} />
+      </button>
+
+      <button
+        className="absolute top-1/2 z-20 right-10 p-2 flex items-center justify-center w-15 h-15 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all"
+        onClick={handleRightClick}
+      >
+        <NavigateNextIcon style={{ fontSize: "2rem" }} />
+      </button>
+
       <div
-        className={`flex flex-col justify-between items-center h-full w-screen transition-opacity duration-300 ease-in-out py-5 ${
-          isFading ? "opacity-0" : "opacity-100"
+        className={`flex transition-transform duration-700 ease-in-out transform relative z-10 ${
+          isSliding ? "translate-x-[-100%]" : "translate-x-[0]"
         }`}
         style={{
-          backgroundImage: `url(${banners[currentBanner].image.src})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          transform: `translateX(-${currentBanner * 100}%)`,
         }}
       >
-        <div className="invisible">
-          block
-        </div>
-        <div className="flex flex-row items-center w-full px-10 justify-between">
-          <button
-            className="flex items-center justify-center w-12 h-12 rounded-full cursor-pointer text-8xl text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-100"
-            onClick={handleLeftClick}
+        {banners.map((banner, index) => (
+          <div
+            key={index}
+            className="flex-shrink-0 flex justify-center w-full h-[500px] bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${banner.image.src})`,
+            }}
           >
-            <FontAwesomeIcon
-              icon={faChevronLeft}
-              style={{ fontSize: "1rem" }}
-            />
-          </button>
-
-          <div className="flex flex-col h-auto w-1/2 text-center items-center">
-            <div className="flex flex-col p-4 items-center">
-              <p className="text-6xl font-bold">
-                {banners[currentBanner].title}
+            <div className="banner_detail flex flex-col justify-center items-center w-full h-full bg-black bg-opacity-50 text-center p-5 sm:p-10">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-3 sm:mb-5  w-2/3 sm:w-1/2">
+                {banner.title}
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl mb-5 w-1/3 sm:w-1/3 md:w-1/2 ">
+                {banner.description}
               </p>
-              <span className="mt-5 w-2/3 text-lg">
-                {banners[currentBanner].description}
-              </span>
-            </div>
-            <div className="cursor-pointer transition-all duration-200 mt-3 p-3 bg-transparent w-fit border-2 border-stone-400 rounded-md text-white text-xs font-bold hover:text-white hover:border-transparent hover:bg-orange-700">
-              <a href={banners[currentBanner].link}>
-                <button type="button">Learn More</button>
-              </a>
+              <div className="cursor-pointer pt-5">
+                <Link
+                  href={banner.link}
+                  className="py-2.5 px-3 sm:py-3.5 sm:px-5 lg:py-4.5 lg:px-7 transition-all duration-300 border-2 border-stone-200 text-stone-200 rounded-full text-xs sm:text-sm hover:border-transparent hover:shadow-lg hover:bg-yellow-500 hover:text-white"
+                >
+                  <button type="button" className="uppercase">
+                    <span className="inline-flex flex-row items-center">
+                      <p>Learn More</p>
+                      <NavigateNextIcon className="ps-2 text-3xl" />
+                    </span>
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
-          <button
-            className="flex items-center justify-center w-12 h-12 rounded-full cursor-pointer text-white border-white border-2 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-100"
-            onClick={handleRightClick}
-          >
-            <FontAwesomeIcon
-              icon={faChevronRight}
-              style={{ fontSize: "1rem" }}
-            />
-          </button>
-        </div>
-        <div className="transform flex space-x-2">
-          {banners.map((_, index) => (
-            <span
-              key={index}
-              onClick={() => handleDotClick(index)}
-              className={`cursor-pointer w-4 h-4 rounded-full border-2 ${
-                currentBanner === index
-                  ? "bg-yellow-500 border-yellow-500"
-                  : "bg-transparent border-gray-200"
-              }`}
-            ></span>
-          ))}
-        </div>
+        ))}
+      </div>
+
+      <div className="absolute bottom-5 flex space-x-2 justify-center w-full z-20 transition-all duration-300">
+        {banners.map((_, index) => (
+          <span
+            key={index}
+            onClick={() => handleDotClick(index)}
+            className={`cursor-pointer w-3 h-3 rounded-full border ${
+              currentBanner === index
+                ? "bg-yellow-500 border-yellow-500"
+                : "bg-transparent border-gray-200"
+            }`}
+          ></span>
+        ))}
       </div>
     </div>
   );

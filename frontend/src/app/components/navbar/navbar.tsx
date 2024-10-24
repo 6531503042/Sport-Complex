@@ -3,18 +3,10 @@
 import React from "react";
 import Link from "next/link";
 import Logo from "../../assets/Logo.png";
-import SideBar from "../sidebar/sidebar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faClipboard,
-  faDumbbell,
-  faEnvelope,
-  faSwimmer,
-  faWallet,
-  faFutbol,
-} from "@fortawesome/free-solid-svg-icons";
-import SearhBar from "../../components/search_bar/search_bar";
-import '../navbar/navbar.css'
+import SideBar from "../../../../../front-end/src/app/components/sidebar/sidebar";
+import SearhBar from "../search_bar/search_bar";
+import "./navbar.css";
+
 
 type NavBarProps = {
   activePage?: string;
@@ -23,20 +15,6 @@ type NavBarProps = {
 const navbar: React.FC<NavBarProps> = ({ activePage }) => {
   const getBackgroundColor = () => {
     switch (activePage) {
-      case "gym":
-        return "bg-red-500";
-      case "swimming":
-        return "bg-blue-500";
-      case "football":
-        return "bg-yellow-500";
-      case "contact":
-        return "bg-green-500";
-      case "rule":
-        return "bg-purple-500";
-      case "payment":
-        return "bg-orange-500";
-      case "homepage":
-        return "bg-red-400";
       default:
         return "bg-red-900";
     }
@@ -51,13 +29,13 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
   return (
     <div className={`${getBackgroundColor()} justify-center flex flex-col`}>
       <header>
-        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-8 py-5">
+        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5">
           <Link
-            href="/homepage"
-            className="inline-flex flex-row items-center flex-none gap-3.5 w-1/5"
+            href="/"
+            className="inline-flex flex-row items-center  gap-3.5 w-1/5"
           >
             <img src={Logo.src} alt="Logo" className="w-7" />
-            <span className="flex flex-col border-l-2 w-max">
+            <span className="flex flex-col border-l-2 w-max whitespace-nowrap">
               <div className="ms-1">
                 <span className="ms-1 inline-flex flex-row font-semibold text-xl">
                   <p className="text-black ">SPORT.</p>
@@ -77,7 +55,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             <aside className="login_button border-b-4 border-transparent">
               <nav className="inline-flex">
                 <div className=" hover:text-white hover:bg-orange-700 hover:shadow-lg transition-all duration-300 cursor-pointer py-2 px-5 bg-tranparent border rounded-full border-orange-700 text-orange-700 items-center">
-                  <Link href="/pages/registration" className=" font-medium">
+                  <Link href="/admin_dashboard" className=" font-medium">
                     Login
                   </Link>
                 </div>
@@ -87,14 +65,23 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
           </div>
         </div>
       </header>
-      <ul className="NavBar_res inline-flex flex-row pr-10 gap-16 justify-center font-semibold pt-4 text-sm">
+      <ul className="NavBar_res inline-flex flex-row px-10 gap-16 justify-center items-center font-semibold pt-4 text-sm">
         <li className={getActiveClass("gym")}>
           <Link
             href="/gym"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faDumbbell} className="mx-2.5" />
+            <i className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>exercise</i>
             Gym Booking
+          </Link>
+        </li>
+        <li className={getActiveClass("badminton")}>
+          <Link
+            href="/badminton"
+            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
+          >
+            <i className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>sports_tennis</i>
+            Badminton Booking
           </Link>
         </li>
         <li className={getActiveClass("swimming")}>
@@ -102,7 +89,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/swimming"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faSwimmer} className="mx-2.5" />
+            <i className="material-symbols-outlined mx-2.5 " style={{ fontSize: '1.3rem' }}>pool</i>
             Swimming Booking
           </Link>
         </li>
@@ -111,8 +98,8 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/football"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faFutbol} className="mx-2.5" />
-            Football booking
+            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>sports_soccer</i>
+            Football Booking
           </Link>
         </li>
         <li className={getActiveClass("rule")}>
@@ -120,7 +107,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/rule"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faClipboard} className="mx-2.5" />
+            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>assignment_late</i>
             Rules
           </Link>
         </li>
@@ -129,7 +116,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/contact"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faEnvelope} className="mx-2.5" />
+            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>mail</i>
             Contact
           </Link>
         </li>
@@ -138,7 +125,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
             href="/payment"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
-            <FontAwesomeIcon icon={faWallet} className="mx-2.5" />
+            <i className="material-symbols-outlined mx-2.5" style={{ fontSize: '1.3rem' }}>wallet</i>
             Payment
           </Link>
         </li>

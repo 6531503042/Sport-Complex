@@ -5,7 +5,7 @@
 @import 'flowbite';
 
 * {
-    font-family: sans-serif;
+    font-family: 'Arial', sans-serif;
     box-sizing:border-box;
     -webkit-box-sizing: border-box;
 }
@@ -18,7 +18,7 @@ html, body {
   }
   
 
-@media (max-width: 1180px) {
+@media (max-width: 1360px) {
     .NavBar_res {
         display: none;
 }
@@ -51,10 +51,13 @@ html, body {
     }
   }
 
-@media (max-width: 955px) {
+@media (max-width: 1000px) {
     .searchbar_field {
         display:none;
     }
+    .NavBar_container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
 }
-
-
