@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Input, Button, Checkbox, Link } from '@nextui-org/react';
 import Image from 'next/image';
 import styles from './Login.module.css';
-import { useAuth } from '../context/AuthContext'; 
+import { useAuth } from '../../context/AuthContext'; 
 
 const LoginPage = () => {
   const router = useRouter();

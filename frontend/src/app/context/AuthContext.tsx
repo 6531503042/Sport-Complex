@@ -10,7 +10,7 @@ interface AuthContextType {
   logout: () => void;
 }
 
-// Create a default value for the AuthContext
+
 const defaultAuthContext: AuthContextType = {
   user: null,
   setUser: () => {},
