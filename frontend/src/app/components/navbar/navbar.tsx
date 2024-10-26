@@ -3,9 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import Logo from "../../assets/Logo.png";
-import SideBar from "../../../../../front-end/src/app/components/sidebar/sidebar";
+// import SideBar from "../../../../../front-end/src/app/components/sidebar/sidebar";
 import SearhBar from "../search_bar/search_bar";
-import "./navbar.css";
+// import "./navbar.css";
 
 
 type NavBarProps = {
@@ -61,7 +61,7 @@ const navbar: React.FC<NavBarProps> = ({ activePage }) => {
                 </div>
               </nav>
             </aside>
-            <SideBar />
+            {/* <SideBar /> */}
           </div>
         </div>
       </header>

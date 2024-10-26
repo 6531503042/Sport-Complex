@@ -14,9 +14,9 @@ const Layout = ({ children }: LayoutProps) => {
         <title>Your Website Title</title>
       </head>
       <body>
-        <AuthProvider>
+       
           <main>{children}</main>
-        </AuthProvider>
+       
       </body>
     </html>
   );
