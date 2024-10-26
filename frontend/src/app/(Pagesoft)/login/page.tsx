@@ -39,7 +39,7 @@ const LoginPage = () => {
         localStorage.setItem('refresh_token', data.credential.refresh_token);
         setUser(data); 
         setShowError(false);
-        router.push('/'); 
+        router.push('/homepage'); 
       }
     } catch (error) {
       console.error('Login error:', error);

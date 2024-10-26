@@ -27,7 +27,7 @@
   color: #555;
   font-size: 1rem;
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 3rem;
 }
 
 .form {
@@ -36,7 +36,7 @@
 }
 
 .input {
-  margin-bottom: 1rem;
+  margin-bottom: 3rem;
 }
 
 .input input {
@@ -51,7 +51,7 @@
 .input label {
   font-family: 'Arial', sans-serif;
   color: #000;
-  margin-bottom: 0.5rem; /* Add margin to the bottom of the label */
+  margin-bottom: 4.5rem; 
   display: block; /* Make the label block-level element */
 }
 
