@@ -169,6 +169,18 @@ const Sidebar: React.FC = () => {
               <p>Profile</p>
             </Link>
           </li>
+          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
+            <Link
+              href="/admin_dashboard"
+              className="inline-flex flex-row items-center"
+            >
+              <FontAwesomeIcon
+                icon={faUser}
+                className=" text-orange-600 w-14"
+              />
+              <p>AdminDashboard</p>
+            </Link>
+          </li>
         </ul>
         <br />
         <div className="h-[1.5px] rounded-lg mx-10 bg-zinc-700"></div>
