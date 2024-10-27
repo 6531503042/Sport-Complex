@@ -14,7 +14,6 @@ const homepage: React.FC = () => {
       <NavBar />
       <BannerMain />
       <NewsReport />
-      <LinkRelease />
       <br />
       <br />
       <br />
