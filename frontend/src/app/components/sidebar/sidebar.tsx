@@ -28,7 +28,7 @@ const Sidebar: React.FC = () => {
         <img
           src={IconSidebar.src}
           alt=""
-          className="h-auto w-6 transform transition-transform duration-100 ease-in-out hover:scale-125"
+          className="h-auto w-6 transform transition-transform duration-300 ease-in-out hover:scale-125"
         />
       </div>
       {isSidebarOpen && (
@@ -48,7 +48,7 @@ const Sidebar: React.FC = () => {
             <aside className="login_button border-b-4 border-transparent">
               <nav className="inline-flex">
                 <div className=" hover:text-white hover:bg-amber-800 hover:shadow-md hover:shadow-amber-700 transition-all duration-300 cursor-pointer py-1.5 px-4 bg-red-900 rounded-full text-white items-center">
-                  <Link href="/registration" className=" font-medium">
+                  <Link href="/admin_dashboard" className=" font-medium">
                     Login
                   </Link>
                 </div>
