@@ -1,8 +1,9 @@
 "use client";
 
+import {Checkbox} from "@nextui-org/react";
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Input, Button, Checkbox, Link } from '@nextui-org/react';
+import { Input, Button, Link } from '@nextui-org/react';
 import Image from 'next/image';
 import styles from './Login.module.css';
 import { useAuth } from '../../context/AuthContext'; 
@@ -78,8 +79,7 @@ const LoginPage = () => {
           </div>
           <div className={styles.checkboxContainer}>
             <div className={styles.checkboxWrapper}>
-              <Checkbox className={styles.checkbox} />
-              <span className={styles.checkboxText}>Remember me</span>
+            <Checkbox defaultSelected>Remember me</Checkbox>
             </div>
             <Link href="#" className={styles.link}>Forgot password</Link>
           </div>
