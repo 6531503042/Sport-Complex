@@ -31,7 +31,7 @@ html, body {
         display: none;
 
     }
-    .login_and_sidebar {
+    .name_user_and_sidebar {
         display: flex;
         justify-content: end;
     }
@@ -52,12 +52,22 @@ html, body {
   }
 
 @media (max-width: 1000px) {
-    .searchbar_field {
-        display:none;
-    }
+    
     .NavBar_container {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+    }
+}
+
+@media (max-width: 1140px){
+    .searchbar_field {
+        display:none;
+    }
+}
+
+@media (max-width: 670px){
+    .name_user {
+        display: none;
     }
 }

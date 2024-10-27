@@ -77,8 +77,8 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
           <div className="flex-none w-3/6 flex me-3">
             <SearhBar />
           </div>
-          <div className="login_and_sidebar flex-none w-1/12 flex justify-end items-center ms-5 me-2 gap-12">
-            <span className="inline-flex flew-row gap-5 items-center">
+          <div className="name_user_and_sidebar flex-none w-1/12 flex justify-end items-center ms-5 me-2 gap-12">
+            <span className="name_user inline-flex flew-row gap-5 items-center">
               {userName ? truncateUserName(userName) : "Loading..."}
               <p>|</p>
               <button
