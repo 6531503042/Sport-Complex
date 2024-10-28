@@ -10,11 +10,11 @@ const search_bar = () => {
   };
 
   return (
-    <div className="searchbar_field flex w-full items-center justify-end">
+    <div className="searchbar_field flex w-full items-center justify-end min-[1645px]:me-0 me-40">
       <div
         className={`flex justify-end items-center transition-all duration-300 ease-in-out ${
-          isExpanded ? "w-64 border px-2 py-2 " : "w-10"
-        } border-gray-400 rounded-full w-full`}
+          isExpanded ? "min-[1645px]:w-full w-96  border px-2 py-2 " : "w-10"
+        } border-gray-400 rounded-full `}
       >
         {isExpanded && (
           <input

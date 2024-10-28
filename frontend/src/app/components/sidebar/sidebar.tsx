@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -14,8 +14,28 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import IconSidebar from "../../assets/icon_sidebar_black.png";
 import "../sidebar/sidebar.css";
+import { useRouter } from "next/navigation";
 
 const Sidebar: React.FC = () => {
+  const [userName, setUserName] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUserName(user.name);
+    }
+  }, []);
+
+  const truncateUserName = (name: string) => {
+    return name.length > 20 ? name.slice(0, 20) + "..." : name;
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    router.push("/login");
+  };
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -28,7 +48,7 @@ const Sidebar: React.FC = () => {
         <img
           src={IconSidebar.src}
           alt=""
-          className="h-auto w-6 transform transition-transform duration-100 ease-in-out hover:scale-125"
+          className="h-auto w-6 transform transition-transform duration-300 ease-in-out hover:scale-125"
         />
       </div>
       {isSidebarOpen && (
@@ -43,22 +63,23 @@ const Sidebar: React.FC = () => {
           isSidebarOpen ? "translate-x-0" : "translate-x-full"
         } transition-transform duration-300 ease-in-out w-80 z-50 overflow-y-auto overflow-x-hidden`}
       >
-        <div className="inline-flex flex-row w-full justify-end">
-          <div className="p-8 flex gap-5">
+        <div className="inline-flex flex-row w-full ">
+          <div className="p-8 flex gap-5 w-full justify-between">
             <aside className="login_button border-b-4 border-transparent">
               <nav className="inline-flex">
-                <div className=" hover:text-white hover:bg-amber-800 hover:shadow-md hover:shadow-amber-700 transition-all duration-300 cursor-pointer py-1.5 px-4 bg-red-900 rounded-full text-white items-center">
-                  <Link href="/registration" className=" font-medium">
-                    Login
-                  </Link>
-                </div>
+                <span className="inline-flex  items-center">
+                  {userName ? truncateUserName(userName) : "Loading..."}
+                </span>
               </nav>
             </aside>
             <button
               className="text-black hover:text-gray-300 transition-all duration-200"
               onClick={toggleSidebar}
             >
-              <FontAwesomeIcon icon={faX} style={{fontSize:'1.5rem', fontWeight:'normal'}}/>
+              <FontAwesomeIcon
+                icon={faX}
+                style={{ fontSize: "1.5rem", fontWeight: "normal" }}
+              />
             </button>
           </div>
         </div>
@@ -148,7 +169,28 @@ const Sidebar: React.FC = () => {
               <p>Profile</p>
             </Link>
           </li>
+          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
+            <Link
+              href="/admin_dashboard"
+              className="inline-flex flex-row items-center"
+            >
+              <FontAwesomeIcon
+                icon={faUser}
+                className=" text-orange-600 w-14"
+              />
+              <p>AdminDashboard</p>
+            </Link>
+          </li>
         </ul>
+        <br />
+        <div className="h-[1.5px] rounded-lg mx-10 bg-zinc-700"></div>
+        <br />
+        <button
+          onClick={handleLogout}
+          className=" w-full flex justify-center"
+        >
+          <p className="hover:text-white hover:bg-red-900 border-[1.5px]  border-red-900 py-1.5 px-6 rounded-lg transition-all duration-300">Logout</p>
+        </button>
       </div>
     </div>
   );

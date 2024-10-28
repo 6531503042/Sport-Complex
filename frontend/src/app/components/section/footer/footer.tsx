@@ -4,12 +4,9 @@ import Logo from "../../../assets/Logo.png";
 
 const footer = () => {
   return (
-    <div className="bg-slate-600">
-      <div className="p-10">
-        <Link
-          href="/"
-          className="inline-flex flex-row items-center flex-none gap-3.5 w-1/5"
-        >
+    <div className="bg-slate-600 w-full">
+      <div className="p-10 w-full flex flex-row justify-between items-center ">
+        <Link href="/" className="inline-flex flex-row items-center gap-3.5 flex-none w-1/2">
           <img src={Logo.src} alt="Logo" className="w-7" />
           <span className="flex flex-col border-l-2 w-max">
             <div className="ms-1">
@@ -24,6 +21,7 @@ const footer = () => {
             </div>
           </span>
         </Link>
+        <span className="text-white w-1/2 flex-none flex justify-end text-xl">Copyright ©</span>
       </div>
     </div>
   );
