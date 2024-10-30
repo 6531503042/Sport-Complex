@@ -6,6 +6,7 @@ import Unavailable from "@/app/assets/unavailable.png";
 import Back from "@/app/assets/back.png";
 import Member from "@/app/assets/member.png";
 import "./swimming.css";
+import NavBar from "@/app/components/navbar/navbar";
 
 interface UserData {
   id: string;
@@ -187,6 +188,7 @@ function Swimming_Booking({ params }: UserDataParams) {
 
   return (
     <>
+    <NavBar/>
       <div className="flex flex-col items-center h-screen p-6">
         <div className="w-full max-w-[1189px] bg-[#FEFFFE] border-gray border rounded-3xl drop-shadow-2xl p-5">
           <h1 className="text-4xl font-bold my-10 text-black text-center">
