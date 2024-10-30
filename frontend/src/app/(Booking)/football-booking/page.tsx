@@ -5,6 +5,7 @@ import "./football.css";
 import Available from "@/app/assets/available.png";
 import Unavailable from "@/app/assets/unavailable.png";
 import Back from "@/app/assets/back.png";
+import NavBar from "@/app/components/navbar/navbar";
 
 interface UserData {
   id: string;
@@ -47,7 +48,7 @@ function Football_Booking({ params }: UserDataParams) {
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
-
+  
     // Form validation: Check if the phone number is filled in
     if (!formData.phone) {
       setErrors((prevErrors) => ({
@@ -56,16 +57,27 @@ function Football_Booking({ params }: UserDataParams) {
       }));
       return;
     }
-
+  
     try {
+      // Ensure the selectedCard is valid before proceeding
+      if (selectedCard === null || !slot[selectedCard]) {
+        console.error("No slot selected");
+        return;
+      }
+  
+      // Prepare booking data
       const bookingData = {
-        user_id: ownId, // User's ID from the state
-        slot_id: slot[selectedCard]?._id, // Slot ID from the selected card
+        user_id: formData.id, // Use ID from formData
+        slot_id: slot[selectedCard]._id, // Get the selected slot's ID
         status: 1, // Assuming 1 means successful booking
-        slot_type: "normal", // Based on the Postman request, slot_type is 'normal'
-        badminton_slot_id: null, // For football, badminton_slot_id can be null
+        slot_type: "normal", // Slot type, based on your API
+        badminton_slot_id: null, // Not applicable for football
       };
-
+  
+      // Log the booking data
+      console.log("Booking Data:", bookingData);
+  
+      // Send booking request
       const response = await fetch(
         "http://localhost:1326/booking_v1/football/booking",
         {
@@ -76,24 +88,21 @@ function Football_Booking({ params }: UserDataParams) {
           body: JSON.stringify(bookingData),
         }
       );
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to book: ${response.statusText} (Status: ${response.status})`
-        );
-      }
-
+  
       const result = await response.json();
       console.log("Booking successful:", result);
-
+  
       // Show the booking success popup
       setIsBookingSuccessful(true);
-
+  
       // Reset form and selected card
-      setFormData({ name: "", id: "", phone: "" });
+      setFormData((prevData) => ({
+        ...prevData,
+        phone: "", // Clear phone number field only
+      }));
       setSelectedCard(null);
-
-      // Update the list to reflect the successful booking
+  
+      // Update the slot to reflect the successful booking
       setSlot((prevSlots) =>
         prevSlots.map((s) =>
           s._id === bookingData.slot_id ? { ...s, current_bookings: true } : s
@@ -103,6 +112,8 @@ function Football_Booking({ params }: UserDataParams) {
       console.error("Error submitting booking:", error);
     }
   };
+  
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -140,45 +151,40 @@ function Football_Booking({ params }: UserDataParams) {
   };
 
   useEffect(() => {
+    // Retrieve user data from localStorage
+    const userDataName = localStorage.getItem("user");
+    if (userDataName) {
+      const user = JSON.parse(userDataName);
+
+      setFormData((prevData) => ({
+        ...prevData,
+        name: user.name || "",
+        id: user.id || "",
+      }));
+    }
+    const userDataId = localStorage.getItem("_id");
+    if (userDataId) {
+      const user = JSON.parse(userDataId);
+
+      setFormData((prevData) => ({
+        ...prevData,
+        name: user.name || "",
+        id: user.id || "",
+      }));
+    }
+    // Fetch slot data on initial render and set up the interval for updating
     getSlot();
-    getUserData(id); // Use the id from params when calling getUserData
-
-    const intervalId = setInterval(() => {
-      getSlot();
-    }, 10000);
-
+    const intervalId = setInterval(getSlot, 10000);
+  
     return () => {
       clearInterval(intervalId);
     };
   }, [id]);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [userData, setUserData] = useState<any[]>([]);
-  const [ownName, setOwnName] = useState("");
-  const [ownId, setOwnId] = useState("");
-  const getUserData = async (id: string) => {
-    try {
-      const resUserData = await fetch(
-        `http://localhost:1325/user_v1/users/67126e06b320204c9d3434b7`,
-        {
-          method: "GET",
-          cache: "no-store",
-        }
-      );
-      if (!resUserData.ok) {
-        throw new Error("Failed to fetch the user");
-      }
-      const userData: UserData = await resUserData.json();
-      setUserData(userData);
-      setOwnName(userData.name);
-      setOwnId(userData.id);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
+  
+ 
   return (
     <>
+    <NavBar/>
       <div className="flex flex-col items-center h-screen p-6">
         <div className="w-full max-w-[1189px] bg-[#FEFFFE] border-gray border rounded-3xl drop-shadow-2xl p-5">
           <h1 className="text-4xl font-bold my-10 text-black text-center">
@@ -214,7 +220,7 @@ function Football_Booking({ params }: UserDataParams) {
                     <input
                       type="text"
                       name="name"
-                      value={ownName}
+                      value={userName}
                       className="name-input-football mt-1 block w-full px-3 py-3"
                     />
                   </label>
@@ -272,7 +278,7 @@ function Football_Booking({ params }: UserDataParams) {
                     className={` border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
       ${
         lot.current_bookings
-          ? "cursor-not-allowed bg-light-gray text-white"
+          ? "cursor-not-allowed bg-[#C1C7D4] text-white"
           : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
       }
       ${!lot.current_bookings ? "hover:bg-[#005400]" : ""}
@@ -322,59 +328,33 @@ function Football_Booking({ params }: UserDataParams) {
                         {slot[selectedCard].end_time}
                       </h2>
                       <form onSubmit={handleSubmit}>
-                        <label className="block mb-4">
-                          <span className="block text-sm font-medium text-gray-700 py-2">
-                            Name
-                          </span>
-                          <input
-                            type="text"
-                            name="name"
-                            value={ownName}
-                            // placeholder={ownName}
-                            className="name-input-football mt-1 block w-full px-3 py-3"
-                          />
-                          {errors.name && (
-                            <span className="text-red-500 text-sm">
-                              {errors.name}
-                            </span>
-                          )}
-                        </label>
-                        <label className="block mb-4">
-                          <span className="block text-sm font-medium text-gray-700 py-2">
-                            Lecturer / Staff / Student ID
-                          </span>
-                          <input
-                            type="text"
-                            name="id"
-                            value={ownId}
-                            // placeholder={ownId}
-                            className="name-input-football mt-1 block w-full px-3 py-3"
-                          />
-                          {errors.id && (
-                            <span className="text-red-500 text-sm">
-                              {errors.id}
-                            </span>
-                          )}
-                        </label>
-                        <label className="block mb-4">
-                          <span className="block text-sm font-medium text-gray-700 py-2">
-                            Phone Number
-                          </span>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            placeholder="Enter your phone number"
-                            className="name-input-football mt-1 block w-full px-3 py-3"
-                          />
+                      <label className="block mb-4">
+  <span className="block text-sm font-medium text-gray-700 py-2">Name</span>
+  <input
+    type="text"
+    name="name"
+    value={formData.name}  // Display the name from localStorage
+    readOnly                
+    className="name-input-football mt-1 block w-full px-3 py-3"
+  />
+</label>
 
-                          {errors.phone && (
-                            <span className="text-red-500 text-sm">
-                              {errors.phone}
-                            </span>
-                          )}
-                        </label>
+<label className="block mb-4">
+  <span className="block text-sm font-medium text-gray-700 py-2">
+    Lecturer / Staff / Student ID
+  </span>
+  <input
+    type="text"
+    name="id"
+    value={formData.id}    // Display the id from localStorage
+    readOnly              
+    className="name-input-football mt-1 block w-full px-3 py-3"
+  />
+</label>
+
+
+
+                        
                         {/* Center the button */}
                         <div className="flex justify-center">
                           <button
