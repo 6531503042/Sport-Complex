@@ -220,3 +220,28 @@ func (u *facilityUsecase) FindBadmintonSlot(ctx context.Context) ([]facility.Bad
 
 	return badmintonSlots, nil
 }
+
+// UpdateSlot updates a slot's details
+func (u *facilityUsecase) UpdateSlot(ctx context.Context, facilityName string, req *facility.Slot) (*facility.Slot, error) {
+	return u.facilityRepository.UpdateSlot(ctx, facilityName, req)
+}
+
+// DeleteSlot deletes a slot by its ID
+func (u *facilityUsecase) DeleteSlot(ctx context.Context, facilityName, slotId string) error {
+	return u.facilityRepository.DeleteSlot(ctx, facilityName, slotId)
+}
+
+// UpdateBadmintonSlot updates a badminton slot's details
+func (u *facilityUsecase) UpdateBadmintonSlot(ctx context.Context, req *facility.BadmintonSlot) error {
+	return u.facilityRepository.UpdateBadmintonSlot(ctx, req)
+}
+
+// DeleteBadmintonCourt deletes a badminton court by its ID
+func (u *facilityUsecase) DeleteBadmintonCourt(ctx context.Context, courtId string) error {
+	return u.facilityRepository.DeleteBadmintonCourt(ctx, courtId)
+}
+
+// DeleteBadmintonSlot deletes a badminton slot by its ID
+func (u *facilityUsecase) DeleteBadmintonSlot(ctx context.Context, slotId string) error {
+	return u.facilityRepository.DeleteBadmintonSlot(ctx, slotId)
+}

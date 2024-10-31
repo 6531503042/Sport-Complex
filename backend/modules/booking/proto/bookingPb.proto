@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "https://github.com/6531503042/Sport-Complex";
+option go_package = "github.com/6531503042/Sport-Complex/modules/booking/proto";
 
 import "google/protobuf/timestamp.proto";
 
@@ -14,36 +14,42 @@ message Booking {
     string id = 1;
     string user_id = 2;
     string slot_id = 3;
-    int32 status = 4;
-    string created_at = 5;
-    string updated_at = 6;
+    string status = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
 }
 
-message CreateBookingReq {
+message InsertBookingRequest {
     string user_id = 1;
-    string slot_id = 2;
+    string facilityName = 2;
+    string slot_id = 3;
 }
 
-message UpdateBookingReq {
+message InsertBookingResponse {
+    string bookingId = 1;
+    string status = 2;
+  }
+
+message UpdateBookingRequest {
     string booking_id = 1;
-    int32 status = 2;
+    string facilityName = 2;
 }
 
-message GetBookingReq {
-    string booking_id = 1;
-}
+message UpdateBookingResponse {
+    string status = 1;
+  }
 
-message GetUserBookingsReq {
-    string user_id = 1;
-}
+message FindBookingRequest {
+    string bookingId = 1;
+  }
+  
+  message FindBookingResponse {
+    string bookingId = 1;
+    string status = 2;
+  }
 
-message GetBookingsResp {
-    repeated Booking bookings = 1;
-}
-
-service BookingService {
-    rpc CreateBooking(CreateBookingReq) returns (Booking);
-    rpc UpdateBooking(UpdateBookingReq) returns (Booking);
-    rpc GetBooking(GetBookingReq) returns (Booking);
-    rpc GetUserBookings(GetUserBookingsReq) returns (GetBookingsResp);
-}
+  service BookingService {
+    rpc InsertBooking (InsertBookingRequest) returns (InsertBookingResponse);
+    rpc UpdateBooking (UpdateBookingRequest) returns (UpdateBookingResponse);
+    rpc FindBooking (FindBookingRequest) returns (FindBookingResponse);
+  }

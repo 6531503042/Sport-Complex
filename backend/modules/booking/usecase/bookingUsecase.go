@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"main/config"
 	"main/modules/booking"
 	bm "main/modules/booking"
@@ -15,7 +16,7 @@ import (
 type(
 	BookingUsecaseService interface {
 		// InsertBooking(ctx context.Context, userId, slotId string) (*booking.Booking, error)
-		UpdateBooking (ctx context.Context, bookingId string, status int) (*booking.Booking, error)
+		UpdateBooking (ctx context.Context, bookingId string, status string) (*booking.Booking, error)
 		FindBooking (ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking(ctx context.Context, userId string) ([]booking.Booking, error)
 		InsertBooking(ctx context.Context, facilityName string, req *booking.CreateBookingRequest) (*booking.BookingResponse, error)
@@ -23,6 +24,7 @@ type(
 		//Kafka Interface
 		GetOffSet(ctx context.Context) (int64, error)
 		UpOffSet(ctx context.Context, newOffset int64) error
+		ScheduleMidnightClearing()
 	}
 
 	bookingUsecase struct {
@@ -38,27 +40,49 @@ func NewBookingUsecase(bookingRepository repository.BookingRepositoryService) Bo
 	}
 }
 
+// ScheduleMidnightClearing schedules the clearing of bookings at midnight every day.
+func (u *bookingUsecase) ScheduleMidnightClearing() {
+    now := time.Now()
+    nextMidnight := now.Truncate(24 * time.Hour).Add(24 * time.Hour)
+    duration := nextMidnight.Sub(now)
+
+    log.Printf("Next clearing scheduled in %v", duration)
+
+    time.AfterFunc(duration, func() {
+        ctx := context.Background()
+
+        // Execute the midnight clearing process
+        if err := u.bookingRepository.ClearingBookingAtMidnight(ctx); err != nil {
+            log.Printf("Error clearing bookings at midnight: %s", err.Error())
+        } else {
+            log.Println("Successfully cleared bookings at midnight")
+        }
+
+        // Schedule the next clearing
+        u.ScheduleMidnightClearing()
+    })
+}
+
+
 // func (u *bookingUsecase) ScheduleMidnightClearing() {
-//     now := time.Now()
-//     nextMidnight := now.Truncate(24 * time.Hour).Add(24 * time.Hour)
-//     duration := nextMidnight.Sub(now)
+//     log.Println("Clearing process scheduled to run every 1 minute")
 
-//     log.Printf("Next clearing scheduled in %v", duration)
-
-//     time.AfterFunc(duration, func() {
+//     // Set up the schedule to run every 1 minute
+//     time.AfterFunc(time.Minute, func() {
 //         ctx := context.Background()
 
-//         // Execute the midnight clearing process
-//         if err := u.bookingRepository.clearingBookingAtMidnight(ctx); err != nil {
-//             log.Printf("Error clearing bookings at midnight: %s", err.Error())
+//         // Execute the clearing process
+//         if err := u.bookingRepository.ClearingBookingAtMidnight(ctx); err != nil {
+//             log.Printf("Error clearing bookings: %s", err.Error())
 //         } else {
-//             log.Println("Successfully cleared bookings at midnight")
+//             log.Println("Successfully cleared bookings")
 //         }
 
-//         // Schedule the next clearing
+//         // Schedule the next clearing after 1 minute
 //         u.ScheduleMidnightClearing()
 //     })
 // }
+
 
 //Kafka Func
 func (u *bookingUsecase) GetOffSet(ctx context.Context) (int64, error) {
@@ -86,7 +110,7 @@ func (u *bookingUsecase) InsertBooking(ctx context.Context, facilityName string,
         UserId:          req.UserId,
         SlotId:          req.SlotId,
         BadmintonSlotId: req.BadmintonSlotId,
-        Status:          1, // Assuming status 1 means active or new
+        Status:          "pending",
         CreatedAt:       time.Now(),
         UpdatedAt:       time.Now(),
     }
@@ -116,7 +140,7 @@ func (u *bookingUsecase) InsertBooking(ctx context.Context, facilityName string,
 
 
 
-func (u *bookingUsecase) UpdateBooking (ctx context.Context, bookingId string, status int) (*booking.Booking, error) {
+func (u *bookingUsecase) UpdateBooking (ctx context.Context, bookingId string, status string) (*booking.Booking, error) {
 	booking, err := u.bookingRepository.FindBooking(ctx, bookingId)
 	if err != nil {
 		return nil, fmt.Errorf("error: failed to find booking: %w", err)
