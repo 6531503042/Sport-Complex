@@ -27,6 +27,8 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
     if (userData) {
       const user = JSON.parse(userData);
       setUserName(user.name);
+    } else {
+      router.replace("/login");
     }
   }, []);
 
@@ -36,7 +38,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("user"); 
-    router.push("/login"); 
+    router.replace("/login");
   };
 
   const getBackgroundColor = () => {
@@ -95,7 +97,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
       <ul className="NavBar_res inline-flex flex-row px-10 gap-16 justify-center items-center font-semibold pt-4 text-sm">
         <li className={getActiveClass("gym")}>
           <Link
-            href="/gym-booking"
+            href="/gym"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <GymIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
@@ -104,7 +106,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("badminton")}>
           <Link
-            href="/badminton-booking"
+            href="/badminton"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <BadmintonIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
@@ -113,7 +115,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("swimming")}>
           <Link
-            href="/swimming-booking"
+            href="/swimming"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <SwimmingIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
@@ -122,7 +124,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("football")}>
           <Link
-            href="/football-booking"
+            href="/football"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FootballIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
