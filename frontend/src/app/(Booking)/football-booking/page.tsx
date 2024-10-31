@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState, Fragment } from "react";
 import "./football.css";
-import Available from "@/app/assets/available.png";
-import Unavailable from "@/app/assets/unavailable.png";
-import Back from "@/app/assets/back.png";
 import NavBar from "@/app/components/navbar/navbar";
+import CheckIcon from "@mui/icons-material/Check";
+import ClearIcon from "@mui/icons-material/Clear";
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 
 interface UserData {
   id: string;
@@ -25,20 +25,14 @@ function Football_Booking({ params }: UserDataParams) {
     id: "",
     phone: "",
   });
-  const [errors, setErrors] = useState({
-    name: "",
-    id: "",
-    phone: "",
-  });
   const [isBookingSuccessful, setIsBookingSuccessful] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false); // New state for mobile view
 
-  const handleCardClick = (lot: any, status: any) => {
+  const handleCardClick = (lot: any) => {
     if (!lot.current_bookings) {
       const index = slot.findIndex((s) => s._id === lot._id); // Get the index of the clicked lot
       if (index !== -1) {
         setSelectedCard(index === selectedCard ? null : index);
-        setErrors({ name: "", id: "", phone: "" });
 
         if (window.innerWidth < 640) {
           setIsMobileView(true); // Switch to form view in mobile
@@ -48,23 +42,16 @@ function Football_Booking({ params }: UserDataParams) {
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
-  
+
     // Form validation: Check if the phone number is filled in
-    if (!formData.phone) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        phone: "Phone number is required",
-      }));
-      return;
-    }
-  
+    
     try {
       // Ensure the selectedCard is valid before proceeding
       if (selectedCard === null || !slot[selectedCard]) {
         console.error("No slot selected");
         return;
       }
-  
+
       // Prepare booking data
       const bookingData = {
         user_id: formData.id, // Use ID from formData
@@ -73,10 +60,10 @@ function Football_Booking({ params }: UserDataParams) {
         slot_type: "normal", // Slot type, based on your API
         badminton_slot_id: null, // Not applicable for football
       };
-  
+
       // Log the booking data
       console.log("Booking Data:", bookingData);
-  
+
       // Send booking request
       const response = await fetch(
         "http://localhost:1326/booking_v1/football/booking",
@@ -88,20 +75,20 @@ function Football_Booking({ params }: UserDataParams) {
           body: JSON.stringify(bookingData),
         }
       );
-  
+
       const result = await response.json();
       console.log("Booking successful:", result);
-  
+
       // Show the booking success popup
       setIsBookingSuccessful(true);
-  
+
       // Reset form and selected card
       setFormData((prevData) => ({
         ...prevData,
         phone: "", // Clear phone number field only
       }));
       setSelectedCard(null);
-  
+
       // Update the slot to reflect the successful booking
       setSlot((prevSlots) =>
         prevSlots.map((s) =>
@@ -111,15 +98,6 @@ function Football_Booking({ params }: UserDataParams) {
     } catch (error) {
       console.error("Error submitting booking:", error);
     }
-  };
-  
-  
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
   };
 
   const handleBackToTimeSlots = () => {
@@ -159,7 +137,7 @@ function Football_Booking({ params }: UserDataParams) {
       setFormData((prevData) => ({
         ...prevData,
         name: user.name || "",
-        id: user.id || "",
+      id: user.id.replace(/^user:/, "") || "", // Remove "user:" prefix if it exists
       }));
     }
     const userDataId = localStorage.getItem("_id");
@@ -169,22 +147,21 @@ function Football_Booking({ params }: UserDataParams) {
       setFormData((prevData) => ({
         ...prevData,
         name: user.name || "",
-        id: user.id || "",
+        id: user.id.replace(/^user:/, "") || "", // Remove "user:" prefix if it exists
       }));
     }
     // Fetch slot data on initial render and set up the interval for updating
     getSlot();
     const intervalId = setInterval(getSlot, 10000);
-  
+
     return () => {
       clearInterval(intervalId);
     };
   }, [id]);
-  
- 
+
   return (
     <>
-    <NavBar/>
+      <NavBar />
       <div className="flex flex-col items-center h-screen p-6">
         <div className="w-full max-w-[1189px] bg-[#FEFFFE] border-gray border rounded-3xl drop-shadow-2xl p-5">
           <h1 className="text-4xl font-bold my-10 text-black text-center">
@@ -198,12 +175,10 @@ function Football_Booking({ params }: UserDataParams) {
                 <form onSubmit={handleSubmit}>
                   {/* Flex container for aligning back button and time at the top */}
                   <div className="flex items-center justify-between my-3">
-                    <img
-                      src={Back.src}
-                      alt="back"
+                    <ArrowBackIosNewIcon
+                      className="border shadow-xl w-10 h-10 p-2 rounded-md cursor-pointer hover:bg-gray-200"
                       onClick={handleBackToTimeSlots}
-                      className="border shadow-xl p-2 rounded-md cursor-pointer hover:bg-gray-200"
-                      width={40}
+                      style={{ fontSize: "2rem" }}
                     />
                     {selectedCard !== null && slot[selectedCard] && (
                       <h2 className="text-xl font-semibold text-start">
@@ -220,7 +195,8 @@ function Football_Booking({ params }: UserDataParams) {
                     <input
                       type="text"
                       name="name"
-                      value={userName}
+                      value={formData.name}
+                      readOnly
                       className="name-input-football mt-1 block w-full px-3 py-3"
                     />
                   </label>
@@ -232,35 +208,19 @@ function Football_Booking({ params }: UserDataParams) {
                     <input
                       type="text"
                       name="id"
-                      value={ownId}
+                      value={formData.id}
+                      readOnly
                       className="name-input-football mt-1 block w-full px-3 py-3"
                     />
                   </label>
 
-                  <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700 py-2">
-                      Phone Number
-                    </span>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="Enter your phone number"
-                      className="name-input-football mt-1 block w-full px-3 py-3"
-                    />
-                    {errors.phone && (
-                      <span className="text-red-500 text-sm">
-                        {errors.phone}
-                      </span>
-                    )}
-                  </label>
+               
 
                   {/* Center the Booking button */}
                   <div className="flex justify-center">
                     <button
                       type="submit"
-                      className="font-bold bg-green-500 text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-green-600"
+                      className="font-bold bg-[#5EB900] text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
                     >
                       Booking
                     </button>
@@ -285,7 +245,7 @@ function Football_Booking({ params }: UserDataParams) {
     `}
                     onClick={() => {
                       if (!lot.current_bookings) {
-                        handleCardClick(lot, lot.status);
+                        handleCardClick(lot);
                       }
                     }}
                   >
@@ -295,16 +255,14 @@ function Football_Booking({ params }: UserDataParams) {
                       </div>
                       <div>
                         {lot.current_bookings ? (
-                          <img
-                            src={Unavailable.src}
-                            alt="Unavailable"
-                            className="w-6 h-6"
+                          <ClearIcon
+                            className="mx-2.5"
+                            style={{ fontSize: "1.3rem" }}
                           />
                         ) : (
-                          <img
-                            src={Available.src}
-                            alt="Available"
-                            className="w-6 h-6"
+                          <CheckIcon
+                            className="mx-2.5"
+                            style={{ fontSize: "1.3rem" }}
                           />
                         )}
                       </div>
@@ -328,38 +286,37 @@ function Football_Booking({ params }: UserDataParams) {
                         {slot[selectedCard].end_time}
                       </h2>
                       <form onSubmit={handleSubmit}>
-                      <label className="block mb-4">
-  <span className="block text-sm font-medium text-gray-700 py-2">Name</span>
-  <input
-    type="text"
-    name="name"
-    value={formData.name}  // Display the name from localStorage
-    readOnly                
-    className="name-input-football mt-1 block w-full px-3 py-3"
-  />
-</label>
+                        <label className="block mb-4">
+                          <span className="block text-sm font-medium text-gray-700 py-2">
+                            Name
+                          </span>
+                          <input
+                            type="text"
+                            name="name"
+                            value={formData.name} // Display the name from localStorage
+                            readOnly
+                            className="name-input-football mt-1 block w-full px-3 py-3"
+                          />
+                        </label>
 
-<label className="block mb-4">
-  <span className="block text-sm font-medium text-gray-700 py-2">
-    Lecturer / Staff / Student ID
-  </span>
-  <input
-    type="text"
-    name="id"
-    value={formData.id}    // Display the id from localStorage
-    readOnly              
-    className="name-input-football mt-1 block w-full px-3 py-3"
-  />
-</label>
+                        <label className="block mb-4">
+                          <span className="block text-sm font-medium text-gray-700 py-2">
+                            Lecturer / Staff / Student ID
+                          </span>
+                          <input
+                            type="text"
+                            name="id"
+                            value={formData.id} // Display the id from localStorage
+                            readOnly
+                            className="name-input-football mt-1 block w-full px-3 py-3"
+                          />
+                        </label>
 
-
-
-                        
                         {/* Center the button */}
                         <div className="flex justify-center">
                           <button
                             type="submit"
-                            className="font-semibold bg-green-500 text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-green-600"
+                            className="font-semibold bg-[#5EB900] text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
                           >
                             Booking
                           </button>
