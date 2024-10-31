@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/Frontware/promptpay v0.0.0-20201011053948-0c839c6b4342 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.7.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
@@ -37,6 +38,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/joho/godotenv v1.5.1
+	github.com/kazekim/promptpay-qr-go v1.0.1
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/labstack/gommon v0.4.2 // indirect

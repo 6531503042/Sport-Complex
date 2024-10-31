@@ -1,3 +1,5 @@
+github.com/Frontware/promptpay v0.0.0-20201011053948-0c839c6b4342 h1:gUgbct0Ua5GECHpyOie/Jh11yK3CzHMOQI6rdqDCn9I=
+github.com/Frontware/promptpay v0.0.0-20201011053948-0c839c6b4342/go.mod h1:eoAqhDp/QtYuHU/wOAZBnJJxWNYgPkMH7UnbCCzAQnk=
 github.com/IBM/sarama v1.43.3 h1:Yj6L2IaNvb2mRBop39N7mmJAHBVY3dTPncr3qGVkxPA=
 github.com/IBM/sarama v1.43.3/go.mod h1:FVIRaLrhK3Cla/9FfRF5X9Zua2KpS3SYIXxhac1H+FQ=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -53,6 +55,8 @@ github.com/jcmturner/rpc/v2 v2.0.3 h1:7FXXj8Ti1IaVFpSAziCZWNzbNuZmnvw/i6CqLNdWfZ
 github.com/jcmturner/rpc/v2 v2.0.3/go.mod h1:VUJYCIDm3PVOEHw8sgt091/20OJjskO/YJki3ELg/Hc=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+github.com/kazekim/promptpay-qr-go v1.0.1 h1:e93R4iGaHjnmqZGKrE7xjicpIwosFCI2chM/KMYqEk8=
+github.com/kazekim/promptpay-qr-go v1.0.1/go.mod h1:ejy5vo9bKtpylI/FXhMV8f/30cKldEbI4csPrRBg+3Q=
 github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
 github.com/klauspost/compress v1.17.9/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
 github.com/labstack/echo/v4 v4.12.0 h1:IKpw49IMryVB2p1a4dzwlhP1O2Tf2E0Ir/450lH+kI0=

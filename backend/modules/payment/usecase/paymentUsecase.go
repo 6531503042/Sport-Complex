@@ -1,14 +1,16 @@
 package usecase
 
 import (
+
 	"context"
 	"fmt"
 	"main/config"
 	"main/modules/payment"
 	"main/modules/payment/repository"
 	"main/pkg/utils"
-
+	"github.com/Frontware/promptpay"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"net/url"
 )
 
 type (
@@ -17,7 +19,6 @@ type (
 		UpdatePayment(ctx context.Context, paymentId string, status string) (*payment.PaymentEntity, error)
 		FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error)
 		FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentEntity, error)
-		
 	}
 
 	paymentUsecase struct {
@@ -35,44 +36,58 @@ func NewPaymentUsecase(paymentRepository repository.PaymentRepositoryService) Pa
 }
 
 func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, bookingId string, amount float64) (*payment.PaymentResponse, error) {
-
-	// Create the payment object to pass to the repository
-	paymentDoc := &payment.PaymentEntity{           
-		PaymentID:     primitive.NewObjectID().Hex(),         // สร้าง payment_id ทันที
+	paymentDoc := &payment.PaymentEntity{
+		PaymentID:     primitive.NewObjectID().Hex(),
 		UserID:        userId,
 		BookingID:     bookingId,
 		Amount:        amount,
-		Currency:      "THB",                                 // Set your currency here
-		PaymentMethod: "PromptPay",                           // Or any other payment method
+		Currency:      "THB",
+		PaymentMethod: "PromptPay",
 		Status:        payment.Pending,
 		CreatedAt:     utils.LocalTime(),
 		UpdatedAt:     utils.LocalTime(),
 	}
 
-// Generate QR Code URL
-qrCodeData := fmt.Sprintf("http://example.com/payment/%s", paymentDoc.PaymentID)
-paymentDoc.QRCodeURL = qrCodeData // Set the QR code URL in the payment document
+	// Define the PromptPay phone number
+	promptPayPhoneNumber := "091xxxxxxx" // Replace with the actual phone number
 
-// Insert the payment via repository
-paymentResult, err := u.paymentRepository.InsertPayment(ctx, paymentDoc)
-if err != nil {
-	return nil, fmt.Errorf("error creating payment: %w", err)
-}
+	// Create a new PromptPay instance with the phone number
+	promptPay := &promptpay.PromptPay{
+		PromptPayID: promptPayPhoneNumber,
+		Amount:      amount,
+		OneTime:     true,
+	}
 
-response := &payment.PaymentResponse{
-	Id:          paymentResult.Id.Hex(),
-	PaymentID:   paymentResult.PaymentID,
-	UserId:      paymentResult.UserID,
-	BookingId:   paymentResult.BookingID,
-	Amount:      paymentResult.Amount,
-	Currency:    paymentResult.Currency,
-	Status:      paymentResult.Status,
-	CreatedAt:   paymentResult.CreatedAt,
-	UpdatedAt:   paymentResult.UpdatedAt,
-	QRCodeURL:   paymentResult.QRCodeURL,
-}
+	// Generate the QR code data
+	qrCodeData, err := promptPay.Gen()
+	if err != nil {
+		return nil, fmt.Errorf("error generating QR code: %w", err)
+	}
 
-return response, nil
+	// Create URL for the QR code
+	qrCodeURL := fmt.Sprintf("https://api.qrserver.com/v1/create-qr-code/?data=%s&size=300x300", url.QueryEscape(qrCodeData))
+	paymentDoc.QRCodeURL = qrCodeURL
+
+	// Insert the payment via repository
+	paymentResult, err := u.paymentRepository.InsertPayment(ctx, paymentDoc)
+	if err != nil {
+		return nil, fmt.Errorf("error creating payment: %w", err)
+	}
+
+	response := &payment.PaymentResponse{
+		Id:        paymentResult.Id.Hex(),
+		PaymentID: paymentResult.PaymentID,
+		UserId:    paymentResult.UserID,
+		BookingId: paymentResult.BookingID,
+		Amount:    paymentResult.Amount,
+		Currency:  paymentResult.Currency,
+		Status:    paymentResult.Status,
+		CreatedAt: paymentResult.CreatedAt,
+		UpdatedAt: paymentResult.UpdatedAt,
+		QRCodeURL: paymentResult.QRCodeURL,
+	}
+
+	return response, nil
 }
 
 func (u *paymentUsecase) UpdatePayment(ctx context.Context, paymentId string, status string) (*payment.PaymentEntity, error) {
@@ -81,7 +96,6 @@ func (u *paymentUsecase) UpdatePayment(ctx context.Context, paymentId string, st
 		return nil, fmt.Errorf("error: failed to find payment: %w", err)
 	}
 
-	// Update the payment status
 	paymentEntity.Status = payment.PaymentStatus(status)
 	paymentEntity.UpdatedAt = utils.LocalTime()
 
