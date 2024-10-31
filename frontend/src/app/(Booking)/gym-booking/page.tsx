@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useState, Fragment } from "react";
-import Available from "@/app/assets/available.png";
-import Unavailable from "@/app/assets/unavailable.png";
-import Back from "@/app/assets/back.png";
-import Member from "@/app/assets/member.png";
 import "./gym.css";
 import NavBar from "@/app/components/navbar/navbar";
+import CheckIcon from "@mui/icons-material/Check";
+import ClearIcon from "@mui/icons-material/Clear";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import GroupIcon from "@mui/icons-material/Group";
 
 interface UserData {
   id: string;
@@ -26,15 +26,11 @@ function Gym_Booking({ params }: UserDataParams) {
     id: "",
     phone: "",
   });
-  const [errors, setErrors] = useState({
-    name: "",
-    id: "",
-    phone: "",
-  });
+
   const [isBookingSuccessful, setIsBookingSuccessful] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false); // New state for mobile view
 
-  const handleCardClick = (lot: any, status: any) => {
+  const handleCardClick = (lot: any) => {
     // Allow booking if the slot is not fully booked
     const isSlotFull = lot.current_bookings >= lot.max_bookings;
 
@@ -43,7 +39,6 @@ function Gym_Booking({ params }: UserDataParams) {
       const index = slot.findIndex((s) => s._id === lot._id); // Get the index of the clicked lot
       if (index !== -1) {
         setSelectedCard(index === selectedCard ? null : index); // Toggle selected card
-        setErrors({ name: "", id: "", phone: "" });
 
         if (window.innerWidth < 640) {
           setIsMobileView(true); // Switch to form view in mobile
@@ -56,23 +51,27 @@ function Gym_Booking({ params }: UserDataParams) {
     e.preventDefault(); // Prevent default form submission
 
     // Form validation: Check if the phone number is filled in
-    if (!formData.phone) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        phone: "Phone number is required",
-      }));
-      return;
-    }
 
     try {
+      // Ensure the selectedCard is valid before proceeding
+      if (selectedCard === null || !slot[selectedCard]) {
+        console.error("No slot selected");
+        return;
+      }
+
+      // Prepare booking data
       const bookingData = {
-        user_id: ownId, // User's ID from the state
-        slot_id: slot[selectedCard]?._id, // Slot ID from the selected card
+        user_id: formData.id, // Use ID from formData
+        slot_id: slot[selectedCard]._id, // Get the selected slot's ID
         status: 1, // Assuming 1 means successful booking
-        slot_type: "normal", // Based on the Postman request, slot_type is 'normal'
-        badminton_slot_id: null, // For football, badminton_slot_id can be null
+        slot_type: "normal", // Slot type, based on your API
+        badminton_slot_id: null, // Not applicable for football
       };
 
+      // Log the booking data
+      console.log("Booking Data:", bookingData);
+
+      // Send booking request
       const response = await fetch(
         "http://localhost:1326/booking_v1/fitness/booking",
         {
@@ -84,12 +83,6 @@ function Gym_Booking({ params }: UserDataParams) {
         }
       );
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to book: ${response.statusText} (Status: ${response.status})`
-        );
-      }
-
       const result = await response.json();
       console.log("Booking successful:", result);
 
@@ -97,27 +90,21 @@ function Gym_Booking({ params }: UserDataParams) {
       setIsBookingSuccessful(true);
 
       // Reset form and selected card
-      setFormData({ name: "", id: "", phone: "" });
+      setFormData((prevData) => ({
+        ...prevData,
+        phone: "", // Clear phone number field only
+      }));
       setSelectedCard(null);
 
-      // Update the list to reflect the successful booking
+      // Update the slot to reflect the successful booking
       setSlot((prevSlots) =>
         prevSlots.map((s) =>
-          s._id === bookingData.slot_id
-            ? { ...s, current_bookings: s.current_bookings + 1 } // Increment the current bookings
-            : s
+          s._id === bookingData.slot_id ? { ...s, current_bookings: true } : s
         )
       );
     } catch (error) {
       console.error("Error submitting booking:", error);
     }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
   };
 
   const handleBackToTimeSlots = () => {
@@ -149,46 +136,38 @@ function Gym_Booking({ params }: UserDataParams) {
   };
 
   useEffect(() => {
-    getSlot();
-    getUserData(id); // Use the id from params when calling getUserData
+    // Retrieve user data from localStorage
+    const userDataName = localStorage.getItem("user");
+    if (userDataName) {
+      const user = JSON.parse(userDataName);
 
-    const intervalId = setInterval(() => {
-      getSlot();
-    }, 5000);
+      setFormData((prevData) => ({
+        ...prevData,
+        name: user.name || "",
+        id: user.id.replace(/^user:/, "") || "", // Remove "user:" prefix if it exists
+      }));
+    }
+    const userDataId = localStorage.getItem("_id");
+    if (userDataId) {
+      const user = JSON.parse(userDataId);
+
+      setFormData((prevData) => ({
+        ...prevData,
+        name: user.name || "",
+        id: user.id.replace(/^user:/, "") || "", // Remove "user:" prefix if it exists
+      }));
+    }
+    // Fetch slot data on initial render and set up the interval for updating
+    getSlot();
+    const intervalId = setInterval(getSlot, 10000);
 
     return () => {
       clearInterval(intervalId);
     };
   }, [id]);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [userData, setUserData] = useState<any[]>([]);
-  const [ownName, setOwnName] = useState("");
-  const [ownId, setOwnId] = useState("");
-  const getUserData = async (id: string) => {
-    try {
-      const resUserData = await fetch(
-        `http://localhost:1325/user_v1/users/67154428020f073e06e896d5`,
-        {
-          method: "GET",
-          cache: "no-store",
-        }
-      );
-      if (!resUserData.ok) {
-        throw new Error("Failed to fetch the user");
-      }
-      const userData: UserData = await resUserData.json();
-      setUserData(userData);
-      setOwnName(userData.name);
-      setOwnId(userData.id);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   return (
     <>
-<NavBar/>
+      <NavBar />
 
       <div className="flex flex-col items-center h-screen p-6">
         <div className="w-full max-w-[1189px] bg-[#FEFFFE] border-gray border rounded-3xl drop-shadow-2xl p-5">
@@ -203,12 +182,10 @@ function Gym_Booking({ params }: UserDataParams) {
                 <form onSubmit={handleSubmit}>
                   {/* Flex container for aligning back button and time at the top */}
                   <div className="flex items-center justify-between my-3">
-                    <img
-                      src={Back.src}
-                      alt="back"
+                    <ArrowBackIosNewIcon
+                      className="border shadow-xl w-10 h-10 p-2 rounded-md cursor-pointer hover:bg-gray-200"
                       onClick={handleBackToTimeSlots}
-                      className="border shadow-xl p-2 rounded-md cursor-pointer hover:bg-gray-200"
-                      width={40}
+                      style={{ fontSize: "2rem" }}
                     />
                     {selectedCard !== null && slot[selectedCard] && (
                       <h2 className="text-xl font-semibold text-start">
@@ -225,7 +202,8 @@ function Gym_Booking({ params }: UserDataParams) {
                     <input
                       type="text"
                       name="name"
-                      value={ownName}
+                      value={formData.name}
+                      readOnly
                       className="name-input-gym mt-1 block w-full px-3 py-3"
                     />
                   </label>
@@ -237,28 +215,10 @@ function Gym_Booking({ params }: UserDataParams) {
                     <input
                       type="text"
                       name="id"
-                      value={ownId}
-                      className="name-input-swmming mt-1 block w-full px-3 py-3"
-                    />
-                  </label>
-
-                  <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700 py-2">
-                      Phone Number
-                    </span>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="Enter your phone number"
+                      value={formData.id}
+                      readOnly
                       className="name-input-gym mt-1 block w-full px-3 py-3"
                     />
-                    {errors.phone && (
-                      <span className="text-red-500 text-sm">
-                        {errors.phone}
-                      </span>
-                    )}
                   </label>
 
                   {/* Center the Booking button */}
@@ -276,7 +236,7 @@ function Gym_Booking({ params }: UserDataParams) {
           ) : (
             // Normal screen view
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {slot.map((lot) => {
                   const isSlotFull = lot.current_bookings >= lot.max_bookings; // Check if the slot is fully booked
 
@@ -286,119 +246,104 @@ function Gym_Booking({ params }: UserDataParams) {
                       className={`border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
       ${
         isSlotFull
-          ? "cursor-not-allowed bg-light-gray text-white"
+          ? "cursor-not-allowed bg-[#C1C7D4] text-white"
           : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
       }
       ${!isSlotFull ? "hover:bg-[#005400]" : ""}
     `}
                       onClick={() => {
                         if (!isSlotFull) {
-                          handleCardClick(lot, lot.status);
+                          handleCardClick(lot);
                         }
                       }}
                     >
-                      <div className="text-lg font-semibold flex justify-between items-center">
+                      <div className="text-lg font-semibold grid grid-cols-2 justify-between items-center">
                         <div>
                           {lot.start_time} - {lot.end_time}
+                          <div className="mt-2 text-sm text-white">
+                        <GroupIcon
+                          className="mr-2.5"
+                          style={{ fontSize: "1.3rem" }}
+                        />
+                        {lot.current_bookings} / {lot.max_bookings}
+                      </div>
                         </div>
-                        <div>
+                        <div className="ml-auto">
                           {isSlotFull ? (
-                            <img
-                              src={Unavailable.src}
-                              alt="Unavailable"
-                              className="w-6 h-6"
+                            <ClearIcon
+                              className="mx-2.5"
+                              style={{ fontSize: "2rem" }}
                             />
                           ) : (
-                            <img
-                              src={Available.src}
-                              alt="Available"
-                              className="w-6 h-6"
+                            <CheckIcon
+                              className="mx-2.5"
+                              style={{ fontSize: "2rem" }}
                             />
                           )}
                         </div>
+                        
+
                       </div>
 
                       {/* Display Current and Maximum Bookings */}
-                      <div className="mt-2 text-sm text-white">
-                        {lot.current_bookings} / {lot.max_bookings}
-                      </div>
+                      
                     </div>
                   );
                 })}
               </div>
 
               <div
-  className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
-    selectedCard !== null
-      ? "translate-y-0 opacity-100"
-      : "translate-y-5 opacity-0"
-  }`}
->
-  {selectedCard !== null && ( // Always show the form if a card is selected
-    <>
-      <h2 className="text-xl font-bold mb-4">
-        Booking for {slot[selectedCard].start_time} -{" "}
-        {slot[selectedCard].end_time}
-      </h2>
-      <form onSubmit={handleSubmit}>
-        <label className="block mb-4">
-          <span className="block text-sm font-medium text-gray-700 py-2">
-            Name
-          </span>
-          <input
-            type="text"
-            name="name"
-            value={ownName}
-            className="name-input-gym mt-1 block w-full px-3 py-3"
-          />
-          {errors.name && (
-            <span className="text-red-500 text-sm">{errors.name}</span>
-          )}
-        </label>
-        <label className="block mb-4">
-          <span className="block text-sm font-medium text-gray-700 py-2">
-            Lecturer / Staff / Student ID
-          </span>
-          <input
-            type="text"
-            name="id"
-            value={ownId}
-            className="name-input-gym mt-1 block w-full px-3 py-3"
-          />
-          {errors.id && (
-            <span className="text-red-500 text-sm">{errors.id}</span>
-          )}
-        </label>
-        <label className="block mb-4">
-          <span className="block text-sm font-medium text-gray-700 py-2">
-            Phone Number
-          </span>
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="Enter your phone number"
-            className="name-input-gym mt-1 block w-full px-3 py-3"
-          />
-          {errors.phone && (
-            <span className="text-red-500 text-sm">{errors.phone}</span>
-          )}
-        </label>
-        {/* Center the button */}
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className="font-semibold bg-green-500 text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-green-600"
-          >
-            Booking
-          </button>
-        </div>
-      </form>
-    </>
-  )}
-</div>
+                className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
+                  selectedCard !== null
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-5 opacity-0"
+                }`}
+              >
+                {selectedCard !== null && ( // Always show the form if a card is selected
+                  <>
+                    <h2 className="text-xl font-bold mb-4">
+                      Booking for {slot[selectedCard].start_time} -{" "}
+                      {slot[selectedCard].end_time}
+                    </h2>
+                    <form onSubmit={handleSubmit}>
+                      <label className="block mb-4">
+                        <span className="block text-sm font-medium text-gray-700 py-2">
+                          Name
+                        </span>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name} // Display the name from localStorage
+                          readOnly
+                          className="name-input-gym mt-1 block w-full px-3 py-3"
+                        />
+                      </label>
 
+                      <label className="block mb-4">
+                        <span className="block text-sm font-medium text-gray-700 py-2">
+                          Lecturer / Staff / Student ID
+                        </span>
+                        <input
+                          type="text"
+                          name="id"
+                          value={formData.id} // Display the id from localStorage
+                          readOnly
+                          className="name-input-gym mt-1 block w-full px-3 py-3"
+                        />
+                      </label>
+                      {/* Center the button */}
+                      <div className="flex justify-center">
+                        <button
+                          type="submit"
+                          className="font-semibold bg-green-500 text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-green-600"
+                        >
+                          Booking
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
+              </div>
             </>
           )}
         </div>
