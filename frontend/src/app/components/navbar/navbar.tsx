@@ -27,6 +27,8 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
     if (userData) {
       const user = JSON.parse(userData);
       setUserName(user.name);
+    } else {
+      router.replace("/login");
     }
   }, []);
 
@@ -36,7 +38,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("user"); 
-    router.push("/login"); 
+    router.replace("/login");
   };
 
   const getBackgroundColor = () => {

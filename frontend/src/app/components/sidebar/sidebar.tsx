@@ -25,6 +25,8 @@ const Sidebar: React.FC = () => {
     if (userData) {
       const user = JSON.parse(userData);
       setUserName(user.name);
+    } else {
+      router.replace("/login");
     }
   }, []);
 
@@ -33,8 +35,8 @@ const Sidebar: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    router.push("/login");
+    localStorage.removeItem("user"); 
+    router.replace("/login");
   };
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
