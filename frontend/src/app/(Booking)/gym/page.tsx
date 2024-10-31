@@ -80,9 +80,14 @@ const Gyms_Booking: React.FC = () => {
     }, 300);
   };
 
+
+
+
+
+
   return (
-    <div className="bg-slate-200 w-full h-full flex justify-center items-center">
-      <div className="bg-white w-4/6 h-auto rounded-lg shadow-lg border border-black flex justify-center m-16">
+    <div className="bg-white w-full h-full flex justify-center items-center">
+      <div className="bg-white w-4/6 h-auto rounded-lg shadow-2xl border border-gray-200 flex justify-center m-16">
         <div className="flex-none m-10 w-full h-full">
           <h1 className="text-4xl font-bold text-center mb-6">Sport Complex Gym Booking</h1>
           <p className="text-md text-gray-400 font-bold text-center mb-6">Book your gym slot easily and quickly!</p>
@@ -92,7 +97,7 @@ const Gyms_Booking: React.FC = () => {
                 {data.map((slot, index) => (
                   <div
                     key={index}
-                    className={`w-auto h-auto p-2 rounded-lg flex flex-col text-center border border-black 
+                    className={`w-auto h-auto p-2 rounded-lg flex flex-col text-center border border-gray-100 
                       ${slot.isAvailable ? 'bg-green-100 shadow-lg hover:bg-blue-100 hover:scale-105 transition-transform duration-300 cursor-pointer' : 'bg-red-100 shadow-lg cursor-not-allowed'}
                     `}
                     onClick={() => slot.isAvailable && handleSlotClick(slot.time)}
@@ -126,43 +131,51 @@ const Gyms_Booking: React.FC = () => {
               </div>
             }
             {isPopupOpen && (
-                  <div className={`bg-white rounded-lg shadow-lg border border-black p-8 m-5 transition-all duration-500 ease-in-out transform 
+                  <div className={`bg-white rounded-lg shadow-xl border border-gray-200 p-8 m-5 transition-all duration-500 ease-in-out transform 
                     ${isPopupVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
-                  <h1 className="text-2xl font-mono font-bold mb-12">{selectedTime}</h1>
+                  <h1 className="text-2xl font-mono font-bold mb-6">Booking on this time {selectedTime}</h1>
                   <form onSubmit={handleSubmit}>
-                    <div className="font-bold text-md m-2">Name</div>
+                    <div className="flex flex-row items-center">
+                      <div className="font-bold text-md m-2">Name</div>
+                    </div>
                     <input
                       type="text"
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleChange}
                       placeholder="Enter Your Full Name !"
-                      className="border rounded-3xl shadow-lg p-4 mb-3 w-full"
+                      className="border border-gray-200 rounded-3xl shadow-lg p-4 mb-3 w-full"
                       required
                     />
-                    <div className="font-bold text-md m-2">Phone Number</div>
+                    <div className="flex flex-row items-center">
+                      <div className="font-bold text-md m-2">Phone Number</div>
+                    </div>
                     <input
                       type="tel"
                       name="phoneNumber"
                       value={formData.phoneNumber}
                       onChange={handleChange}
                       placeholder="Enter Your Phone Number !"
-                      className="border rounded-3xl shadow-lg p-4 mb-3 w-full"
+                      className="border border-gray-200 rounded-3xl shadow-lg p-4 mb-3 w-full"
                       required
                     />
-                    <div className="font-bold text-md m-2">Your ID</div>
+                    <div className="flex flex-row items-center">
+                      <div className="font-bold text-md m-2">Student ID</div>
+                    </div>
                     <input
                       type="text"
                       name="studentId"
                       value={formData.studentId}
                       onChange={handleChange}
                       placeholder="Enter Your Student ID !"
-                      className="border rounded-3xl shadow-lg p-4 mb-10 w-full"
+                      className="border border-gray-200 rounded-3xl shadow-lg p-4 mb-10 w-full"
                       required
                     />
-                    <button type="submit" className="bg-gray-600 text-white rounded-3xl shadow-lg p-2 w-full font-bold">Confirm Booking</button>
-                  </form>
-                  <button onClick={closePopup} className="mt-8 p-2 w-full bg-gray-600 rounded-3xl shadow-lg font-bold text-white">Cancel</button>
+                    <div className="flex flex-row gap-8">
+                      <button type="submit" className="bg-gray-600 text-white rounded-xl shadow-lg p-2 py-4 w-full font-bold">Confirm Booking</button>
+                      <button onClick={closePopup} className="p-2 py-4 w-full bg-gray-600 rounded-xl shadow-lg font-bold text-white">Cancel</button>
+                    </div>
+                    </form>
                 </div>
               )}
           </div>
