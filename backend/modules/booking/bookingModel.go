@@ -45,6 +45,8 @@ type (
 		Status          string                `json:"status"`
 		CreatedAt       time.Time          `bson:"created_at" json:"created_at"`
 		UpdatedAt       time.Time          `bson:"updated_at" json:"updated_at"`
+		PaymentID   string `json:"payment_id"`  
+    	QRCodeURL   string `json:"qr_code_url"`
 	}
 
 	// EnableOrDisableBookingRequest is used to enable or disable a booking
