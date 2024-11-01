@@ -97,7 +97,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
       <ul className="NavBar_res inline-flex flex-row px-10 gap-16 justify-center items-center font-semibold pt-4 text-sm">
         <li className={getActiveClass("gym")}>
           <Link
-            href="/gym"
+            href="/gym-booking"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <GymIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
@@ -106,7 +106,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("badminton")}>
           <Link
-            href="/badminton"
+            href="/badminton-booking"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <BadmintonIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
@@ -115,7 +115,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("swimming")}>
           <Link
-            href="/swimming"
+            href="/swimming-booking"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <SwimmingIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
@@ -124,7 +124,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
         </li>
         <li className={getActiveClass("football")}>
           <Link
-            href="/football"
+            href="/football-booking"
             className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
           >
             <FootballIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
