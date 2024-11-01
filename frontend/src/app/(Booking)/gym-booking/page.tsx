@@ -7,6 +7,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import GroupIcon from "@mui/icons-material/Group";
+import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 
 interface UserData {
   id: string;
@@ -177,10 +178,14 @@ setSlot(Array.isArray(slotData) && slotData.length ? slotData : []);
           </h1>
 
           {slot && slot.length === 0 ? (
-          <div className="text-center text-gray-600 text-xl">
-            Slot Unavailable!
-          </div>
-        ) : isMobileView ? (
+  <div className="slot-unavailable-card text-center p-8 rounded-lg shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105">
+   <ReportProblemIcon className="slot-unavailable-icon text-red-500 mb-4" style={{ fontSize: "3rem" }} />
+    <h2 className="text-3xl font-bold text-gray-800 mb-2">Slot Unavailable</h2>
+    <p className="text-gray-600 text-lg">
+      All slots are currently booked. Please check back later or contact support for more options.
+    </p>
+  </div>
+) : isMobileView ? (
           // Mobile View: Show the form instead of the time slots
           <div className="block sm:hidden ">
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">

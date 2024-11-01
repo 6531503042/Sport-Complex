@@ -10,3 +10,43 @@
     outline: none;
 }
 
+
+.slot-unavailable-card {
+    background-color: #fef2f2; /* Light red background for caution */
+    border: 1px solid #fca5a5; /* Light red border */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border-radius: 1rem;
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .slot-unavailable-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .slot-unavailable-icon {
+    font-size: 3rem;
+    color: #dc2626; /* Red for danger */
+    margin-bottom: 1rem;
+    animation: pulse 1.5s ease-in-out infinite; /* Gentle pulse animation */
+  }
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  
+  .slot-unavailable-card h2 {
+    color: #1f2937;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .slot-unavailable-card p {
+    color: #4b5563;
+    font-size: 1.125rem;
+    margin-top: 0.5rem;
+  }
+  
