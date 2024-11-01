@@ -112,7 +112,7 @@ function Swimming_Booking({ params }: UserDataParams) {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [slot, setSlot] = useState<any[]>([]);
+  const [slot, setSlot] = useState<any[] | null>(null);
   const getSlot = async () => {
     try {
       const resSlot = await fetch(
@@ -129,11 +129,12 @@ function Swimming_Booking({ params }: UserDataParams) {
         );
       }
       const slotData = await resSlot.json();
-      setSlot(slotData);
-    } catch (error) {
-      console.error("Error fetching slot data:", error);
-    }
-  };
+      setSlot(Array.isArray(slotData) && slotData.length ? slotData : []);
+          } catch (error) {
+            console.error("Error fetching slot data:", error);
+            setSlot([]); // Set to empty array if there's an error fetching
+          }
+        };
 
   useEffect(() => {
     // Retrieve user data from localStorage
@@ -175,69 +176,75 @@ function Swimming_Booking({ params }: UserDataParams) {
             Swimming Booking
           </h1>
 
-          {isMobileView ? (
-            // Mobile View: Show the form instead of the time slots
-            <div className="block sm:hidden ">
-              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
-                <form onSubmit={handleSubmit}>
-                  {/* Flex container for aligning back button and time at the top */}
-                  <div className="flex items-center justify-between my-3">
-                    <ArrowBackIosNewIcon
-                      className="border shadow-xl w-10 h-10 p-2 rounded-md cursor-pointer hover:bg-gray-200"
-                      onClick={handleBackToTimeSlots}
-                      style={{ fontSize: "2rem" }}
-                    />
-                    {selectedCard !== null && slot[selectedCard] && (
-                      <h2 className="text-xl font-semibold text-start">
-                        {slot[selectedCard].start_time} -{" "}
-                        {slot[selectedCard].end_time}
-                      </h2>
-                    )}
-                  </div>
+          {slot && slot.length === 0 ? (
+          <div className="text-center text-gray-600 text-xl">
+            Slot Unavailable!
+          </div>
+        ) : isMobileView ? (
+          // Mobile View: Show the form instead of the time slots
+          <div className="block sm:hidden ">
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
+              <form onSubmit={handleSubmit}>
+                {/* Flex container for aligning back button and time at the top */}
+                <div className="flex items-center justify-between my-3">
+                  <ArrowBackIosNewIcon
+                    className="border shadow-xl w-10 h-10 p-2 rounded-md cursor-pointer hover:bg-gray-200"
+                    onClick={handleBackToTimeSlots}
+                    style={{ fontSize: "2rem" }}
+                  />
+                  {selectedCard !== null && slot[selectedCard] && (
+                    <h2 className="text-xl font-semibold text-start">
+                      {slot[selectedCard].start_time} -{" "}
+                      {slot[selectedCard].end_time}
+                    </h2>
+                  )}
+                </div>
 
-                  <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700 py-2">
-                      Name
-                    </span>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      readOnly
-                      className="name-input-swimming mt-1 block w-full px-3 py-3"
-                    />
-                  </label>
+                <label className="block mb-4">
+                  <span className="block text-sm font-medium text-gray-700 py-2">
+                    Name
+                  </span>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    readOnly
+                    className="name-input-football mt-1 block w-full px-3 py-3"
+                  />
+                </label>
 
-                  <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700 py-2">
-                      Lecturer / Staff / Student ID
-                    </span>
-                    <input
-                      type="text"
-                      name="id"
-                      value={formData.id}
-                      readOnly
-                      className="name-input-swimming mt-1 block w-full px-3 py-3"
-                    />
-                  </label>
+                <label className="block mb-4">
+                  <span className="block text-sm font-medium text-gray-700 py-2">
+                    Lecturer / Staff / Student ID
+                  </span>
+                  <input
+                    type="text"
+                    name="id"
+                    value={formData.id}
+                    readOnly
+                    className="name-input-football mt-1 block w-full px-3 py-3"
+                  />
+                </label>
 
-                  {/* Center the Booking button */}
-                  <div className="flex justify-center">
-                    <button
-                      type="submit"
-                      className="font-bold bg-green-500 text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-green-600"
-                    >
-                      Booking
-                    </button>
-                  </div>
-                </form>
-              </div>
+             
+
+                {/* Center the Booking button */}
+                <div className="flex justify-center">
+                  <button
+                    type="submit"
+                    className="font-bold bg-[#5EB900] text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
+                  >
+                    Booking
+                  </button>
+                </div>
+              </form>
             </div>
-          ) : (
+          </div>
+        ) : (
             // Normal screen view
             <>
                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {slot.map((lot) => {
+                {slot?.map((lot) => {
                   const isSlotFull = lot.current_bookings >= lot.max_bookings; // Check if the slot is fully booked
 
                   return (
