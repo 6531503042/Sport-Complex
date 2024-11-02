@@ -145,7 +145,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
           >
             <Link
               href={href}
-              className="  flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-500"
+              className="  flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
             >
               {icon}
               <p>{label}</p>

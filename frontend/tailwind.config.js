@@ -20,7 +20,7 @@ module.exports = {
       },
       animation: {
         fade: 'fade 0.5s ease-in-out',
-        wiggle: 'wiggle 0.2s ease-in-out',
+        wiggle: 'wiggle 0.25s ease-in-out',
       },
     },
   },

@@ -11,7 +11,7 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <html lang="en">
       <head>
-        <title>Your Website Title</title>
+        <title>Welcome JubJub</title>
       </head>
       <body>
         <AuthProvider>
