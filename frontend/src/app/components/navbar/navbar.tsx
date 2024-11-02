@@ -95,70 +95,50 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
         </div>
       </header>
       <ul className="NavBar_res inline-flex flex-row px-10 gap-16 justify-center items-center font-semibold pt-4 text-sm">
-        <li className={getActiveClass("gym")}>
-          <Link
-            href="/gym"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <GymIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Gym Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("badminton")}>
-          <Link
-            href="/badminton"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <BadmintonIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Badminton Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("swimming")}>
-          <Link
-            href="/swimming"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <SwimmingIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Swimming Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("football")}>
-          <Link
-            href="/football"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <FootballIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Football Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("rule")}>
-          <Link
-            href="/rule"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <RuleIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Rules
-          </Link>
-        </li>
-        <li className={getActiveClass("contact")}>
-          <Link
-            href="/contact"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <ContactIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Contact
-          </Link>
-        </li>
-        <li className={getActiveClass("payment")}>
-          <Link
-            href="/payment"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <PaymentIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Payment
-          </Link>
-        </li>
-      </ul>
+  <li className={`${getActiveClass("gym")} hover:animate-wiggle`}>
+    <Link href="/gym" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+      <GymIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
+      Gym Booking
+    </Link>
+  </li>
+  <li className={`${getActiveClass("badminton")} hover:animate-wiggle`}>
+    <Link href="/badminton" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+      <BadmintonIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
+      Badminton Booking
+    </Link>
+  </li>
+  <li className={`${getActiveClass("swimming")} hover:animate-wiggle`}>
+    <Link href="/swimming" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+      <SwimmingIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
+      Swimming Booking
+    </Link>
+  </li>
+  <li className={`${getActiveClass("football")} hover:animate-wiggle`}>
+    <Link href="/football" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+      <FootballIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
+      Football Booking
+    </Link>
+  </li>
+  <li className={`${getActiveClass("rule")} hover:animate-wiggle`}>
+    <Link href="/rule" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+      <RuleIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
+      Rules
+    </Link>
+  </li>
+  <li className={`${getActiveClass("contact")} hover:animate-wiggle`}>
+    <Link href="/contact" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+      <ContactIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
+      Contact
+    </Link>
+  </li>
+  <li className={`${getActiveClass("payment")} hover:animate-wiggle`}>
+    <Link href="/payment" className="text-white hover:text-gray-400 flex items-center pb-4 me-2">
+      <PaymentIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
+      Payment
+    </Link>
+  </li>
+</ul>
+
     </div>
   );
 };
