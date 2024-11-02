@@ -20,7 +20,7 @@ type NavBarProps = {
 
 const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   const [userName, setUserName] = useState<string | null>(null);
-  const router = useRouter(); 
+  const router = useRouter();
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -37,7 +37,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user"); 
+    localStorage.removeItem("user");
     router.replace("/login");
   };
 
@@ -50,14 +50,14 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 
   const getActiveClass = (page: string) => {
     return activePage === page
-      ? "border-b-4 border-white "
-      : "border-b-4 border-transparent";
+      ? "color-wave text-black shadow-md rounded-lg"
+      : "text-white hover:text-yellow-300 hover:border-black hover:border-opacity-50";
   };
 
   return (
     <div className={`${getBackgroundColor()} justify-center flex flex-col`}>
       <header>
-        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5">
+        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5" >
           <Link
             href="/homepage"
             className="inline-flex flex-row items-center  gap-3.5 w-1/5"
@@ -94,70 +94,64 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
           </div>
         </div>
       </header>
-      <ul className="NavBar_res inline-flex flex-row px-10 gap-16 justify-center items-center font-semibold pt-4 text-sm">
-        <li className={getActiveClass("gym")}>
-          <Link
-            href="/gym-booking"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
+      <ul className="NavBar_res inline-flex flex-row px-10 py-4 gap-16 justify-center items-center font-semibold text-sm">
+        {[
+          {
+            href: "/gym",
+            label: "Gym Booking",
+            icon: <GymIcon style={{ fontSize: "1.3rem" }} />,
+            page: "gym",
+          },
+          {
+            href: "/badminton",
+            label: "Badminton Booking",
+            icon: <BadmintonIcon style={{ fontSize: "1.3rem" }} />,
+            page: "badminton",
+          },
+          {
+            href: "/swimming",
+            label: "Swimming Booking",
+            icon: <SwimmingIcon style={{ fontSize: "1.3rem" }} />,
+            page: "swimming",
+          },
+          {
+            href: "/football",
+            label: "Football Booking",
+            icon: <FootballIcon style={{ fontSize: "1.3rem" }} />,
+            page: "football",
+          },
+          {
+            href: "/rule",
+            label: "Rules",
+            icon: <RuleIcon style={{ fontSize: "1.3rem" }} />,
+            page: "rule",
+          },
+          {
+            href: "/contact",
+            label: "Contact",
+            icon: <ContactIcon style={{ fontSize: "1.3rem" }} />,
+            page: "contact",
+          },
+          {
+            href: "/payment",
+            label: "Payment",
+            icon: <PaymentIcon style={{ fontSize: "1.3rem" }} />,
+            page: "payment",
+          },
+        ].map(({ href, label, icon, page }) => (
+          <li
+            key={page}
+            className={`${getActiveClass(page)} hover:animate-wiggle`}
           >
-            <GymIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Gym Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("badminton")}>
-          <Link
-            href="/badminton-booking"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <BadmintonIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Badminton Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("swimming")}>
-          <Link
-            href="/swimming-booking"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <SwimmingIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Swimming Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("football")}>
-          <Link
-            href="/football-booking"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <FootballIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Football Booking
-          </Link>
-        </li>
-        <li className={getActiveClass("rule")}>
-          <Link
-            href="/rule"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <RuleIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Rules
-          </Link>
-        </li>
-        <li className={getActiveClass("contact")}>
-          <Link
-            href="/contact"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <ContactIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Contact
-          </Link>
-        </li>
-        <li className={getActiveClass("payment")}>
-          <Link
-            href="/payment"
-            className="text-white hover:text-gray-400 flex items-center pb-4 me-2"
-          >
-            <PaymentIcon className="mx-2.5" style={{ fontSize: "1.3rem" }} />
-            Payment
-          </Link>
-        </li>
+            <Link
+              href={href}
+              className="  flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
+            >
+              {icon}
+              <p>{label}</p>
+            </Link>
+          </li>
+        ))}
       </ul>
     </div>
   );
