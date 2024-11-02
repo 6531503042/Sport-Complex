@@ -88,64 +88,85 @@ func (u *authUsecase) Login(pctx context.Context, cfg *config.Config, req *auth.
 }
 
 func (u *authUsecase) RefreshToken(pctx context.Context, cfg *config.Config, req *auth.RefreshTokenReq) (*auth.ProfileIntercepter, error) {
-	claims, err := jwt.ParseToken(cfg.Jwt.RefreshSecretKey, req.RefreshToken)
-	if err != nil {
-		log.Printf("Error: RefreshToken: %s", err.Error())
-		return nil, errors.New(err.Error())
-	}
+    // Parse the refresh token to extract claims
+    claims, err := jwt.ParseToken(cfg.Jwt.RefreshSecretKey, req.RefreshToken)
+    if err != nil {
+        log.Printf("Error: RefreshToken - %s", err.Error())
+        return nil, errors.New("invalid refresh token")
+    }
+	log.Printf("Parsing refresh token: %s", req.RefreshToken)
+	log.Printf("Claims parsed: %+v", claims)
 
-	profile, err := u.authRepository.FindOneUserProfileToRefresh(pctx, cfg.Grpc.UserUrl, &userPb.FindOneUserProfileToRefreshReq{
-		UserId: strings.TrimPrefix(claims.UserId, "user:"),
-	})
-	if err != nil {
-		return nil, err
-	}
+    // Find the user profile based on the user ID from the claims
+    userId := strings.TrimPrefix(claims.UserId, "user:")
+    profile, err := u.authRepository.FindOneUserProfileToRefresh(pctx, cfg.Grpc.UserUrl, &userPb.FindOneUserProfileToRefreshReq{
+        UserId: userId,
+    })
+    if err != nil {
+        log.Printf("Error: Unable to find user profile for user ID %s - %s", userId, err.Error())
+        return nil, errors.New("user profile not found")
+    }
+	log.Printf("Searching for user profile with UserID: %s", userId)
 
-	accessToken := jwt.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwt.Claims{
-		UserId: profile.Id,
-		RoleCode: int(profile.RoleCode),
-	}).SignToken()
+    // Validate that the user ID from the claims matches the profile
+    if profile.Id != userId {
+        log.Printf("Error: User ID from token (%s) does not match profile ID (%s)", claims.UserId, profile.Id)
+        return nil, errors.New("user ID mismatch")
+    }
 
-	refreshToken := jwt.ReloadToken(cfg.Jwt.RefreshSecretKey, claims.ExpiresAt.Unix(), &jwt.Claims{
-		UserId: profile.Id,
-		RoleCode: int(profile.RoleCode),
-	})
+    // Generate new access token and refresh token
+    accessToken := jwt.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwt.Claims{
+        UserId:   profile.Id,
+        RoleCode: int(profile.RoleCode),
+    }).SignToken()
 
-	if err := u.authRepository.UpdateOneUserCredential(pctx, req.CredentialId, &auth.UpdateRefreshTokenReq{
-		UserId:     profile.Id,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		UpdatedAt:    utils.LocalTime(),
-	}); err != nil {
-		return nil, err
-	}
+    refreshToken := jwt.ReloadToken(cfg.Jwt.RefreshSecretKey, claims.ExpiresAt.Unix(), &jwt.Claims{
+        UserId:   profile.Id,
+        RoleCode: int(profile.RoleCode),
+    })
 
-	credential, err := u.authRepository.FindOneUserCredential(pctx, req.CredentialId)
-	if err != nil {
-		return nil, err
-	}
+    // Update user credentials with new tokens
+    if err := u.authRepository.UpdateOneUserCredential(pctx, req.CredentialId, &auth.UpdateRefreshTokenReq{
+        UserId:      profile.Id,
+        AccessToken: accessToken,
+        RefreshToken: refreshToken,
+        UpdatedAt:    utils.LocalTime(),
+    }); err != nil {
+        log.Printf("Error: Failed to update user credentials - %s", err.Error())
+        return nil, errors.New("failed to update user credentials")
+    }
 
-	loc, _ := time.LoadLocation("Asia/Bangkok")
+    // Retrieve the updated user credential
+    credential, err := u.authRepository.FindOneUserCredential(pctx, req.CredentialId)
+    if err != nil {
+        log.Printf("Error: Failed to find user credential - %s", err.Error())
+        return nil, errors.New("failed to retrieve user credential")
+    }
 
-	return &auth.ProfileIntercepter{
-		UserProfile: &user.UserProfile{
-			Id:        "user:" + profile.Id,
-			Email:     profile.Email,
-			Name:  profile.Name,
-			CreatedAt: utils.ConvertStringTimeToTime(profile.CreatedAt),
-			UpdatedAt: utils.ConvertStringTimeToTime(profile.UpdatedAt),
-		},
-		Credential: &auth.CredentialRes{
-			Id:           credential.Id.Hex(),
-			UserId:     credential.UserId,
-			RoleCode:     credential.RoleCode,
-			AccessToken:  credential.AccessToken,
-			RefreshToken: credential.RefreshToken,
-			CreatedAt:    credential.CreatedAt.In(loc),
-			UpdatedAt:    credential.UpdatedAt.In(loc),
-		},
-	}, nil
+    // Set timezone for the credential timestamps
+    loc, _ := time.LoadLocation("Asia/Bangkok")
+
+    // Return the profile interceptor with updated tokens and user profile
+    return &auth.ProfileIntercepter{
+        UserProfile: &user.UserProfile{
+            Id:        "user:" + profile.Id,
+            Email:     profile.Email,
+            Name:      profile.Name,
+            CreatedAt: utils.ConvertStringTimeToTime(profile.CreatedAt),
+            UpdatedAt: utils.ConvertStringTimeToTime(profile.UpdatedAt),
+        },
+        Credential: &auth.CredentialRes{
+            Id:           credential.Id.Hex(),
+            UserId:      credential.UserId,
+            RoleCode:    credential.RoleCode,
+            AccessToken:  credential.AccessToken,
+            RefreshToken: credential.RefreshToken,
+            CreatedAt:    credential.CreatedAt.In(loc),
+            UpdatedAt:    credential.UpdatedAt.In(loc),
+        },
+    }, nil
 }
+
 
 func (u *authUsecase) Logout(pctx context.Context, credentialId string) (int64, error) {
 	return u.authRepository.DeleteOneUserCredential(pctx, credentialId)
@@ -180,3 +201,21 @@ func (u *authUsecase) RolesCount(pctx context.Context) (*authPb.RolesCountRes, e
 		Count: result,
 	}, nil
 }
+
+// func (u *authUsecase) GetUserProfileByID(pctx context.Context, userId string) (*user.UserProfile, error) {
+//     result, err := u.authRepository.FindOneUserProfileToRefresh(pctx, "grpc_url", &userPb.FindOneUserProfileToRefreshReq{
+//         UserId: userId,
+//     })
+//     if err != nil {
+//         return nil, err
+//     }
+
+// 	userProfile := &user.UserProfile{
+// 		Id:        result.Id,
+// 		Email:     result.Email,
+// 		Name:      result.Name,
+// 	}
+
+//     return userProfile, nil
+// }
+
