@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	client "main/client/payment"
 	"main/config"
 	"main/modules/booking"
@@ -19,6 +20,7 @@ type (
 		FindBooking(c echo.Context) error
 		FindOneUserBooking(c echo.Context) error
 		CreateBooking (c echo.Context) error
+		UpdateBookingStatusToPaid(c echo.Context) error
 	}
 
 	bookingHttpHandler struct {
@@ -74,7 +76,7 @@ func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
 	}
 
 	paymentRequest := client.CreatePaymentRequest{
-		Amount:        priceInsider,
+		Amount:       priceInsider,
 		UserID:       bookingResponse.UserId,
 		BookingID:    bookingResponse.Id.Hex(), 
 		PaymentMethod: "PromptPay",
@@ -92,7 +94,7 @@ func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check payment status: " + err.Error()})
 	}
 
-	if paymentStatus.Status != "COMPLETED" { // ใช้ paymentStatus.Status
+	if paymentStatus.Status != "PAID" { // ใช้ paymentStatus.Status
 		return c.JSON(http.StatusPaymentRequired, map[string]string{"error": "Payment is not completed"})
 	}
 
@@ -125,4 +127,19 @@ func (h *bookingHttpHandler) FindOneUserBooking(c echo.Context) error {
 	}
 
 	return response.SuccessResponse(c, http.StatusOK, bookings)
+}
+
+func (h *bookingHttpHandler) UpdateBookingStatusToPaid(c echo.Context) error {
+	bookingID := c.Param("booking_id")
+	if bookingID == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "booking_id is required"})
+	}
+
+	err := h.bookingUsecase.UpdateBookingStatusPaid(c.Request().Context(), bookingID)
+	if err != nil {
+		log.Printf("Error in UpdateBookingStatusToPaid: %s", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update booking status to paid"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "Booking status updated to paid"})
 }
