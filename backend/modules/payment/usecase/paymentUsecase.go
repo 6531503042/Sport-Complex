@@ -1,16 +1,16 @@
 package usecase
 
 import (
-
 	"context"
 	"fmt"
 	"main/config"
 	"main/modules/payment"
 	"main/modules/payment/repository"
 	"main/pkg/utils"
+	"net/url"
+
 	"github.com/Frontware/promptpay"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/url"
 )
 
 type (
@@ -49,7 +49,7 @@ func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, booki
 	}
 
 	// Define the PromptPay phone number
-	promptPayPhoneNumber := "091xxxxxxx" // Replace with the actual phone number
+	promptPayPhoneNumber := "0947044119" // Replace with the actual phone number
 
 	// Create a new PromptPay instance with the phone number
 	promptPay := &promptpay.PromptPay{
