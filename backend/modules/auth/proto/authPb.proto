@@ -16,7 +16,17 @@ message RolesCountRes {
     int64 count = 1;
 }
 
+message FindOneUserProfileToRefreshReq {
+    string userId = 1; // assuming you will pass the user ID
+}
+
+message UserProfile {
+    string userId = 1;
+    string username = 2; // Add other fields as necessary
+}
+
 service AuthGrpcService {
     rpc AccessTokenSearch(AccessTokenSearchReq) returns (AccessTokenSearchRes);
     rpc RolesCount(RolesCountReq) returns (RolesCountRes);
+    rpc FindOneUserProfileToRefresh(FindOneUserProfileToRefreshReq) returns (UserProfile); // Add this line
 }
