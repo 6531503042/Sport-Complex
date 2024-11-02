@@ -24,6 +24,7 @@ type(
 		//Kafka Interface
 		GetOffSet(ctx context.Context) (int64, error)
 		UpOffSet(ctx context.Context, newOffset int64) error
+		UpdateBookingStatusPaid(ctx context.Context, bookingID string) error
 		ScheduleMidnightClearing()
 	}
 
@@ -163,4 +164,8 @@ func (u *bookingUsecase) FindBooking (ctx context.Context, bookingId string) (*b
 
 func (u * bookingUsecase) FindOneUserBooking(ctx context.Context, userId string) ([]booking.Booking, error) {
 	return u.bookingRepository.FindOneUserBooking(ctx, userId)
+}
+
+func (u *bookingUsecase) UpdateBookingStatusPaid(ctx context.Context, bookingID string) error {
+	return u.bookingRepository.UpdateStatusPaid(ctx, bookingID)
 }
