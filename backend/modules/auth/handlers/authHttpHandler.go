@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log"
 	"main/config"
 	"main/modules/auth"
 	"main/modules/auth/usecase"
@@ -51,24 +52,25 @@ func (h *authHttpHandler) Login (c echo.Context) error {
 	return response.SuccessResponse(c, http.StatusOK, res)
 }
 
-func (h *authHttpHandler) RefreshToken (c echo.Context) error {
-	ctx := context.Background()
+func (h *authHttpHandler) RefreshToken(c echo.Context) error {
+    ctx := context.Background()
+    wrapper := request.ContextWrapper(c)
+    req := new(auth.RefreshTokenReq)
 
-	wrapper := request.ContextWrapper(c)
+    if err := wrapper.Bind(req); err != nil {
+        return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+    }
 
-	req := new(auth.RefreshTokenReq)
+    log.Printf("Received refresh token request: CredentialId: %s, RefreshToken: %s", req.CredentialId, req.RefreshToken)
 
-	if err := wrapper.Bind(req); err != nil {
-		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
-	}
+    res, err := h.authUsecase.RefreshToken(ctx, h.cfg, req)
+    if err != nil {
+        return response.ErrResponse(c, http.StatusUnauthorized, err.Error())
+    }
 
-	res, err := h.authUsecase.RefreshToken(ctx, h.cfg, req)
-	if err != nil {
-		return response.ErrResponse(c, http.StatusUnauthorized, err.Error())
-	}
-
-	return response.SuccessResponse(c, http.StatusOK, res)
+    return response.SuccessResponse(c, http.StatusOK, res)
 }
+
 
 func (h *authHttpHandler) Logout (c echo.Context) error {
 	ctx := context.Background()
