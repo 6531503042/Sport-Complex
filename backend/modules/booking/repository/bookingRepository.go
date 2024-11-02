@@ -35,6 +35,7 @@ type (
 		ClearingBookingAtMidnight(ctx context.Context) error
 		MoveOldBookingTransactionToHistory(ctx context.Context) error 
         ResetFacilitySlots(ctx context.Context, facilityName string) error
+        UpdateStatusPaid(ctx context.Context, bookingID string) error
 	}
 
 	bookingRepository struct {
@@ -462,4 +463,30 @@ func (r*bookingRepository) FindOneUserBooking (ctx context.Context, userId strin
 	}
 
 	return result, nil
+}
+
+func (r *bookingRepository) UpdateStatusPaid(ctx context.Context, bookingID string) error {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	db := r.bookingDbConn(ctx)
+	col := db.Collection("booking_transaction")
+
+	// Convert bookingID to ObjectID
+	objID, err := primitive.ObjectIDFromHex(bookingID)
+	if err != nil {
+		log.Printf("Error: Invalid booking ID format: %s", err.Error())
+		return errors.New("invalid booking ID format")
+	}
+
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$set": bson.M{"status": "PAID"}}
+
+	_, err = col.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Printf("Error: UpdateStatusPaid: %s", err.Error())
+		return errors.New("error: update status to paid failed")
+	}
+
+	return nil
 }
