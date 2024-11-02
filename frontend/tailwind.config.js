@@ -13,9 +13,14 @@ module.exports = {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(-3deg)' },
+          '50%': { transform: 'rotate(3deg)' },
+        },
       },
       animation: {
         fade: 'fade 0.5s ease-in-out',
+        wiggle: 'wiggle 0.25s ease-in-out',
       },
     },
   },
