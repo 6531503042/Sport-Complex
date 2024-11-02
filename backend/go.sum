@@ -1,5 +1,3 @@
-github.com/Frontware/promptpay v0.0.0-20201011053948-0c839c6b4342 h1:gUgbct0Ua5GECHpyOie/Jh11yK3CzHMOQI6rdqDCn9I=
-github.com/Frontware/promptpay v0.0.0-20201011053948-0c839c6b4342/go.mod h1:eoAqhDp/QtYuHU/wOAZBnJJxWNYgPkMH7UnbCCzAQnk=
 github.com/IBM/sarama v1.43.3 h1:Yj6L2IaNvb2mRBop39N7mmJAHBVY3dTPncr3qGVkxPA=
 github.com/IBM/sarama v1.43.3/go.mod h1:FVIRaLrhK3Cla/9FfRF5X9Zua2KpS3SYIXxhac1H+FQ=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
