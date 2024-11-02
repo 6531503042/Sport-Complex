@@ -51,12 +51,13 @@ func (r *authRepository) InsertOneUserCredential(pctx context.Context, req *auth
 
 	result, err := col.InsertOne(ctx, req)
 	if err != nil {
-		log.Printf("Error: InsertOneUserCredential failed: %s", err.Error())
-		return primitive.NilObjectID, errors.New("error: insert one user credential failed")
+		log.Printf("Error inserting user credential: %v", err) // Log the error
+		return primitive.NilObjectID, errors.New("unable to create user credential") // User-friendly error message
 	}
 
 	return result.InsertedID.(primitive.ObjectID), nil
 }
+
 
 // NewAuthRepository creates a new instance of authRepository.
 func NewAuthRepository(db *mongo.Client) AuthRepositoryService {
@@ -91,23 +92,24 @@ func (r *authRepository) CredentialSearch(pctx context.Context, grpcUrl string, 
 
 // FindOneUserProfileToRefresh finds a user profile via gRPC using provided credentials to refresh the token.
 func (r *authRepository) FindOneUserProfileToRefresh(pctx context.Context, grpcUrl string, req *userPb.FindOneUserProfileToRefreshReq) (*userPb.UserProfile, error) {
-	ctx, cancel := context.WithTimeout(pctx, 30*time.Second)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(pctx, 30*time.Second)
+    defer cancel()
 
-	jwt.SetApiKeyInContext(&ctx)
-	conn, err := grpc.NewGrpcClient(grpcUrl)
-	if err != nil {
-		log.Printf("Error: gRPC connection failed: %s", err.Error())
-		return nil, errors.New("error: gRPC connection failed")
-	}
+    jwt.SetApiKeyInContext(&ctx)
+    conn, err := grpc.NewGrpcClient(grpcUrl)
+    if err != nil {
+        log.Printf("Error: gRPC connection failed: %s", err.Error())
+        return nil, errors.New("error: gRPC connection failed")
+    }
 
-	result, err := conn.User().FindOneUserProfileToRefresh(ctx, req)
-	if err != nil {
-		log.Printf("Error: FindOneUserProfileToRefresh failed: %s", err.Error())
-		return nil, errors.New("error: user profile not found")
-	}
+    log.Printf("Calling gRPC method FindOneUserProfileToRefresh with UserId: %s", req.UserId)
+    result, err := conn.User().FindOneUserProfileToRefresh(ctx, req)
+    if err != nil {
+        log.Printf("Error: FindOneUserProfileToRefresh failed: %s", err.Error())
+        return nil, errors.New("error: user profile not found")
+    }
 
-	return result, nil
+    return result, nil
 }
 
 // FindOneUserCredential retrieves a user credential by ID from the database.
@@ -215,7 +217,6 @@ func (r *authRepository) AccessToken(cfg *config.Config, claims *jwt.Claims) str
 	}).SignToken()
 }
 
-// RefreshToken generates a new refresh token.
 // RefreshToken generates a new refresh token.
 func (r *authRepository) RefreshToken(cfg *config.Config, claims *jwt.Claims) string {
 	return jwt.NewRefreshToken(cfg.Jwt.RefreshSecretKey, &jwt.Claims{
