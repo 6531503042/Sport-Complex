@@ -71,3 +71,20 @@ html, body {
         display: none;
     }
 }
+
+@keyframes colorWave {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .color-wave {
+    background: linear-gradient(270deg, #fffcfb, #ffd0d0, #ffa683, #ff5b45);
+    background-size: 300% 300%; 
+    animation: colorWave 120s linear infinite; 
+    color: black;
+    border-radius: 0.375rem;
+  }

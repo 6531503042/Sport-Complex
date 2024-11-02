@@ -50,7 +50,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 
   const getActiveClass = (page: string) => {
     return activePage === page
-      ? "bg-white text-black shadow-md rounded-lg"
+      ? "color-wave text-black shadow-md rounded-lg"
       : "text-white hover:text-yellow-300 hover:border-black hover:border-opacity-50";
   };
 
@@ -145,7 +145,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
           >
             <Link
               href={href}
-              className="  flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-200"
+              className="  flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-500"
             >
               {icon}
               <p>{label}</p>
