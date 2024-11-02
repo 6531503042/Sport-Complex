@@ -86,7 +86,7 @@ const Sidebar: React.FC = () => {
           </div>
         </div>
 
-        <ul className="flex flex-col ps-5 gap-4 font-medium uppercase ">
+        <ul className="flex flex-col ps-5 gap-6 font-medium uppercase ">
           <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
             <Link
               href="/homepage"
