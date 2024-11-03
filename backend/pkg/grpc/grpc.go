@@ -38,6 +38,7 @@ func (g *grpcClientFactory) Auth() authPb.AuthGrpcServiceClient {
 	return authPb.NewAuthGrpcServiceClient(g.client)
 }
 
+
 func NewGrpcClient(host string) (GrpcClientFactoryHandler, error) {
     opts := make([]grpc.DialOption, 0)
     opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
