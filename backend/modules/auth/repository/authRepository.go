@@ -38,6 +38,17 @@ type (
 	}
 )
 
+// NewAuthRepository creates a new instance of authRepository.
+func NewAuthRepository(db *mongo.Client) AuthRepositoryService {
+	return &authRepository{db}
+}
+
+// authDbConn establishes a connection to the auth database.
+func (r *authRepository) authDbConn(pctx context.Context) *mongo.Database {
+	return r.db.Database("auth_db")
+}
+
+
 // InsertOneUserCredential implements AuthRepositoryService.
 func (r *authRepository) InsertOneUserCredential(pctx context.Context, req *auth.Credential) (primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
@@ -59,15 +70,7 @@ func (r *authRepository) InsertOneUserCredential(pctx context.Context, req *auth
 }
 
 
-// NewAuthRepository creates a new instance of authRepository.
-func NewAuthRepository(db *mongo.Client) AuthRepositoryService {
-	return &authRepository{db}
-}
 
-// authDbConn establishes a connection to the auth database.
-func (r *authRepository) authDbConn(pctx context.Context) *mongo.Database {
-	return r.db.Database("auth_db")
-}
 
 // InsertOneUserCredential inserts a new user credential into the database.
 func (r *authRepository) CredentialSearch(pctx context.Context, grpcUrl string, req *userPb.CredentialSearchReq) (*userPb.UserProfile, error) {
@@ -102,7 +105,6 @@ func (r *authRepository) FindOneUserProfileToRefresh(pctx context.Context, grpcU
         return nil, errors.New("error: gRPC connection failed")
     }
 
-    log.Printf("Calling gRPC method FindOneUserProfileToRefresh with UserId: %s", req.UserId)
     result, err := conn.User().FindOneUserProfileToRefresh(ctx, req)
     if err != nil {
         log.Printf("Error: FindOneUserProfileToRefresh failed: %s", err.Error())
@@ -218,8 +220,8 @@ func (r *authRepository) AccessToken(cfg *config.Config, claims *jwt.Claims) str
 }
 
 // RefreshToken generates a new refresh token.
-func (r *authRepository) RefreshToken(cfg *config.Config, claims *jwt.Claims) string {
-	return jwt.NewRefreshToken(cfg.Jwt.RefreshSecretKey, &jwt.Claims{
+func (r * authRepository) RefreshToken(cfg *config.Config, claims *jwt.Claims) string {
+	return jwt.NewRefreshToken(cfg.Jwt.RefreshSecretKey, cfg.Jwt.RefreshDuration, &jwt.Claims{
 		UserId:   claims.UserId,
 		RoleCode: int(claims.RoleCode),
 	}).SignToken()
