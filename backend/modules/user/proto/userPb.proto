@@ -6,9 +6,9 @@ message UserProfile {
     string id = 1;
     string email = 2;
     string name = 3;
-    string created_at = 4;
-    string updated_at = 5;
-    int32 roleCode = 6;
+    int32 roleCode = 4;
+    string created_at = 5;
+    string updated_at = 6;
 }
 
 message FindOneUserProfileToRefreshReq {
