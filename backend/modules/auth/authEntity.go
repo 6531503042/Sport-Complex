@@ -9,7 +9,7 @@ import (
 type (
 	Credential struct {
 		Id           primitive.ObjectID `bson:"_id,omitempty"`
-		UserId 		 string 			`bson:"user_id"`
+		UserId     string    `bson:"user_id"`
 		RoleCode     int                `bson:"role_code"`
 		AccessToken  string             `bson:"access_token"`
 		RefreshToken string             `bson:"refresh_token"`
