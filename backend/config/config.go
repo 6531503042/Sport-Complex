@@ -14,13 +14,7 @@ type Config struct {
 	Db   Db
 	Grpc Grpc
 	Kafka    Kafka
-	Server ServerConfig
 	Jwt Jwt
-}
-
-// ServerConfig represents the server configuration.
-type ServerConfig struct {
-	Port int
 }
 
 type Kafka struct {
@@ -55,10 +49,8 @@ type Jwt struct {
 type Grpc struct {
 	AuthUrl string
 	UserUrl string
-	GymUrl string
-	BadmintonUrl string
-	SwimmingUrl string
-	FootballUrl string
+	FacilityUrl string
+	BookingUrl string
 	PaymentUrl string
 }
 
@@ -99,10 +91,8 @@ func LoadConfig(path string) Config {
 		Grpc: Grpc{
 			AuthUrl: os.Getenv("GRPC_AUTH_URL"),
 			UserUrl: os.Getenv("GRPC_USER_URL"),
-			GymUrl: os.Getenv("GRPC_GYM_URL"),
-			BadmintonUrl: os.Getenv("GRPC_BADMINTON_URL"),
-			SwimmingUrl: os.Getenv("GRPC_SWIMMING_URL"),
-			FootballUrl: os.Getenv("GRPC_FOOTBALL_URL"),
+			FacilityUrl: os.Getenv("GRPC_FACILITY_URL"),
+			BookingUrl: os.Getenv("GRPC_BOOKING_URL"),
 			PaymentUrl: os.Getenv("GRPC_PAYMENT_URL"),
 		},
 		Kafka: Kafka{
