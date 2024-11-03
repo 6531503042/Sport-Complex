@@ -19,18 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthGrpcService_AccessTokenSearch_FullMethodName           = "/AuthGrpcService/AccessTokenSearch"
-	AuthGrpcService_RolesCount_FullMethodName                  = "/AuthGrpcService/RolesCount"
-	AuthGrpcService_FindOneUserProfileToRefresh_FullMethodName = "/AuthGrpcService/FindOneUserProfileToRefresh"
+	AuthGrpcService_AccessTokenSearch_FullMethodName = "/AuthGrpcService/AccessTokenSearch"
+	AuthGrpcService_RolesCount_FullMethodName        = "/AuthGrpcService/RolesCount"
 )
 
 // AuthGrpcServiceClient is the client API for AuthGrpcService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Methods
 type AuthGrpcServiceClient interface {
 	AccessTokenSearch(ctx context.Context, in *AccessTokenSearchReq, opts ...grpc.CallOption) (*AccessTokenSearchRes, error)
 	RolesCount(ctx context.Context, in *RolesCountReq, opts ...grpc.CallOption) (*RolesCountRes, error)
-	FindOneUserProfileToRefresh(ctx context.Context, in *FindOneUserProfileToRefreshReq, opts ...grpc.CallOption) (*UserProfile, error)
 }
 
 type authGrpcServiceClient struct {
@@ -61,23 +61,14 @@ func (c *authGrpcServiceClient) RolesCount(ctx context.Context, in *RolesCountRe
 	return out, nil
 }
 
-func (c *authGrpcServiceClient) FindOneUserProfileToRefresh(ctx context.Context, in *FindOneUserProfileToRefreshReq, opts ...grpc.CallOption) (*UserProfile, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UserProfile)
-	err := c.cc.Invoke(ctx, AuthGrpcService_FindOneUserProfileToRefresh_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // AuthGrpcServiceServer is the server API for AuthGrpcService service.
 // All implementations must embed UnimplementedAuthGrpcServiceServer
 // for forward compatibility.
+//
+// Methods
 type AuthGrpcServiceServer interface {
 	AccessTokenSearch(context.Context, *AccessTokenSearchReq) (*AccessTokenSearchRes, error)
 	RolesCount(context.Context, *RolesCountReq) (*RolesCountRes, error)
-	FindOneUserProfileToRefresh(context.Context, *FindOneUserProfileToRefreshReq) (*UserProfile, error)
 	mustEmbedUnimplementedAuthGrpcServiceServer()
 }
 
@@ -93,9 +84,6 @@ func (UnimplementedAuthGrpcServiceServer) AccessTokenSearch(context.Context, *Ac
 }
 func (UnimplementedAuthGrpcServiceServer) RolesCount(context.Context, *RolesCountReq) (*RolesCountRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RolesCount not implemented")
-}
-func (UnimplementedAuthGrpcServiceServer) FindOneUserProfileToRefresh(context.Context, *FindOneUserProfileToRefreshReq) (*UserProfile, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindOneUserProfileToRefresh not implemented")
 }
 func (UnimplementedAuthGrpcServiceServer) mustEmbedUnimplementedAuthGrpcServiceServer() {}
 func (UnimplementedAuthGrpcServiceServer) testEmbeddedByValue()                         {}
@@ -154,24 +142,6 @@ func _AuthGrpcService_RolesCount_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthGrpcService_FindOneUserProfileToRefresh_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FindOneUserProfileToRefreshReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthGrpcServiceServer).FindOneUserProfileToRefresh(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthGrpcService_FindOneUserProfileToRefresh_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthGrpcServiceServer).FindOneUserProfileToRefresh(ctx, req.(*FindOneUserProfileToRefreshReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // AuthGrpcService_ServiceDesc is the grpc.ServiceDesc for AuthGrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -186,10 +156,6 @@ var AuthGrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RolesCount",
 			Handler:    _AuthGrpcService_RolesCount_Handler,
-		},
-		{
-			MethodName: "FindOneUserProfileToRefresh",
-			Handler:    _AuthGrpcService_FindOneUserProfileToRefresh_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

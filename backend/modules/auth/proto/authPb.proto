@@ -2,6 +2,7 @@ syntax = "proto3";
 
 option go_package = "https://github.com/6531503042/Sport-Complex";
 
+// Structures
 message AccessTokenSearchReq {
     string accessToken = 1;
 }
@@ -16,17 +17,8 @@ message RolesCountRes {
     int64 count = 1;
 }
 
-message FindOneUserProfileToRefreshReq {
-    string userId = 1; // assuming you will pass the user ID
-}
-
-message UserProfile {
-    string userId = 1;
-    string username = 2; // Add other fields as necessary
-}
-
+// Methods
 service AuthGrpcService {
     rpc AccessTokenSearch(AccessTokenSearchReq) returns (AccessTokenSearchRes);
     rpc RolesCount(RolesCountReq) returns (RolesCountRes);
-    rpc FindOneUserProfileToRefresh(FindOneUserProfileToRefreshReq) returns (UserProfile); // Add this line
 }
