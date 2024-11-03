@@ -30,7 +30,7 @@ type (
 
 		//Kafka
 		GetOffset(pctx context.Context) (int64, error)
-		UpserOffset(pctx context.Context, offset int64) error
+		UpsetOffset(pctx context.Context, offset int64) error
 	}
 
 	UserRepository struct {
@@ -62,7 +62,7 @@ func (r *UserRepository) GetOffset(pctx context.Context) (int64, error) {
 	return result.Offset, nil
 }
 
-func (r *UserRepository) UpserOffset(pctx context.Context, offset int64) error {
+func (r *UserRepository) UpsetOffset(pctx context.Context, offset int64) error {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
