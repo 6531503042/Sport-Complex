@@ -115,7 +115,7 @@ func (u *userUsecase) FindOneUserCredential(pctx context.Context, password, emai
 
     if err := bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(password)); err != nil {
         log.Printf("Error: FindOneUserCredential: %s",err.Error())
-        return nil, errors.New("error: wrong password")
+        return nil, errors.New("error: password is invalid")
     }
 
     roleCode := 0
