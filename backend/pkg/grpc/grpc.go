@@ -42,7 +42,8 @@ func NewGrpcClient(host string) (GrpcClientFactoryHandler, error) {
     opts := make([]grpc.DialOption, 0)
     opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
-    clientConn, err := grpc.Dial(host, opts...)
+    ctx := context.Background()
+    clientConn, err := grpc.DialContext(ctx, host, opts...)
     if err != nil {
         log.Printf("Error: gRPC client connection to %s failed: %s", host, err.Error())
         return nil, errors.New("error: grpc client connection failed")
@@ -86,6 +87,11 @@ func (g *grpcAuth) unaryAuthorization(ctx context.Context, req any, info *grpc.U
         log.Printf("Error: Auth metadata not found")
         return nil, errors.New("error: metadata not found")
     }
+
+	if len (authHeader) == 0 {
+		log.Printf("Error: Auth metadata not found")
+		return nil, errors.New("error: metadata not found")
+	}
 
     claims, err := jwt.ParseToken(g.secretKey, string(authHeader[0]))
     if err != nil {
