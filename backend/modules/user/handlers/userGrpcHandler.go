@@ -21,6 +21,6 @@ func (g *userGrpcHandler) CredentialSearch (ctx context.Context, req *userPb.Cre
 	return g.userUsecase.FindOneUserCredential(ctx, req.Password, req.Email)
 }
 
-func (g *userGrpcHandler) FindOneUserProfileRefresh (ctx context.Context, req *userPb.FindOneUserProfileToRefreshReq) (*userPb.UserProfile, error) {
-	return g.userUsecase.FindOneUserProfileToRefresh(ctx, req.UserId)
+func (g *userGrpcHandler) FindOneUserProfileToRefresh(ctx context.Context, req *userPb.FindOneUserProfileToRefreshReq) (*userPb.UserProfile, error) {
+    return g.userUsecase.FindOneUserProfileToRefresh(ctx, req.UserId)
 }
