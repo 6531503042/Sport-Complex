@@ -8,6 +8,7 @@ import (
 	"main/pkg/request"
 	"main/pkg/response"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -62,12 +63,11 @@ func (h *userHttpHandler) FindOneUserProfile(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Extract the user ID from the URL parameter
-	userId := c.Param("user_id")
+	userId := strings.TrimPrefix(c.Param("user_id"), "user:")
 
 	// Fetch the user profile
 	res, err := h.userUsecase.FindOneUserProfile(ctx, userId)
 	if err != nil {
-		// Return an error response
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
 
