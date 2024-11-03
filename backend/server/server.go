@@ -14,7 +14,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,19 +25,9 @@ type (
 		db         *mongo.Client
 		cfg        *config.Config
 		middleware middlewarehttphandler.MiddlewareHttpHandlerService
-		validator  *validator.Validate
 	}
 )
 
-// CustomValidator wraps go-playground/validator and integrates it with Echo
-type CustomValidator struct {
-	validator *validator.Validate
-}
-
-// Validate implements the echo.Validator interface
-func (cv *CustomValidator) Validate(i interface{}) error {
-	return cv.validator.Struct(i)
-}
 
 // newMiddleware initializes your custom middleware service
 func newMiddleware(cfg *config.Config) middlewarehttphandler.MiddlewareHttpHandlerService {
@@ -75,14 +64,10 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 		db:         db,
 		cfg:        cfg,
 		middleware: newMiddleware(cfg),
-		validator:  validator.New(),
 	}
 
 	// Set API Key for JWT
 	jwt.SetApiKey(cfg.Jwt.ApiSecretKey)
-
-	// Attach the custom validator
-	s.app.Validator = &CustomValidator{validator: s.validator}
 
 	// Basic Middleware
 	s.app.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
