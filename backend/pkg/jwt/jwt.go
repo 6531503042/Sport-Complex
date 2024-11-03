@@ -32,17 +32,9 @@ type (
 		Claims *AuthMapClaims `json:"claims"`
 	}
 
-	accessToken struct {
-		*authConcrete
-	}
-
-	refreshToken struct {
-		*authConcrete
-	}
-
-	apiKey struct {
-		*authConcrete
-	}
+	accessToken  struct{ *authConcrete }
+	refreshToken struct{ *authConcrete }
+	apiKey       struct{ *authConcrete }
 )
 
 func (a *authConcrete) SignToken() string {
@@ -72,7 +64,7 @@ func NewAccessToken(secret string, expiredAt int64, claims *Claims) AuthFactory 
 				Claims: claims,
 				RegisteredClaims: jwt.RegisteredClaims{
 					Issuer:    "bengi.com",
-					Subject:   "bengi.com",
+					Subject:   "access-token",
 					Audience:  []string{"bengi.com"},
 					ExpiresAt: jwtTimeDurationCal(expiredAt),
 					NotBefore: jwt.NewNumericDate(now()),
@@ -83,9 +75,7 @@ func NewAccessToken(secret string, expiredAt int64, claims *Claims) AuthFactory 
 	}
 }
 
-func NewRefreshToken(secret string, claims *Claims) AuthFactory {
-	// Expiration set to 3 days (259200 seconds)
-	expiredAt := int64(259200) // 3 days in seconds
+func NewRefreshToken(secret string, expiredAt int64, claims *Claims) AuthFactory {
 	return &refreshToken{
 		authConcrete: &authConcrete{
 			Secret: []byte(secret),
