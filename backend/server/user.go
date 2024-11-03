@@ -21,7 +21,6 @@ func (s *server) userService() {
 		grpcServer, lis := grpc.NewGrpcServer(&s.cfg.Jwt, s.cfg.Grpc.UserUrl)
 
 		userPb.RegisterUserGrpcServiceServer(grpcServer, grpcHandler)
-
 		log.Printf("User gRPC server listening on %s", s.cfg.Grpc.UserUrl)
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("gRPC server error: %v", err)
@@ -38,11 +37,4 @@ func (s *server) userService() {
 	user.PATCH("/users/:user_id", httpHandler.UpdateUser)
 	user.DELETE("/users/:user_id", httpHandler.DeleteUser)
 	user.GET("/users", httpHandler.FindManyUser)
-
-	// Admin-only route example
-	// userAdmin := user.Group("/admin")
-	// userAdmin.Use(s.middleware.IsAdminRoleMiddleware(s.cfg, 1))
-	// userAdmin.PATCH("/users/:user_id", httpHandler.UpdateUser)
-	// userAdmin.DELETE("/users/:user_id", httpHandler.DeleteUser)
-	// userAdmin.GET("/admin-only", httpHandler.AdminOnlyHandler)
-}
+	}
