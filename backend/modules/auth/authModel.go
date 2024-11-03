@@ -11,10 +11,6 @@ type (
 		Password string `json:"password" form:"password" validate:"required,max=32"`
 	}
 
-	UserLoginRes struct {
-		CredentialId string `json:"credential_id" form:"credential_id" validate:"required,max=64"`
-	}
-
 	RefreshTokenReq struct {
 		CredentialId string `json:"credential_id" form:"credential_id" validate:"required,max=64"`
 		RefreshToken string `json:"refresh_token" form:"refresh_token" validate:"required,max=500"`
