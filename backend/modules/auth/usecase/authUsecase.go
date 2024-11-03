@@ -97,7 +97,7 @@ func (u *authUsecase) RefreshToken(pctx context.Context, cfg *config.Config, req
 	}
 
     profile, err := u.authRepository.FindOneUserProfileToRefresh(pctx, cfg.Grpc.UserUrl, &userPb.FindOneUserProfileToRefreshReq{
-		UserId: strings.TrimPrefix(claims.UserId, "users:"),
+		UserId: strings.TrimPrefix(claims.UserId, "user:"),
 	})
 	if err != nil {
 		log.Printf("Error: RefreshToken: %s", err.Error())
