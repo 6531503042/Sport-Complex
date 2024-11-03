@@ -88,32 +88,22 @@ func (u *authUsecase) Login(pctx context.Context, cfg *config.Config, req *auth.
 }
 
 func (u *authUsecase) RefreshToken(pctx context.Context, cfg *config.Config, req *auth.RefreshTokenReq) (*auth.ProfileIntercepter, error) {
+
     // Parse the refresh token to extract claims
     claims, err := jwt.ParseToken(cfg.Jwt.RefreshSecretKey, req.RefreshToken)
     if err != nil {
-        log.Printf("Error: RefreshToken - %s", err.Error())
-        return nil, errors.New("invalid refresh token")
-    }
-	log.Printf("Parsing refresh token: %s", req.RefreshToken)
-	log.Printf("Claims parsed: %+v", claims)
+		log.Printf("Error: RefreshToken: %s", err.Error())
+		return nil, errors.New(err.Error())
+	}
 
-    // Find the user profile based on the user ID from the claims
-    userId := strings.TrimPrefix(claims.UserId, "user:")
     profile, err := u.authRepository.FindOneUserProfileToRefresh(pctx, cfg.Grpc.UserUrl, &userPb.FindOneUserProfileToRefreshReq{
-        UserId: userId,
-    })
-    if err != nil {
-        log.Printf("Error: Unable to find user profile for user ID %s - %s", userId, err.Error())
-        return nil, errors.New("user profile not found")
-    }
-	log.Printf("Searching for user profile with UserID: %s", userId)
-
-    // Validate that the user ID from the claims matches the profile
-    if profile.Id != userId {
-        log.Printf("Error: User ID from token (%s) does not match profile ID (%s)", claims.UserId, profile.Id)
-        return nil, errors.New("user ID mismatch")
-    }
-
+		UserId: strings.TrimPrefix(claims.UserId, "users:"),
+	})
+	if err != nil {
+		log.Printf("Error: RefreshToken: %s", err.Error())
+		return nil, errors.New(err.Error())
+	}
+   
     // Generate new access token and refresh token
     accessToken := jwt.NewAccessToken(cfg.Jwt.AccessSecretKey, cfg.Jwt.AccessDuration, &jwt.Claims{
         UserId:   profile.Id,
@@ -201,21 +191,3 @@ func (u *authUsecase) RolesCount(pctx context.Context) (*authPb.RolesCountRes, e
 		Count: result,
 	}, nil
 }
-
-// func (u *authUsecase) GetUserProfileByID(pctx context.Context, userId string) (*user.UserProfile, error) {
-//     result, err := u.authRepository.FindOneUserProfileToRefresh(pctx, "grpc_url", &userPb.FindOneUserProfileToRefreshReq{
-//         UserId: userId,
-//     })
-//     if err != nil {
-//         return nil, err
-//     }
-
-// 	userProfile := &user.UserProfile{
-// 		Id:        result.Id,
-// 		Email:     result.Email,
-// 		Name:      result.Name,
-// 	}
-
-//     return userProfile, nil
-// }
-
