@@ -227,8 +227,11 @@ func (r *UserRepository) FindOneUserProfileRefresh(pctx context.Context, userId 
 
 	result := new(user.User)
 
-	if err := col.FindOne(ctx, bson.M{"_id": utils.ConvertToObjectId(userId)}).Decode(result); err != nil {
-		log.Printf("Error: FindOneUserProfileToRefresh: %s", err.Error())
+	if err := col.FindOne(
+		ctx,
+		bson.M{"_id": utils.ConvertToObjectId(userId)},
+	).Decode(result); err != nil {
+		log.Printf("Error: FindOneUserProfile: %s", err.Error())
 		return nil, errors.New("error: user profile not found")
 	}
 
