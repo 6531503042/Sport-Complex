@@ -53,7 +53,7 @@ const SignUpPage = () => {
         <p className={styles.underheader}>Welcome to MFU Sport complex.</p>
         {isSuccessful ? (
           <div className={styles.successMessage}>
-            <h3>Signup Successful</h3>
+            <h2>Signup Successful</h2>
             <p>Welcome to MFU Sport Complex! Your signup was successful.</p>
             <Button className={styles.button} color="primary" onClick={handleLoginRedirect}>
               OK
@@ -111,14 +111,6 @@ const SignUpPage = () => {
             </Button>
           </form>
         )}
-      </div>
-      <div className={styles.right}>
-        <Image
-          src="/assets/loginpicture.png"
-          alt="Sports Image"
-          layout="fill"
-          className={styles.rightImage}
-        />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import {Checkbox} from "@nextui-org/react";
+import { Checkbox } from "@nextui-org/react";
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input, Button, Link } from '@nextui-org/react';
@@ -79,7 +79,6 @@ const LoginPage = () => {
           </div>
           <div className={styles.checkboxContainer}>
             <div className={styles.checkboxWrapper}>
-            <Checkbox defaultSelected>Remember me</Checkbox>
             </div>
             <Link href="#" className={styles.link}>Forgot password</Link>
           </div>
@@ -90,9 +89,6 @@ const LoginPage = () => {
             Are you an outsider? <Link href="signup" className={styles.link}>Sign up for free!</Link>
           </p>
         </form>
-      </div>
-      <div className={styles.right}>
-        <Image src="/assets/loginpicture.png" alt="Sports Image" layout="fill" className={styles.rightImage} />
       </div>
     </div>
   );
