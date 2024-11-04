@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faClipboard,
   faDumbbell,
   faEnvelope,
   faFutbol,
@@ -18,6 +17,7 @@ import { useRouter } from "next/navigation";
 
 const Sidebar: React.FC = () => {
   const [userName, setUserName] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -31,14 +31,13 @@ const Sidebar: React.FC = () => {
   }, []);
 
   const truncateUserName = (name: string) => {
-    return name.length > 20 ? name.slice(0, 20) + "..." : name;
+    return name.length > 20 ? `${name.slice(0, 20)}...` : name;
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user"); 
+    localStorage.removeItem("user");
     router.replace("/login");
   };
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -49,7 +48,7 @@ const Sidebar: React.FC = () => {
       <div className="cursor-pointer sidebar_icon" onClick={toggleSidebar}>
         <img
           src={IconSidebar.src}
-          alt=""
+          alt="Sidebar Icon"
           className="h-auto w-6 transform transition-transform duration-300 ease-in-out hover:scale-125"
         />
       </div>
@@ -59,17 +58,16 @@ const Sidebar: React.FC = () => {
           onClick={toggleSidebar}
         />
       )}
-
       <div
         className={`fixed top-0 right-0 h-full bg-white text-black transform ${
           isSidebarOpen ? "translate-x-0" : "translate-x-full"
         } transition-transform duration-300 ease-in-out w-80 z-50 overflow-y-auto overflow-x-hidden`}
       >
-        <div className="inline-flex flex-row w-full ">
+        <div className="inline-flex flex-row w-full">
           <div className="p-8 flex gap-5 w-full justify-between">
             <aside className="login_button border-b-4 border-transparent">
               <nav className="inline-flex">
-                <span className="inline-flex  items-center">
+                <span className="inline-flex items-center">
                   {userName ? truncateUserName(userName) : "Loading..."}
                 </span>
               </nav>
@@ -85,113 +83,39 @@ const Sidebar: React.FC = () => {
             </button>
           </div>
         </div>
-
-        <ul className="flex flex-col ps-5 gap-6 font-medium uppercase ">
-          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link
-              href="/homepage"
-              className="inline-flex flex-row items-center"
+        <ul className="flex flex-col ps-5 gap-6 font-medium uppercase">
+          {[
+            { href: "/homepage", icon: faHome, label: "Home Page" },
+            { href: "/gym", icon: faDumbbell, label: "Gym Booking" },
+            { href: "/swimming", icon: faSwimmer, label: "Swimming Booking" },
+            { href: "/football", icon: faFutbol, label: "Football Booking" },
+            { href: "/contact", icon: faEnvelope, label: "Contact" },
+            { href: "/payment", icon: faWallet, label: "Payment" },
+            { href: "/homepage", icon: faUser, label: "Profile" },
+          ].map((item, index) => (
+            <li
+              key={index}
+              className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110"
             >
-              <FontAwesomeIcon
-                icon={faHome}
-                className=" text-orange-600 w-14"
-              />
-              <p>Home Page</p>
-            </Link>
-          </li>
-          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/gym" className="inline-flex flex-row items-center">
-              <FontAwesomeIcon
-                icon={faDumbbell}
-                className=" text-orange-600 w-14"
-              />
-              <p>Gym Booking</p>
-            </Link>
-          </li>
-          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link
-              href="/swimming"
-              className="inline-flex flex-row items-center"
-            >
-              <FontAwesomeIcon
-                icon={faSwimmer}
-                className=" text-orange-600 w-14"
-              />
-              <p>Swimming Booking</p>
-            </Link>
-          </li>
-          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link
-              href="/football"
-              className="inline-flex flex-row items-center"
-            >
-              <FontAwesomeIcon
-                icon={faFutbol}
-                className=" text-orange-600 w-14"
-              />
-              <p>Football Booking</p>
-            </Link>
-          </li>
-          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/contact" className="inline-flex flex-row items-center">
-              <FontAwesomeIcon
-                icon={faEnvelope}
-                className=" text-orange-600 w-14"
-              />
-              <p>Contact</p>
-            </Link>
-          </li>
-          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/rule" className="inline-flex flex-row items-center">
-              <FontAwesomeIcon
-                icon={faClipboard}
-                className=" text-orange-600 w-14"
-              />
-              <p>Rules</p>
-            </Link>
-          </li>
-          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link href="/payment" className="inline-flex flex-row items-center">
-              <FontAwesomeIcon
-                icon={faWallet}
-                className=" text-orange-600 w-14"
-              />
-              <p>Payment</p>
-            </Link>
-          </li>
-          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link
-              href="/homepage"
-              className="inline-flex flex-row items-center"
-            >
-              <FontAwesomeIcon
-                icon={faUser}
-                className=" text-orange-600 w-14"
-              />
-              <p>Profile</p>
-            </Link>
-          </li>
-          <li className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110">
-            <Link
-              href="/admin_dashboard"
-              className="inline-flex flex-row items-center"
-            >
-              <FontAwesomeIcon
-                icon={faUser}
-                className=" text-orange-600 w-14"
-              />
-              <p>AdminDashboard</p>
-            </Link>
-          </li>
+              <Link
+                href={item.href}
+                prefetch={true}
+                className="inline-flex flex-row items-center"
+              >
+                <FontAwesomeIcon
+                  icon={item.icon}
+                  className="text-orange-600 w-14"
+                />
+                <p>{item.label}</p>
+              </Link>
+            </li>
+          ))}
         </ul>
-        <br />
-        <div className="h-[1.5px] rounded-lg mx-10 bg-zinc-700"></div>
-        <br />
-        <button
-          onClick={handleLogout}
-          className=" w-full flex justify-center"
-        >
-          <p className="hover:text-white hover:bg-red-900 border-[1.5px]  border-red-900 py-1.5 px-6 rounded-lg transition-all duration-300">Logout</p>
+        <div className="h-[1.5px] rounded-lg mx-10 bg-zinc-700 my-4"></div>
+        <button onClick={handleLogout} className="w-full flex justify-center">
+          <p className="hover:text-white hover:bg-red-900 border-[1.5px] border-red-900 py-1.5 px-6 rounded-lg transition-all duration-300">
+            Logout
+          </p>
         </button>
       </div>
     </div>
