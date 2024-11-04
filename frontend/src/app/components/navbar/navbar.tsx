@@ -28,9 +28,9 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
       const user = JSON.parse(userData);
       setUserName(user.name);
     } else {
-      router.replace("/login");
+      router.replace("/login"); 
     }
-  }, []);
+  }, [router]);
 
   const truncateUserName = (name: string) => {
     return name.length > 10 ? name.slice(0, 10) + "..." : name;
@@ -38,6 +38,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("access_token");
     router.replace("/login");
   };
 
@@ -57,16 +58,16 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   return (
     <div className={`${getBackgroundColor()} justify-center flex flex-col`}>
       <header>
-        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5" >
+        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5">
           <Link
             href="/homepage"
-            className="inline-flex flex-row items-center  gap-3.5 w-1/5"
+            className="inline-flex flex-row items-center gap-3.5 w-1/5"
           >
             <img src={Logo.src} alt="Logo" className="w-7" />
             <span className="flex flex-col border-l-2 w-max whitespace-nowrap">
               <div className="ms-1">
                 <span className="ms-1 inline-flex flex-row font-semibold text-xl">
-                  <p className="text-black ">SPORT.</p>
+                  <p className="text-black">SPORT.</p>
                   <p className="text-gray-500">MFU</p>
                 </span>
                 <hr />
@@ -80,7 +81,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
             <SearhBar />
           </div>
           <div className="name_user_and_sidebar flex-none w-1/12 flex justify-end items-center ms-5 me-2 gap-12">
-            <span className="name_user inline-flex flew-row gap-5 items-center">
+            <span className="name_user inline-flex flex-row gap-5 items-center">
               {userName ? truncateUserName(userName) : "Loading..."}
               <p>|</p>
               <button
@@ -145,7 +146,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
           >
             <Link
               href={href}
-              className="  flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
+              className="flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
             >
               {icon}
               <p>{label}</p>
@@ -158,3 +159,4 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 };
 
 export default NavBar;
+``
