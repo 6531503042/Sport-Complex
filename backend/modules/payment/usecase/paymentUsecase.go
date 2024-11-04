@@ -48,12 +48,12 @@ func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, booki
 		UpdatedAt:     utils.LocalTime(),
 	}
 
-	// Define the PromptPay phone number
-	promptPayPhoneNumber := "0947044119" // Replace with the actual phone number
+	// Define the PromptPay ID
+	PromptPayID := "1579901028845" // Replace with the actual ID
 
 	// Create a new PromptPay instance with the phone number
 	promptPay := &promptpay.PromptPay{
-		PromptPayID: promptPayPhoneNumber,
+		PromptPayID: PromptPayID,
 		Amount:      amount,
 		OneTime:     true,
 	}
