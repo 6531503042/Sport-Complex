@@ -271,53 +271,6 @@ func (r *bookingRepository) updateSlotCurrentBooking(pctx context.Context, facil
 	return nil
 }
 
-func (r *bookingRepository) checkUserBookingExists(pctx context.Context, userId string, facilityName string, slotId *primitive.ObjectID, badmintonSlotId *primitive.ObjectID) (bool, error) {
-    log.Printf("Checking if booking exists for userId: %s, facilityName: %s, slotId: %v, badmintonSlotId: %v", userId, facilityName, slotId, badmintonSlotId)
-
-    db := r.bookingDbConn(pctx)
-    col := db.Collection("booking_transaction")
-
-    // Initialize filter with userId
-    filter := bson.M{
-        "user_id": userId,
-    }
-
-    // Add either slotId or badmintonSlotId to the filter
-	if slotId != nil {
-		filter["slot_id"] = slotId.Hex() // Convert ObjectID to string
-	}
-	
-	log.Printf("MongoDB query filter: %+v", filter)
-    if badmintonSlotId != nil {
-        filter["badminton_slot_id"] = badmintonSlotId.Hex()
-    }
-	log.Printf("MongoDB query filter: %+v", filter)
-
-    // Count the number of documents matching this filter
-    count, err := col.CountDocuments(pctx, filter)
-    if err != nil {
-        log.Printf("Error: checkUserBookingExists failed: %s", err.Error())
-        return false, fmt.Errorf("error: checkUserBookingExists failed: %w", err)
-    }
-
-    log.Printf("Booking exists count for userId: %s, facilityName: %s, slotId: %v, badmintonSlotId: %v -> Count: %d", userId, facilityName, slotId, badmintonSlotId, count)
-	log.Printf("Found %d documents matching the filter", count)
-
-    return count > 0, nil
-}
-
-// Validate the booking request
-func validateBookingRequest(req *booking.Booking) error {
-    if req.SlotId == nil && req.BadmintonSlotId == nil {
-        return errors.New("SlotId or BadmintonSlotId is required")
-    }
-    if req.SlotId != nil && req.BadmintonSlotId != nil {
-        return errors.New("only one of SlotId or BadmintonSlotId is required")
-    }
-    // Add additional validations as needed
-    return nil
-}
-
 func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName string, req *booking.Booking) (*booking.Booking, error) {
     ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
     defer cancel()
@@ -352,17 +305,19 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
         isBadminton = true
     }
 
-    // Check if the user has already booked the same slot
-    exists, err := r.checkUserBookingExists(ctx, req.UserId, facilityName, slotIdObject, badmintonSlotIdObject)
-    if err != nil {
-        log.Printf("Error while checking if user already booked: %s", err)
-        return nil, err
-    }
-    if exists {
-        log.Printf("User %s has already booked the slot %v/%v", req.UserId, slotIdObject, badmintonSlotIdObject)
-        return nil, errors.New("error: user has already booked this slot")
-    }
-    log.Printf("User %s has not booked the slot, proceeding with booking", req.UserId)
+   // Log booking attempt
+    log.Printf("Attempting to insert booking for userId: %s, facilityName: %s", req.UserId, facilityName)
+
+     // Check if the user has already booked the same slot
+     exists, err := r.checkDuplicateBooking(ctx, req.UserId, slotIdObject, badmintonSlotIdObject)
+     if err != nil {
+         log.Printf("Error while checking duplicate booking: %s", err)
+         return nil, err
+     }
+     if exists {
+         log.Printf("User %s has already booked slot %v/%v", req.UserId, slotIdObject, badmintonSlotIdObject)
+         return nil, errors.New("error: user has already booked this slot")
+     }
 
     var slot *facility.Slot
     if !isBadminton {
@@ -379,6 +334,7 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
     // Create the booking document
     bookingDoc := bson.M{
         "user_id":    req.UserId,
+        "facility":   facilityName,
         "status":     "pending", 
         "created_at": time.Now(),
         "updated_at": time.Now(),
@@ -489,4 +445,72 @@ func (r *bookingRepository) UpdateStatusPaid(ctx context.Context, bookingID stri
 	}
 
 	return nil
+}
+
+func (r *bookingRepository) checkDuplicateBooking(ctx context.Context, userId string, slotId, badmintonSlotId *primitive.ObjectID) (bool, error) {
+    filter := bson.M{
+        "user_id": userId,
+    }
+
+    // Add slot filter depending on slot type
+    if slotId != nil {
+        filter["slot_id"] = slotId
+    } else if badmintonSlotId != nil {
+        filter["badminton_slot_id"] = badmintonSlotId
+    }
+
+    // Count documents matching the filter
+    count, err := r.bookingDbConn(ctx).Collection("booking_transaction").CountDocuments(ctx, filter)
+    if err != nil {
+        return false, err
+    }
+
+    return count > 0, nil // True if a duplicate booking exists
+}
+
+func (r *bookingRepository) checkUserBookingExists(pctx context.Context, userId string, facilityName string, slotId *primitive.ObjectID, badmintonSlotId *primitive.ObjectID) (bool, error) {
+    log.Printf("Checking if booking exists for userId: %s, facilityName: %s, slotId: %v, badmintonSlotId: %v", userId, facilityName, slotId, badmintonSlotId)
+
+    db := r.bookingDbConn(pctx)
+    col := db.Collection("booking_transaction")
+
+    // Initialize filter with userId
+    filter := bson.M{
+        "user_id": userId,
+    }
+
+    // Add either slotId or badmintonSlotId to the filter
+	if slotId != nil {
+		filter["slot_id"] = slotId.Hex() // Convert ObjectID to string
+	}
+	
+	log.Printf("MongoDB query filter: %+v", filter)
+    if badmintonSlotId != nil {
+        filter["badminton_slot_id"] = badmintonSlotId.Hex()
+    }
+	log.Printf("MongoDB query filter: %+v", filter)
+
+    // Count the number of documents matching this filter
+    count, err := col.CountDocuments(pctx, filter)
+    if err != nil {
+        log.Printf("Error: checkUserBookingExists failed: %s", err.Error())
+        return false, fmt.Errorf("error: checkUserBookingExists failed: %w", err)
+    }
+
+    log.Printf("Booking exists count for userId: %s, facilityName: %s, slotId: %v, badmintonSlotId: %v -> Count: %d", userId, facilityName, slotId, badmintonSlotId, count)
+	log.Printf("Found %d documents matching the filter", count)
+
+    return count > 0, nil
+}
+
+// Validate the booking request
+func validateBookingRequest(req *booking.Booking) error {
+    if req.SlotId == nil && req.BadmintonSlotId == nil {
+        return errors.New("SlotId or BadmintonSlotId is required")
+    }
+    if req.SlotId != nil && req.BadmintonSlotId != nil {
+        return errors.New("only one of SlotId or BadmintonSlotId is required")
+    }
+    // Add additional validations as needed
+    return nil
 }
