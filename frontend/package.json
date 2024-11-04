@@ -20,6 +20,7 @@
     "@nextui-org/react": "^2.4.6",
     "@tailwindcss/forms": "^0.5.8",
     "@tremor/react": "^3.18.3",
+    "chart.js": "^4.4.6",
     "daisyui": "^4.12.10",
     "embla-carousel-autoplay": "^8.2.1",
     "embla-carousel-react": "^8.2.1",
@@ -27,6 +28,7 @@
     "flowbite-react": "^0.10.1",
     "next": "14.2.8",
     "react": "^18",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "^18",
     "swiper": "^11.1.12"
   },
