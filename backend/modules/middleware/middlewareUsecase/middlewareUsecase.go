@@ -7,6 +7,7 @@ import (
 	middlewareRepository "main/modules/middleware/middlewareRepository"
 	"main/pkg/jwt"
 	"main/pkg/rbac"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
@@ -31,15 +32,18 @@ func NewMiddlewareUsecase(middlewareRepository middlewareRepository.MiddlewareRe
 func (u *middlewareUsecase) JwtAuthorization(c echo.Context, cfg *config.Config, accessToken string) (echo.Context, error) {
 	ctx := c.Request().Context()
 
+	// Parse the token and get claims
 	claims, err := jwt.ParseToken(cfg.Jwt.AccessSecretKey, accessToken)
 	if err != nil {
-		return nil, err
+		return c, echo.NewHTTPError(http.StatusUnauthorized, "invalid token: "+err.Error())
 	}
 
+	// Check if the access token is valid through gRPC
 	if err := u.middlewareRepository.AccessTokenSearch(ctx, cfg.Grpc.AuthUrl, accessToken); err != nil {
-		return nil, err
+		return c, err
 	}
 
+	// Set user ID and role code in the context
 	c.Set("user_id", claims.UserId)
 	c.Set("role_code", claims.RoleCode)
 
