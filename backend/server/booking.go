@@ -29,7 +29,7 @@ func (s *server) bookingService() {
 	booking.GET("/bookings/:booking_id", bookingHttpHandler.FindBooking)
 	booking.GET("/bookings/user/:user_id", bookingHttpHandler.FindOneUserBooking)
 	bookingCreate := booking.Group("/:facilityName")
-	bookingCreate.POST("/booking", bookingHttpHandler.CreateBooking) 
+	bookingCreate.POST("/booking", bookingHttpHandler.CreateBooking, s.middleware.JwtAuthorizationMiddleware(s.cfg)) 
 
 	// booking.GET("/bookings", bookingHttpHandler.FindAllBookings) // Find all bookings
 	booking.POST("/bookings/:booking_id/pay", bookingHttpHandler.UpdateBookingStatusToPaid)
