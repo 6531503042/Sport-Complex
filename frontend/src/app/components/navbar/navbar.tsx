@@ -10,7 +10,6 @@ import GymIcon from "@mui/icons-material/FitnessCenter";
 import BadmintonIcon from "@mui/icons-material/SportsTennis";
 import SwimmingIcon from "@mui/icons-material/Pool";
 import FootballIcon from "@mui/icons-material/SportsSoccer";
-import RuleIcon from "@mui/icons-material/AssignmentLate";
 import ContactIcon from "@mui/icons-material/Mail";
 import PaymentIcon from "@mui/icons-material/Payment";
 
@@ -122,12 +121,6 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
             page: "football",
           },
           {
-            href: "/rule",
-            label: "Rules",
-            icon: <RuleIcon style={{ fontSize: "1.3rem" }} />,
-            page: "rule",
-          },
-          {
             href: "/contact",
             label: "Contact",
             icon: <ContactIcon style={{ fontSize: "1.3rem" }} />,
@@ -146,6 +139,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
           >
             <Link
               href={href}
+              prefetch={true}
               className="flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
             >
               {icon}

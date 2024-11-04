@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faClipboard,
   faDumbbell,
   faEnvelope,
   faFutbol,
@@ -84,8 +83,6 @@ const Sidebar: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {/* Sidebar menu items */}
         <ul className="flex flex-col ps-5 gap-6 font-medium uppercase">
           {[
             { href: "/homepage", icon: faHome, label: "Home Page" },
@@ -93,7 +90,6 @@ const Sidebar: React.FC = () => {
             { href: "/swimming", icon: faSwimmer, label: "Swimming Booking" },
             { href: "/football", icon: faFutbol, label: "Football Booking" },
             { href: "/contact", icon: faEnvelope, label: "Contact" },
-            { href: "/rule", icon: faClipboard, label: "Rules" },
             { href: "/payment", icon: faWallet, label: "Payment" },
             { href: "/homepage", icon: faUser, label: "Profile" },
           ].map((item, index) => (
@@ -103,6 +99,7 @@ const Sidebar: React.FC = () => {
             >
               <Link
                 href={item.href}
+                prefetch={true}
                 className="inline-flex flex-row items-center"
               >
                 <FontAwesomeIcon
