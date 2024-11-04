@@ -1,16 +1,13 @@
-"use client";
-
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const useAuthRedirect = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const accessToken = localStorage.getItem('access_token');
-    
-    if (!accessToken) {
-      router.replace('/login');
+    const userData = localStorage.getItem("user");
+    if (!userData) {
+      router.replace("/login");
     }
   }, [router]);
 };
