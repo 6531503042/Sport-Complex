@@ -26,14 +26,13 @@ func (s *server) bookingService() {
 	// Booking Routes
 	booking := s.app.Group("/booking_v1")
 	// booking.POST("/bookings", bookingHttpHandler.CreateBooking) // Create a booking
-	booking.GET("/bookings/:booking_id", bookingHttpHandler.FindBooking)          // Find a specific booking
-	booking.GET("/bookings/user/:user_id", bookingHttpHandler.FindOneUserBooking) // Find all bookings for a specific user
-
+	booking.GET("/bookings/:booking_id", bookingHttpHandler.FindBooking)
+	booking.GET("/bookings/user/:user_id", bookingHttpHandler.FindOneUserBooking)
 	bookingCreate := booking.Group("/:facilityName")
-	bookingCreate.POST("/booking", bookingHttpHandler.CreateBooking) // Create a booking for a specific facility
+	bookingCreate.POST("/booking", bookingHttpHandler.CreateBooking) 
 
 	// booking.GET("/bookings", bookingHttpHandler.FindAllBookings) // Find all bookings
-	booking.POST("/bookings/:booking_id/pay", bookingHttpHandler.UpdateBookingStatusToPaid) // Update booking status to "paid"
+	booking.POST("/bookings/:booking_id/pay", bookingHttpHandler.UpdateBookingStatusToPaid)
 
 
 	log.Println("Booking service initialized")
