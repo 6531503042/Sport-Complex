@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import NavBar from "../../components/navbar/navbar";
 import BannerMain from "../../components/section/banner/banner_main";
 import NewsReport from "../../components/section/new_report/report";
 import Footer from "../../components/section/footer/footer";
 import "../../css/banner.css";
+import useAuthRedirect from "../../components/hooks/useAuthRedirect";
 
-const homepage: React.FC = () => {
+const Homepage: React.FC = () => {
+  useAuthRedirect();
+
   return (
-    <div className="">
+    <div>
       <NavBar />
       <BannerMain />
       <NewsReport />
@@ -21,4 +24,4 @@ const homepage: React.FC = () => {
   );
 };
 
-export default homepage;
+export default Homepage;
