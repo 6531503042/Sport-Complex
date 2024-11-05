@@ -169,7 +169,7 @@ setSlot(Array.isArray(slotData) && slotData.length ? slotData : []);
   }, [id]);
   return (
     <>
-      <NavBar />
+      <NavBar activePage="gym"/>
 
       <div className="flex flex-col items-center h-screen p-6">
         <div className="w-full max-w-[1189px] bg-[#FEFFFE] border-gray border rounded-3xl drop-shadow-2xl p-5">

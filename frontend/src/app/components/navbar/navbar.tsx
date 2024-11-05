@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Logo from "../../assets/Logo.png";
-import SideBar from "../../../../../frontend/src/app/components/sidebar/sidebar";
-import SearhBar from "../search_bar/search_bar";
 import GymIcon from "@mui/icons-material/FitnessCenter";
 import BadmintonIcon from "@mui/icons-material/SportsTennis";
 import SwimmingIcon from "@mui/icons-material/Pool";
 import FootballIcon from "@mui/icons-material/SportsSoccer";
-import RuleIcon from "@mui/icons-material/AssignmentLate";
 import ContactIcon from "@mui/icons-material/Mail";
 import PaymentIcon from "@mui/icons-material/Payment";
+
+const SideBar = React.lazy(() => import("../../../../../frontend/src/app/components/sidebar/sidebar"));
+const SearhBar = React.lazy(() => import("../search_bar/search_bar"));
 
 type NavBarProps = {
   activePage?: string;
@@ -30,7 +30,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
     } else {
       router.replace("/login");
     }
-  }, []);
+  }, [router]);
 
   const truncateUserName = (name: string) => {
     return name.length > 10 ? name.slice(0, 10) + "..." : name;
@@ -38,6 +38,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("access_token");
     router.replace("/login");
   };
 
@@ -57,16 +58,16 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   return (
     <div className={`${getBackgroundColor()} justify-center flex flex-col`}>
       <header>
-        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5" >
+        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5">
           <Link
             href="/homepage"
-            className="inline-flex flex-row items-center  gap-3.5 w-1/5"
+            className="inline-flex flex-row items-center gap-3.5 w-1/5"
           >
             <img src={Logo.src} alt="Logo" className="w-7" />
             <span className="flex flex-col border-l-2 w-max whitespace-nowrap">
               <div className="ms-1">
                 <span className="ms-1 inline-flex flex-row font-semibold text-xl">
-                  <p className="text-black ">SPORT.</p>
+                  <p className="text-black">SPORT.</p>
                   <p className="text-gray-500">MFU</p>
                 </span>
                 <hr />
@@ -77,10 +78,12 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
             </span>
           </Link>
           <div className="flex-none w-3/6 flex me-3">
-            <SearhBar />
+            <Suspense fallback={<div>Loading search...</div>}>
+              <SearhBar />
+            </Suspense>
           </div>
           <div className="name_user_and_sidebar flex-none w-1/12 flex justify-end items-center ms-5 me-2 gap-12">
-            <span className="name_user inline-flex flew-row gap-5 items-center">
+            <span className="name_user inline-flex flex-row gap-5 items-center">
               {userName ? truncateUserName(userName) : "Loading..."}
               <p>|</p>
               <button
@@ -90,41 +93,37 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
                 Logout
               </button>
             </span>
-            <SideBar />
+            <Suspense fallback={<div>Loading sidebar...</div>}>
+              <SideBar />
+            </Suspense>
           </div>
         </div>
       </header>
       <ul className="NavBar_res inline-flex flex-row px-10 py-4 gap-16 justify-center items-center font-semibold text-sm">
         {[
           {
-            href: "/gym",
+            href: "/gym-booking",
             label: "Gym Booking",
             icon: <GymIcon style={{ fontSize: "1.3rem" }} />,
             page: "gym",
           },
           {
-            href: "/badminton",
+            href: "/badminton-booking",
             label: "Badminton Booking",
             icon: <BadmintonIcon style={{ fontSize: "1.3rem" }} />,
             page: "badminton",
           },
           {
-            href: "/swimming",
+            href: "/swimming-booking",
             label: "Swimming Booking",
             icon: <SwimmingIcon style={{ fontSize: "1.3rem" }} />,
             page: "swimming",
           },
           {
-            href: "/football",
+            href: "/football-booking",
             label: "Football Booking",
             icon: <FootballIcon style={{ fontSize: "1.3rem" }} />,
             page: "football",
-          },
-          {
-            href: "/rule",
-            label: "Rules",
-            icon: <RuleIcon style={{ fontSize: "1.3rem" }} />,
-            page: "rule",
           },
           {
             href: "/contact",
@@ -145,7 +144,8 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
           >
             <Link
               href={href}
-              className="  flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
+              prefetch={true}
+              className="flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
             >
               {icon}
               <p>{label}</p>

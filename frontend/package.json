@@ -28,7 +28,7 @@
     "flowbite-react": "^0.10.1",
     "frontend": "file:",
     "lucide-react": "^0.454.0",
-    "next": "^15.0.1",
+    "next": "^15.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.27.0",

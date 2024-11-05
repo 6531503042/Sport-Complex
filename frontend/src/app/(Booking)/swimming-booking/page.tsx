@@ -170,7 +170,7 @@ function Swimming_Booking({ params }: UserDataParams) {
 
   return (
     <>
-      <NavBar />
+      <NavBar activePage="swimming"/>
       <div className="flex flex-col items-center h-screen p-6">
         <div className="w-full max-w-[1189px] bg-[#FEFFFE] border-gray border rounded-3xl drop-shadow-2xl p-5">
           <h1 className="text-4xl font-bold my-10 text-black text-center">
