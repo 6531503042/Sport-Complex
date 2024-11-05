@@ -14,10 +14,12 @@ import {
 import IconSidebar from "../../assets/icon_sidebar_black.png";
 import "../sidebar/sidebar.css";
 import { useRouter } from "next/navigation";
+import LoadingScreen from "../loading_screen/loading";
 
 const Sidebar: React.FC = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -28,7 +30,7 @@ const Sidebar: React.FC = () => {
     } else {
       router.replace("/login");
     }
-  }, []);
+  }, [router]);
 
   const truncateUserName = (name: string) => {
     return name.length > 20 ? `${name.slice(0, 20)}...` : name;
@@ -40,8 +42,26 @@ const Sidebar: React.FC = () => {
   };
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+    setIsSidebarOpen((prev) => !prev);
   };
+
+  const handleLinkClick = async (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    event.preventDefault();
+    setLoading(true);
+    await router.push(href);
+    setLoading(false);
+  };
+
+  const menuItems = [
+    { href: "/homepage", icon: faHome, label: "Home Page" },
+    { href: "/gym-booking", icon: faDumbbell, label: "Gym Booking" },
+    { href: "/badminton-booking", icon: faDumbbell, label: "Badminton Booking" },
+    { href: "/swimming-booking", icon: faSwimmer, label: "Swimming Booking" },
+    { href: "/football-booking", icon: faFutbol, label: "Football Booking" },
+    { href: "/contact", icon: faEnvelope, label: "Contact" },
+    { href: "/payment", icon: faWallet, label: "Payment" },
+    { href: "/profile", icon: faUser, label: "Profile" },
+  ];
 
   return (
     <div className="flex-none border-b-4 border-transparent flex items-center">
@@ -53,60 +73,30 @@ const Sidebar: React.FC = () => {
         />
       </div>
       {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30"
-          onClick={toggleSidebar}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-30" onClick={toggleSidebar} />
       )}
       <div
         className={`fixed top-0 right-0 h-full bg-white text-black transform ${
           isSidebarOpen ? "translate-x-0" : "translate-x-full"
-        } transition-transform duration-300 ease-in-out w-80 z-50 overflow-y-auto overflow-x-hidden`}
+        } transition-transform duration-300 ease-in-out w-80 z-50 overflow-y-auto`}
       >
-        <div className="inline-flex flex-row w-full">
-          <div className="p-8 flex gap-5 w-full justify-between">
-            <aside className="login_button border-b-4 border-transparent">
-              <nav className="inline-flex">
-                <span className="inline-flex items-center">
-                  {userName ? truncateUserName(userName) : "Loading..."}
-                </span>
-              </nav>
-            </aside>
-            <button
-              className="text-black hover:text-gray-300 transition-all duration-200"
-              onClick={toggleSidebar}
-            >
-              <FontAwesomeIcon
-                icon={faX}
-                style={{ fontSize: "1.5rem", fontWeight: "normal" }}
-              />
-            </button>
-          </div>
+        <div className="flex justify-between items-center p-8">
+          <span className="text-lg font-semibold">
+            {userName ? truncateUserName(userName) : "Loading..."}
+          </span>
+          <button onClick={toggleSidebar} className="text-black hover:text-gray-300">
+            <FontAwesomeIcon icon={faX} style={{ fontSize: "1.5rem" }} />
+          </button>
         </div>
         <ul className="flex flex-col ps-5 gap-6 font-medium uppercase">
-          {[
-            { href: "/homepage", icon: faHome, label: "Home Page" },
-            { href: "/gym-booking", icon: faDumbbell, label: "Gym Booking" },
-            { href: "/badminton-booking", icon: faDumbbell, label: "Badminton Booking" },
-            { href: "/swimming-booking", icon: faSwimmer, label: "Swimming Booking" },
-            { href: "/football-booking", icon: faFutbol, label: "Football Booking" },
-            { href: "/contact", icon: faEnvelope, label: "Contact" },
-            { href: "/payment", icon: faWallet, label: "Payment" },
-            { href: "/homepage", icon: faUser, label: "Profile" },
-          ].map((item, index) => (
-            <li
-              key={index}
-              className="hover:text-gray-400 cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110"
-            >
+          {menuItems.map((item, index) => (
+            <li key={index} className="hover:text-gray-400 transition-transform duration-200 ease-in-out hover:scale-110">
               <Link
                 href={item.href}
-                prefetch={true}
                 className="inline-flex flex-row items-center"
+                onClick={(e) => handleLinkClick(e, item.href)}
               >
-                <FontAwesomeIcon
-                  icon={item.icon}
-                  className="text-orange-600 w-14"
-                />
+                <FontAwesomeIcon icon={item.icon} className="text-orange-600 w-14" />
                 <p>{item.label}</p>
               </Link>
             </li>
@@ -119,6 +109,7 @@ const Sidebar: React.FC = () => {
           </p>
         </button>
       </div>
+      {loading && <LoadingScreen />} {/* Render loading screen */}
     </div>
   );
 };
