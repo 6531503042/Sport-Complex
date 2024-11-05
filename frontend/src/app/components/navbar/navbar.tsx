@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Logo from "../../assets/Logo.png";
+import SideBar from "../../../../../frontend/src/app/components/sidebar/sidebar";
+import SearchBar from "../search_bar/search_bar"; // Ensure correct path for your search bar
 import GymIcon from "@mui/icons-material/FitnessCenter";
 import BadmintonIcon from "@mui/icons-material/SportsTennis";
 import SwimmingIcon from "@mui/icons-material/Pool";
 import FootballIcon from "@mui/icons-material/SportsSoccer";
 import ContactIcon from "@mui/icons-material/Mail";
 import PaymentIcon from "@mui/icons-material/Payment";
-
-const SideBar = React.lazy(() => import("../../../../../frontend/src/app/components/sidebar/sidebar"));
-const SearhBar = React.lazy(() => import("../search_bar/search_bar"));
+import LoadingScreen from "../loading_screen/loading"; // Import your loading screen component
 
 type NavBarProps = {
   activePage?: string;
@@ -20,6 +20,7 @@ type NavBarProps = {
 
 const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   const [userName, setUserName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -55,6 +56,19 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
       : "text-white hover:text-yellow-300 hover:border-black hover:border-opacity-50";
   };
 
+  // Function to handle link clicks and show loading
+  const handleLinkClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    event.preventDefault(); // Prevent default link behavior
+    setLoading(true);
+    setTimeout(() => {
+      router.push(href);
+      setLoading(false);
+    }, 1000);
+  };
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <div className={`${getBackgroundColor()} justify-center flex flex-col`}>
       <header>
@@ -62,6 +76,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
           <Link
             href="/homepage"
             className="inline-flex flex-row items-center gap-3.5 w-1/5"
+            onClick={handleLinkClick}
           >
             <img src={Logo.src} alt="Logo" className="w-7" />
             <span className="flex flex-col border-l-2 w-max whitespace-nowrap">
@@ -78,9 +93,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
             </span>
           </Link>
           <div className="flex-none w-3/6 flex me-3">
-            <Suspense fallback={<div>Loading search...</div>}>
-              <SearhBar />
-            </Suspense>
+            <SearchBar />
           </div>
           <div className="name_user_and_sidebar flex-none w-1/12 flex justify-end items-center ms-5 me-2 gap-12">
             <span className="name_user inline-flex flex-row gap-5 items-center">
@@ -93,9 +106,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
                 Logout
               </button>
             </span>
-            <Suspense fallback={<div>Loading sidebar...</div>}>
-              <SideBar />
-            </Suspense>
+            <SideBar />
           </div>
         </div>
       </header>
@@ -146,6 +157,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
               href={href}
               prefetch={true}
               className="flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
+              onClick={handleLinkClick} // Trigger loading on link click
             >
               {icon}
               <p>{label}</p>
