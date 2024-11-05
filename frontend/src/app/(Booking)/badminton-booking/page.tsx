@@ -60,7 +60,7 @@ const Badminton_Booking: React.FC = () => {
 
   return (
     <div className="flex flex-col bg-gray-100 min-h-screen">
-      <NavBar activePage="gym" />
+      <NavBar/>
       <h1 className="text-center text-3xl font-bold mt-9 text-gray-800">
         Badminton Booking
       </h1>
