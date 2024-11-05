@@ -83,7 +83,7 @@ html, body {
 }
 
 .color-wave {
-    background: linear-gradient(270deg, #fffcfb, #ff5b45); /* Only two colors */
+    background: linear-gradient(270deg, #fffcfb, #ff6565); /* Only two colors */
     background-size: 200% 200%; /* Adjusted for smoother oscillation */
     animation: colorWave 5s ease-in-out infinite alternate; /* Continuous back and forth */
     color: black;
