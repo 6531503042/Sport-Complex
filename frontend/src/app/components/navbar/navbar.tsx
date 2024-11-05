@@ -1,17 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Logo from "../../assets/Logo.png";
-import SideBar from "../../../../../frontend/src/app/components/sidebar/sidebar";
-import SearhBar from "../search_bar/search_bar";
 import GymIcon from "@mui/icons-material/FitnessCenter";
 import BadmintonIcon from "@mui/icons-material/SportsTennis";
 import SwimmingIcon from "@mui/icons-material/Pool";
 import FootballIcon from "@mui/icons-material/SportsSoccer";
 import ContactIcon from "@mui/icons-material/Mail";
 import PaymentIcon from "@mui/icons-material/Payment";
+
+const SideBar = React.lazy(() => import("../../../../../frontend/src/app/components/sidebar/sidebar"));
+const SearhBar = React.lazy(() => import("../search_bar/search_bar"));
 
 type NavBarProps = {
   activePage?: string;
@@ -77,7 +78,9 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
             </span>
           </Link>
           <div className="flex-none w-3/6 flex me-3">
-            <SearhBar />
+            <Suspense fallback={<div>Loading search...</div>}>
+              <SearhBar />
+            </Suspense>
           </div>
           <div className="name_user_and_sidebar flex-none w-1/12 flex justify-end items-center ms-5 me-2 gap-12">
             <span className="name_user inline-flex flex-row gap-5 items-center">
@@ -90,7 +93,9 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
                 Logout
               </button>
             </span>
-            <SideBar />
+            <Suspense fallback={<div>Loading sidebar...</div>}>
+              <SideBar />
+            </Suspense>
           </div>
         </div>
       </header>
@@ -153,4 +158,3 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 };
 
 export default NavBar;
-``;
