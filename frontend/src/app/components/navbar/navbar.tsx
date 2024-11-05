@@ -27,7 +27,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
       const user = JSON.parse(userData);
       setUserName(user.name);
     } else {
-      router.replace("/login"); 
+      router.replace("/login");
     }
   }, [router]);
 
@@ -97,25 +97,25 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
       <ul className="NavBar_res inline-flex flex-row px-10 py-4 gap-16 justify-center items-center font-semibold text-sm">
         {[
           {
-            href: "/gym",
+            href: "/gym-booking",
             label: "Gym Booking",
             icon: <GymIcon style={{ fontSize: "1.3rem" }} />,
             page: "gym",
           },
           {
-            href: "/badminton",
+            href: "/badminton-booking",
             label: "Badminton Booking",
             icon: <BadmintonIcon style={{ fontSize: "1.3rem" }} />,
             page: "badminton",
           },
           {
-            href: "/swimming",
+            href: "/swimming-booking",
             label: "Swimming Booking",
             icon: <SwimmingIcon style={{ fontSize: "1.3rem" }} />,
             page: "swimming",
           },
           {
-            href: "/football",
+            href: "/football-booking",
             label: "Football Booking",
             icon: <FootballIcon style={{ fontSize: "1.3rem" }} />,
             page: "football",
@@ -153,4 +153,4 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 };
 
 export default NavBar;
-``
+``;

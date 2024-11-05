@@ -86,9 +86,10 @@ const Sidebar: React.FC = () => {
         <ul className="flex flex-col ps-5 gap-6 font-medium uppercase">
           {[
             { href: "/homepage", icon: faHome, label: "Home Page" },
-            { href: "/gym", icon: faDumbbell, label: "Gym Booking" },
-            { href: "/swimming", icon: faSwimmer, label: "Swimming Booking" },
-            { href: "/football", icon: faFutbol, label: "Football Booking" },
+            { href: "/gym-booking", icon: faDumbbell, label: "Gym Booking" },
+            { href: "/badminton-booking", icon: faDumbbell, label: "Badminton Booking" },
+            { href: "/swimming-booking", icon: faSwimmer, label: "Swimming Booking" },
+            { href: "/football-booking", icon: faFutbol, label: "Football Booking" },
             { href: "/contact", icon: faEnvelope, label: "Contact" },
             { href: "/payment", icon: faWallet, label: "Payment" },
             { href: "/homepage", icon: faUser, label: "Profile" },
