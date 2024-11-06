@@ -20,7 +20,7 @@ const LoadingScreen = () => {
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-white dark:bg-black z-50">
       <StyledLogo
         src={Logo.src}
-        alt="ATA IT Logo"
+        alt=""
         className="h-16 md:h-24 mb-8"
       />
       <div className="w-64 px-4">
