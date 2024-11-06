@@ -18,19 +18,22 @@ type (
 		CreatePayment(ctx context.Context, userId string, bookingId string, amount float64) (*payment.PaymentResponse, error)
 		UpdatePayment(ctx context.Context, paymentId string, status string) (*payment.PaymentEntity, error)
 		FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error)
-		FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentEntity, error)
+		SaveSlip(ctx context.Context, slip payment.PaymentSlip) error
+		FindSlipByUserId(ctx context.Context, userId string) ([]payment.PaymentSlip, error)
+		UpdateSlipStatus(ctx context.Context, slipId string, newStatus string) error
+		GetPendingSlips(ctx context.Context) ([]payment.PaymentSlip, error)
 	}
 
 	paymentUsecase struct {
-		cfg                 *config.Config
-		paymentRepository   repository.PaymentRepositoryService
+		cfg               *config.Config
+		paymentRepository repository.PaymentRepositoryService
 	}
 )
 
 // NewPaymentUsecase returns a new instance of PaymentUsecaseService using the given payment repository.
-func NewPaymentUsecase(paymentRepository repository.PaymentRepositoryService) PaymentUsecaseService {
+func NewPaymentUsecase(cfg *config.Config, paymentRepository repository.PaymentRepositoryService) PaymentUsecaseService {
 	return &paymentUsecase{
-		cfg:               &config.Config{},
+		cfg:               cfg,
 		paymentRepository: paymentRepository,
 	}
 }
@@ -111,6 +114,35 @@ func (u *paymentUsecase) FindPayment(ctx context.Context, paymentId string) (*pa
 	return u.paymentRepository.FindPayment(ctx, paymentId)
 }
 
-func (u *paymentUsecase) FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentEntity, error) {
-	return u.paymentRepository.FindPaymentsByUser(ctx, userId)
+
+func (u *paymentUsecase) SaveSlip(ctx context.Context, slip payment.PaymentSlip) error {
+	err := u.paymentRepository.SaveSlip(ctx, slip)
+	if err != nil {
+		return fmt.Errorf("error saving slip: %w", err)
+	}
+	return nil
+}
+
+func (u *paymentUsecase) FindSlipByUserId(ctx context.Context, userId string) ([]payment.PaymentSlip, error) {
+	slips, err := u.paymentRepository.FindSlipByUserId(ctx, userId)
+	if err != nil {
+		return nil, fmt.Errorf("error finding slips by user ID: %w", err)
+	}
+	return slips, nil
+}
+
+func (u *paymentUsecase) UpdateSlipStatus(ctx context.Context, slipId string, newStatus string) error {
+	err := u.paymentRepository.UpdateSlipStatus(ctx, slipId, newStatus)
+	if err != nil {
+		return fmt.Errorf("error updating slip status: %w", err)
+	}
+	return nil
+}
+
+func (u *paymentUsecase) GetPendingSlips(ctx context.Context) ([]payment.PaymentSlip, error) {
+	slips, err := u.paymentRepository.GetPendingSlips(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving pending slips: %w", err)
+	}
+	return slips, nil
 }
