@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Logo from "../../assets/Logo.png";
-import SideBar from "../../../../../frontend/src/app/components/sidebar/sidebar";
+import SideBar from "@/app/components/sidebar/sidebar";
 import SearchBar from "../search_bar/search_bar"; // Ensure correct path for your search bar
 import GymIcon from "@mui/icons-material/FitnessCenter";
 import BadmintonIcon from "@mui/icons-material/SportsTennis";
@@ -56,17 +56,14 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
       : "text-white hover:text-yellow-300 hover:border-black hover:border-opacity-50";
   };
 
-  // Function to handle link clicks and show loading
   const handleLinkClick = async (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    event.preventDefault(); // Prevent default link behavior
-    setLoading(true); // Show loading screen
+    event.preventDefault(); 
+    setLoading(true); 
 
-    // Set a timeout to ensure the loading screen is shown for at least 1 second
     const timeoutId = setTimeout(() => {
-      router.push(href); // Navigate to the new page after the timeout
+      router.push(href); 
     }, 1000);
 
-    // Cleanup function to clear the timeout if the component unmounts
     return () => clearTimeout(timeoutId);
   };
 
@@ -79,7 +76,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
             <Link
               href="/homepage"
               className="inline-flex flex-row items-center gap-3.5 w-1/5"
-              onClick={(e) => handleLinkClick(e, "/homepage")} // Adjust click handler
+              onClick={(e) => handleLinkClick(e, "/homepage")}
             >
               <img src={Logo.src} alt="Logo" className="w-7" />
               <span className="flex flex-col border-l-2 w-max whitespace-nowrap">
@@ -109,7 +106,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
                   Logout
                 </button>
               </span>
-              <SideBar />
+              <SideBar setLoading={setLoading} />
             </div>
           </div>
         </header>
