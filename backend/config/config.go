@@ -9,7 +9,8 @@ import (
 )
 
 // Config represents the application configuration.
-type Config struct {
+type (
+	Config struct {
 	App App
 	Db   Db
 	Grpc Grpc
@@ -17,26 +18,23 @@ type Config struct {
 	Jwt Jwt
 }
 
-type Kafka struct {
+Kafka struct {
 	Url    string
 	ApiKey string
 	Secret string
 }
 
-// App represents the application configuration.
-type App struct {
+App struct {
 	Name string
 	Url string
 	Stage string
 }
 
-// Db represents the database configuration.
-type Db struct {
+Db struct {
 	Url string
 }
 
-// Jwt represents the JWT configuration.
-type Jwt struct {
+Jwt struct {
 	AccessSecretKey string
 	RefreshSecretKey string
 	ApiSecretKey string
@@ -45,14 +43,16 @@ type Jwt struct {
 	ApiDuration int64
 }
 
-// Grpc represents the gRPC configuration.
-type Grpc struct {
+Grpc struct {
 	AuthUrl string
 	UserUrl string
 	FacilityUrl string
 	BookingUrl string
 	PaymentUrl string
 }
+
+)
+
 
 // LoadConfig loads the configuration from the given .env file.
 func LoadConfig(path string) Config {
