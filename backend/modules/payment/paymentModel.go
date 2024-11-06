@@ -35,6 +35,26 @@ type PaymentResponse struct {
     UpdatedAt     time.Time     `json:"updated_at"`     // เวลาที่อัปเดตล่าสุด
 }
 
+type UploadSlipRequest struct {
+    UserID    string `json:"user_id" binding:"required"`
+    BookingID string `json:"booking_id" binding:"required"`
+    ImagePath string `json:"image_path" binding:"required"`
+}
+
+type UpdateSlipStatusRequest struct {
+    Status  string `json:"status" binding:"required"`  // Approved or Rejected
+    AdminID string `json:"admin_id" binding:"required"`
+}
+
+type PaymentSlipResponse struct {
+    ID        string `json:"id"`
+    UserID    string `json:"user_id"`
+    BookingID string `json:"booking_id"`
+    Status    string `json:"status"`
+    ImagePath string `json:"image_path"`
+    SubmittedDate string `json:"submitted_date"`
+}
+
 // NewPaymentResponseModel แปลง PaymentEntity ให้เป็น PaymentResponseModel
 func NewPaymentResponse(payment *PaymentEntity) *PaymentResponse {
     return &PaymentResponse{
