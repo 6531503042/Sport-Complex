@@ -1,8 +1,9 @@
 package payment
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // PaymentStatus ชนิดของสถานะการชำระเงิน
@@ -28,4 +29,13 @@ type PaymentEntity struct {
 	Status        PaymentStatus      `bson:"status" json:"status"`                  // Payment status (Pending, Completed, Failed)
 	CreatedAt     time.Time          `bson:"created_at" json:"created_at"`          // Time when the payment record was created
 	UpdatedAt     time.Time          `bson:"updated_at" json:"updated_at"`          // Time when the record was last updated
+}
+
+type PaymentSlip struct {
+	Id            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID        string    `bson:"user_id"`
+	BookingID     string    `bson:"booking_id"`
+    ImagePath     string    `bson:"image_path"`
+    Status        string    `bson:"status"`  // e.g., Pending, Approved, Rejected
+    SubmittedDate time.Time `bson:"submitted_date"`
 }
