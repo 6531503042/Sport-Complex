@@ -19,6 +19,7 @@ interface UserDataParams {
 
 function Football_Booking({ params }: UserDataParams) {
   const { id } = params;
+  const [storedRefreshToken, setStoredRefreshToken] = useState<string | null>(null);
 
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -132,35 +133,32 @@ function Football_Booking({ params }: UserDataParams) {
   };
 
   useEffect(() => {
-    // Retrieve user data from localStorage
-    const userDataName = localStorage.getItem("user");
-    if (userDataName) {
-      const user = JSON.parse(userDataName);
+  // Retrieve user data from localStorage
+  const userDataName = localStorage.getItem("user");
+  if (userDataName) {
+    const user = JSON.parse(userDataName);
 
-      setFormData((prevData) => ({
-        ...prevData,
-        name: user.name || "",
-        id: user.id.replace(/^user:/, "") || "", // Remove "user:" prefix if it exists
-      }));
-    }
-    const userDataId = localStorage.getItem("_id");
-    if (userDataId) {
-      const user = JSON.parse(userDataId);
+    setFormData((prevData) => ({
+      ...prevData,
+      name: user.name || "",
+      id: user.id.replace(/^user:/, "") || "", // Remove "user:" prefix if it exists
+    }));
+  }
+  
+  // Retrieve refresh token and set it in state
+  const storedRefreshToken = localStorage.getItem('refresh_token');
+  setStoredRefreshToken(storedRefreshToken);
+  console.log('Stored Refresh Token:', storedRefreshToken); // Use it as needed
 
-      setFormData((prevData) => ({
-        ...prevData,
-        name: user.name || "",
-        id: user.id.replace(/^user:/, "") || "", // Remove "user:" prefix if it exists
-      }));
-    }
-    // Fetch slot data on initial render and set up the interval for updating
-    getSlot();
-    const intervalId = setInterval(getSlot, 10000);
+  // Fetch slot data on initial render and set up the interval for updating
+  getSlot();
+  const intervalId = setInterval(getSlot, 10000);
 
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [id]);
+  return () => {
+    clearInterval(intervalId);
+  };
+}, [id]);
+
 
   return (
     <>
@@ -170,6 +168,9 @@ function Football_Booking({ params }: UserDataParams) {
           <h1 className="text-4xl font-bold my-10 text-black text-center">
             Football Booking
           </h1>
+          <div className="text-center mb-4">
+            <p>Stored Refresh Token: {storedRefreshToken}</p>
+          </div>
 
           {slot && slot.length === 0 ? (
             <div className="slot-unavailable-card text-center p-8 rounded-lg shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105">

@@ -2,6 +2,7 @@ import React from 'react';
 import { Progress } from "@nextui-org/react";
 import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
+import Logo from "@/app/assets/logo_full.png"
 
 const waveAnimation = keyframes`
   0% { transform: translateY(0); }
@@ -18,8 +19,8 @@ const LoadingScreen = () => {
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-white dark:bg-black z-50">
       <StyledLogo
-        src="https://ata-it-th.com/wp-content/uploads/2023/03/cropped-ata_bnc.png"
-        alt="ATA IT Logo"
+        src={Logo.src}
+        alt=""
         className="h-16 md:h-24 mb-8"
       />
       <div className="w-64 px-4">

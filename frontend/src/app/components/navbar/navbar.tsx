@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Logo from "../../assets/Logo.png";
+import SideBar from "@/app/components/sidebar/sidebar";
+import SearchBar from "../search_bar/search_bar"; // Ensure correct path for your search bar
 import GymIcon from "@mui/icons-material/FitnessCenter";
 import BadmintonIcon from "@mui/icons-material/SportsTennis";
 import SwimmingIcon from "@mui/icons-material/Pool";
 import FootballIcon from "@mui/icons-material/SportsSoccer";
 import ContactIcon from "@mui/icons-material/Mail";
 import PaymentIcon from "@mui/icons-material/Payment";
-
-const SideBar = React.lazy(() => import("../../../../../frontend/src/app/components/sidebar/sidebar"));
-const SearhBar = React.lazy(() => import("../search_bar/search_bar"));
+import LoadingScreen from "../loading_screen/loading"; // Import your loading screen component
 
 type NavBarProps = {
   activePage?: string;
@@ -20,6 +20,7 @@ type NavBarProps = {
 
 const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   const [userName, setUserName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -55,105 +56,114 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
       : "text-white hover:text-yellow-300 hover:border-black hover:border-opacity-50";
   };
 
+  const handleLinkClick = async (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    event.preventDefault(); 
+    setLoading(true); 
+
+    const timeoutId = setTimeout(() => {
+      router.push(href); 
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  };
+
   return (
-    <div className={`${getBackgroundColor()} justify-center flex flex-col`}>
-      <header>
-        <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5">
-          <Link
-            href="/homepage"
-            className="inline-flex flex-row items-center gap-3.5 w-1/5"
-          >
-            <img src={Logo.src} alt="Logo" className="w-7" />
-            <span className="flex flex-col border-l-2 w-max whitespace-nowrap">
-              <div className="ms-1">
-                <span className="ms-1 inline-flex flex-row font-semibold text-xl">
-                  <p className="text-black">SPORT.</p>
-                  <p className="text-gray-500">MFU</p>
-                </span>
-                <hr />
-                <span className="text-gray-500 ms-1 font-medium text-sm">
-                  SPORT COMPLEX
-                </span>
-              </div>
-            </span>
-          </Link>
-          <div className="flex-none w-3/6 flex me-3">
-            <Suspense fallback={<div>Loading search...</div>}>
-              <SearhBar />
-            </Suspense>
-          </div>
-          <div className="name_user_and_sidebar flex-none w-1/12 flex justify-end items-center ms-5 me-2 gap-12">
-            <span className="name_user inline-flex flex-row gap-5 items-center">
-              {userName ? truncateUserName(userName) : "Loading..."}
-              <p>|</p>
-              <button
-                onClick={handleLogout}
-                className="hover:text-white hover:bg-red-900 border-[1.8px] border-red-900 py-1 px-2 rounded-lg transition-all duration-300"
-              >
-                Logout
-              </button>
-            </span>
-            <Suspense fallback={<div>Loading sidebar...</div>}>
-              <SideBar />
-            </Suspense>
-          </div>
-        </div>
-      </header>
-      <ul className="NavBar_res inline-flex flex-row px-10 py-4 gap-16 justify-center items-center font-semibold text-sm">
-        {[
-          {
-            href: "/gym-booking",
-            label: "Gym Booking",
-            icon: <GymIcon style={{ fontSize: "1.3rem" }} />,
-            page: "gym",
-          },
-          {
-            href: "/badminton-booking",
-            label: "Badminton Booking",
-            icon: <BadmintonIcon style={{ fontSize: "1.3rem" }} />,
-            page: "badminton",
-          },
-          {
-            href: "/swimming-booking",
-            label: "Swimming Booking",
-            icon: <SwimmingIcon style={{ fontSize: "1.3rem" }} />,
-            page: "swimming",
-          },
-          {
-            href: "/football-booking",
-            label: "Football Booking",
-            icon: <FootballIcon style={{ fontSize: "1.3rem" }} />,
-            page: "football",
-          },
-          {
-            href: "/contact",
-            label: "Contact",
-            icon: <ContactIcon style={{ fontSize: "1.3rem" }} />,
-            page: "contact",
-          },
-          {
-            href: "/payment",
-            label: "Payment",
-            icon: <PaymentIcon style={{ fontSize: "1.3rem" }} />,
-            page: "payment",
-          },
-        ].map(({ href, label, icon, page }) => (
-          <li
-            key={page}
-            className={`${getActiveClass(page)} hover:animate-wiggle`}
-          >
+    <>
+      {loading && <LoadingScreen />} {/* Show loading screen while waiting */}
+      <div className={`${getBackgroundColor()} justify-center flex flex-col`}>
+        <header>
+          <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5">
             <Link
-              href={href}
-              prefetch={true}
-              className="flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
+              href="/homepage"
+              className="inline-flex flex-row items-center gap-3.5 w-1/5"
+              onClick={(e) => handleLinkClick(e, "/homepage")}
             >
-              {icon}
-              <p>{label}</p>
+              <img src={Logo.src} alt="Logo" className="w-7" />
+              <span className="flex flex-col border-l-2 w-max whitespace-nowrap">
+                <div className="ms-1">
+                  <span className="ms-1 inline-flex flex-row font-semibold text-xl">
+                    <p className="text-black">SPORT.</p>
+                    <p className="text-gray-500">MFU</p>
+                  </span>
+                  <hr />
+                  <span className="text-gray-500 ms-1 font-medium text-sm">
+                    SPORT COMPLEX
+                  </span>
+                </div>
+              </span>
             </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+            <div className="flex-none w-3/6 flex me-3">
+              <SearchBar />
+            </div>
+            <div className="name_user_and_sidebar flex-none w-1/12 flex justify-end items-center ms-5 me-2 gap-12">
+              <span className="name_user inline-flex flex-row gap-5 items-center">
+                {userName ? truncateUserName(userName) : "Loading..."}
+                <p>|</p>
+                <button
+                  onClick={handleLogout}
+                  className="hover:text-white hover:bg-red-900 border-[1.8px] border-red-900 py-1 px-2 rounded-lg transition-all duration-300"
+                >
+                  Logout
+                </button>
+              </span>
+              <SideBar setLoading={setLoading} />
+            </div>
+          </div>
+        </header>
+        <ul className="NavBar_res inline-flex flex-row px-10 py-4 gap-16 justify-center items-center font-semibold text-sm">
+          {[
+            {
+              href: "/gym-booking",
+              label: "Gym Booking",
+              icon: <GymIcon style={{ fontSize: "1.3rem" }} />,
+              page: "gym",
+            },
+            {
+              href: "/badminton-booking",
+              label: "Badminton Booking",
+              icon: <BadmintonIcon style={{ fontSize: "1.3rem" }} />,
+              page: "badminton",
+            },
+            {
+              href: "/swimming-booking",
+              label: "Swimming Booking",
+              icon: <SwimmingIcon style={{ fontSize: "1.3rem" }} />,
+              page: "swimming",
+            },
+            {
+              href: "/football-booking",
+              label: "Football Booking",
+              icon: <FootballIcon style={{ fontSize: "1.3rem" }} />,
+              page: "football",
+            },
+            {
+              href: "/contact",
+              label: "Contact",
+              icon: <ContactIcon style={{ fontSize: "1.3rem" }} />,
+              page: "contact",
+            },
+            {
+              href: "/payment",
+              label: "Payment",
+              icon: <PaymentIcon style={{ fontSize: "1.3rem" }} />,
+              page: "payment",
+            },
+          ].map(({ href, label, icon, page }) => (
+            <li key={page} className={`${getActiveClass(page)} hover:animate-wiggle`}>
+              <Link
+                href={href}
+                prefetch={true}
+                className="flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
+                onClick={(e) => handleLinkClick(e, href)} // Trigger loading on link click
+              >
+                {icon}
+                <p>{label}</p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
   );
 };
 

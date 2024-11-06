@@ -75,18 +75,17 @@ html, body {
 
 @keyframes colorWave {
     0% {
-      background-position: 0% 50%;
+        background-position: 0% 50%;
     }
     100% {
-      background-position: 100% 50%;
+        background-position: 100% 50%;
     }
-  }
-  
-  .color-wave {
-    background: linear-gradient(270deg, #fffcfb, #ffd0d0, #ffa683, #ff5b45);
-    background-size: 400% 400%; /* Adjusted size for smoother looping */
-    animation: colorWave 10s linear infinite;
+}
+
+.color-wave {
+    background: linear-gradient(270deg, #fffcfb, #ff6565); /* Only two colors */
+    background-size: 200% 200%; /* Adjusted for smoother oscillation */
+    animation: colorWave 5s ease-in-out infinite alternate; /* Continuous back and forth */
     color: black;
     border-radius: 0.375rem; /* Rounded corners for styling */
-  }
-  
+}
