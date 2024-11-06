@@ -176,7 +176,6 @@ function Swimming_Booking({ params }: UserDataParams) {
           <h1 className="text-4xl font-bold my-10 text-black text-center">
             Swimming Booking
           </h1>
-
           {slot && slot.length === 0 ? (
   <div className="slot-unavailable-card text-center p-8 rounded-lg shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105">
    <ReportProblemIcon className="slot-unavailable-icon text-red-500 mb-4" style={{ fontSize: "3rem" }} />
