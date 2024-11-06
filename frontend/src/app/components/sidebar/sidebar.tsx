@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -64,6 +66,7 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
+    {loading && <LoadingScreen />}
     <div className="flex-none border-b-4 border-transparent flex items-center">
       <div className="cursor-pointer sidebar_icon" onClick={toggleSidebar}>
         <img
@@ -109,9 +112,13 @@ const Sidebar: React.FC = () => {
           </p>
         </button>
       </div>
-      {loading && <LoadingScreen />} {/* Render loading screen */}
+
     </div>
   );
 };
 
 export default Sidebar;
+function toggleSidebar(event: MouseEvent<HTMLDivElement, MouseEvent>): void {
+  throw new Error("Function not implemented.");
+}
+
