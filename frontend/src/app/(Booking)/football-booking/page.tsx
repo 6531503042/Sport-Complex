@@ -284,13 +284,13 @@ function Football_Booking({ params }: UserDataParams) {
                       <div>
                         {lot.current_bookings ? (
                           <ClearIcon
-                            className="mx-2.5"
-                            style={{ fontSize: "1.3rem" }}
+                            className="mx-2.5 "
+                            style={{ fontSize: "1.3rem" , color:"red" }}
                           />
                         ) : (
                           <CheckIcon
-                            className="mx-2.5"
-                            style={{ fontSize: "1.3rem" }}
+                            className="mx-2.5 text-red"
+                            style={{ fontSize: "1.3rem"}}
                           />
                         )}
                       </div>
