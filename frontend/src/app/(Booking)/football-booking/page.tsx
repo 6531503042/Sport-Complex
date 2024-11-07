@@ -16,7 +16,29 @@ interface UserData {
 interface UserDataParams {
   params: UserData;
 }
+async function getAccessToken(refreshToken: string | null) {
+  if (!refreshToken) return null;
 
+  try {
+    const response = await fetch("http://localhost:1326/auth/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (!response.ok) throw new Error("Failed to refresh token");
+
+    const data = await response.json();
+    const newAccessToken = data.access_token;
+
+    // Store the new access token in localStorage
+    localStorage.setItem("access_token", newAccessToken);
+    return newAccessToken;
+  } catch (error) {
+    console.error("Error refreshing access token:", error);
+    return null;
+  }
+}
 function Football_Booking({ params }: UserDataParams) {
   const { id } = params;
   const [storedRefreshToken, setStoredRefreshToken] = useState<string | null>(null);
@@ -43,28 +65,33 @@ function Football_Booking({ params }: UserDataParams) {
     }
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent default form submission
-
-    // Form validation: Check if the phone number is filled in
+    e.preventDefault();
 
     try {
-      // Ensure the selectedCard is valid before proceeding
+      // Ensure a valid slot is selected
       if (selectedCard === null || !slot[selectedCard]) {
         console.error("No slot selected");
         return;
       }
 
+      // Retrieve or refresh access token
+      let accessToken = localStorage.getItem("access_token");
+      if (!accessToken) {
+        accessToken = await getAccessToken(storedRefreshToken);
+        if (!accessToken) {
+          console.error("Failed to obtain access token");
+          return;
+        }
+      }
+
       // Prepare booking data
       const bookingData = {
-        user_id: formData.id, // Use ID from formData
-        slot_id: slot[selectedCard]._id, // Get the selected slot's ID
-        status: 1, // Assuming 1 means successful booking
-        slot_type: "normal", // Slot type, based on your API
-        badminton_slot_id: null, // Not applicable for football
+        user_id: formData.id,
+        slot_id: slot[selectedCard]._id,
+        status: 1,
+        slot_type: "normal",
+        badminton_slot_id: null,
       };
-
-      // Log the booking data
-      console.log("Booking Data:", bookingData);
 
       // Send booking request
       const response = await fetch(
@@ -73,30 +100,19 @@ function Football_Booking({ params }: UserDataParams) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify(bookingData),
         }
       );
 
+
       const result = await response.json();
       console.log("Booking successful:", result);
 
-      // Show the booking success popup
+      // Show success popup and reset form
       setIsBookingSuccessful(true);
-
-      // Reset form and selected card
-      setFormData((prevData) => ({
-        ...prevData,
-        phone: "", // Clear phone number field only
-      }));
       setSelectedCard(null);
-
-      // Update the slot to reflect the successful booking
-      setSlot((prevSlots) =>
-        prevSlots.map((s) =>
-          s._id === bookingData.slot_id ? { ...s, current_bookings: true } : s
-        )
-      );
     } catch (error) {
       console.error("Error submitting booking:", error);
     }
@@ -168,9 +184,6 @@ function Football_Booking({ params }: UserDataParams) {
           <h1 className="text-4xl font-bold my-10 text-black text-center">
             Football Booking
           </h1>
-          <div className="text-center mb-4">
-            <p>Stored Refresh Token: {storedRefreshToken}</p>
-          </div>
 
           {slot && slot.length === 0 ? (
             <div className="slot-unavailable-card text-center p-8 rounded-lg shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105">
