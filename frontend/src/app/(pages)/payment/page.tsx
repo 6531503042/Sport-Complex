@@ -111,10 +111,10 @@ const Payment = () => {
           </div>
           
           <div className="absolute -top-2 -right-2">
-            <div className="bg-primary text-white text-sm px-3 py-1 rounded-full flex items-center gap-2">
+            {/* <div className="bg-primary text-white text-sm px-3 py-1 rounded-full flex items-center gap-2">
               <Timer className="w-4 h-4" />
               <span>{formatTime(timeLeft)}</span>
-            </div>
+            </div> */}
           </div>
         </div>
 
