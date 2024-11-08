@@ -26,7 +26,7 @@ func main() {
 	db := database.DbConn(ctx, &cfg)
 	defer db.Disconnect(ctx)
 
-	// Perform database migrations
+	// Perform database migrations once
 	if err := migration.SetupFacilities(ctx, &cfg, db); err != nil {
 		log.Fatalf("Migration setup failed: %v", err)
 	}
