@@ -17,13 +17,14 @@ func NewPaymentClient(baseURL string) *PaymentClient {
 }
 
 type CreatePaymentRequest struct {
-	Amount        float64 `json:"amount" validate:"required"`
-	UserID        string  `json:"user_id" validate:"required"`
-	BookingID     string  `json:"booking_id" validate:"required"`
-	PaymentMethod string  `json:"payment_method"`  // e.g., "PROMPTPAY"
-	Currency      string  `json:"currency" validate:"required"`
-	AccountID     string  `json:"account_id,omitempty"` // This field is required for PromptPay
+    Amount        float64 `json:"amount"`
+    UserID        string  `json:"user_id"`
+    BookingID     string  `json:"booking_id"`
+    PaymentMethod string  `json:"payment_method"`
+    Currency      string  `json:"currency"`
+    FacilityName  string  `json:"facility_name"` // เพิ่มฟิลด์นี้
 }
+
 
 type PaymentResponse struct {
 	ID        string  `json:"id"`

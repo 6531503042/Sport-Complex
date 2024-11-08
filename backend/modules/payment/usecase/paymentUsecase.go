@@ -15,7 +15,7 @@ import (
 
 type (
 	PaymentUsecaseService interface {
-		CreatePayment(ctx context.Context, userId string, bookingId string, amount float64) (*payment.PaymentResponse, error)
+		CreatePayment(ctx context.Context, userId string, bookingId string,facilityName string, amount float64) (*payment.PaymentResponse, error)
 		UpdatePayment(ctx context.Context, paymentId string, status string) (*payment.PaymentEntity, error)
 		FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error)
 		SaveSlip(ctx context.Context, slip payment.PaymentSlip) error
@@ -38,7 +38,7 @@ func NewPaymentUsecase(cfg *config.Config, paymentRepository repository.PaymentR
 	}
 }
 
-func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, bookingId string, amount float64) (*payment.PaymentResponse, error) {
+func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, bookingId string,facilityName string, amount float64) (*payment.PaymentResponse, error) {
 	paymentDoc := &payment.PaymentEntity{
 		PaymentID:     primitive.NewObjectID().Hex(),
 		UserID:        userId,
@@ -46,6 +46,7 @@ func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, booki
 		Amount:        amount,
 		Currency:      "THB",
 		PaymentMethod: "PromptPay",
+		FacilityName:  facilityName,
 		Status:        payment.Pending,
 		CreatedAt:     utils.LocalTime(),
 		UpdatedAt:     utils.LocalTime(),
@@ -78,16 +79,17 @@ func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, booki
 	}
 
 	response := &payment.PaymentResponse{
-		Id:        paymentResult.Id.Hex(),
-		PaymentID: paymentResult.PaymentID,
-		UserId:    paymentResult.UserID,
-		BookingId: paymentResult.BookingID,
-		Amount:    paymentResult.Amount,
-		Currency:  paymentResult.Currency,
-		Status:    paymentResult.Status,
-		CreatedAt: paymentResult.CreatedAt,
-		UpdatedAt: paymentResult.UpdatedAt,
-		QRCodeURL: paymentResult.QRCodeURL,
+		Id:           paymentResult.Id.Hex(),
+		PaymentID:    paymentResult.PaymentID,
+		UserId:       paymentResult.UserID,
+		BookingId:    paymentResult.BookingID,
+		Amount:       paymentResult.Amount,
+		Currency:     paymentResult.Currency,
+		Status:       paymentResult.Status,
+		FacilityName: paymentResult.FacilityName,
+		CreatedAt:    paymentResult.CreatedAt,
+		UpdatedAt:    paymentResult.UpdatedAt,
+		QRCodeURL:    paymentResult.QRCodeURL,
 	}
 
 	return response, nil
@@ -113,7 +115,6 @@ func (u *paymentUsecase) UpdatePayment(ctx context.Context, paymentId string, st
 func (u *paymentUsecase) FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error) {
 	return u.paymentRepository.FindPayment(ctx, paymentId)
 }
-
 
 func (u *paymentUsecase) SaveSlip(ctx context.Context, slip payment.PaymentSlip) error {
 	err := u.paymentRepository.SaveSlip(ctx, slip)

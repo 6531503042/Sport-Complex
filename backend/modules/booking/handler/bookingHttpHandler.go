@@ -81,6 +81,7 @@ func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
 		BookingID:    bookingResponse.Id.Hex(), 
 		PaymentMethod: "PromptPay",
 		Currency:     "THB",
+		FacilityName: facilityName,
 	}
 
 	paymentResponse, err := h.paymentClient.CreatePayment(paymentRequest)
