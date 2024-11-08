@@ -8,6 +8,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import GroupIcon from "@mui/icons-material/Group";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
+import Link from "next/link";
 
 interface UserData {
   id: string;
@@ -395,7 +396,7 @@ function Gym_Booking({ params }: UserDataParams) {
                   setIsMobileView(false); // Return to the time slots view
                 }}
               >
-                Close
+                <Link href={`/payment/${id}`}>Close</Link>
               </button>
             </div>
           </div>
