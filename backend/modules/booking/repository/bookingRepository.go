@@ -156,17 +156,20 @@ func (r *bookingRepository) ResetFacilitySlots(ctx context.Context, facilityName
     col := db.Collection("slots") // Use the "slots" collection for the facility
 
     var update bson.M
+    var filter bson.M
 
     if facilityName == "badminton" {
-        // For badminton, reset the status field to "available"
-        update = bson.M{"$set": bson.M{"status": "available"}}
+        // For badminton, reset the status field to "available" only if max bookings have been reached
+        filter = bson.M{"current_bookings": bson.M{"$gte": 10}} // Example max bookings threshold
+        update = bson.M{"$set": bson.M{"status": "available", "current_bookings": 0}} // Reset to available, clear bookings
     } else {
         // For other facilities, reset current_bookings to 0
+        filter = bson.M{}
         update = bson.M{"$set": bson.M{"current_bookings": 0}}
     }
 
     // Update the slots collection for the specific facility
-    _, err := col.UpdateMany(ctx, bson.M{}, update)
+    _, err := col.UpdateMany(ctx, filter, update)
     if err != nil {
         log.Printf("Error resetting slots for facility %s: %s", facilityName, err.Error())
         return fmt.Errorf("error resetting slots for facility %s: %w", facilityName, err)
@@ -175,6 +178,7 @@ func (r *bookingRepository) ResetFacilitySlots(ctx context.Context, facilityName
     log.Printf("Successfully reset slots for facility %s", facilityName)
     return nil
 }
+
 
 
 
@@ -307,6 +311,18 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
         }
         badmintonSlotIdObject = &badmintonSlotId
         isBadminton = true
+    }
+
+     // Check if user has already booked the max number of badminton slots
+     if isBadminton {
+        count, err := r.countUserBadmintonBookings(ctx, req.UserId)
+        if err != nil {
+            log.Printf("Error counting user's badminton bookings: %s", err)
+            return nil, err
+        }
+        if count >= 2 {
+            return nil, errors.New("error: user has reached the maximum limit of 2 badminton slots")
+        }
     }
 
    // Log booking attempt
@@ -617,4 +633,20 @@ func (r *bookingRepository) InsertBookingQueue(pctx context.Context, cfg *config
     }
 
     return req, nil
+}
+
+func (r *bookingRepository) countUserBadmintonBookings(ctx context.Context, userId string) (int, error) {
+    col := r.bookingDbConn(ctx).Collection("booking_transaction")
+
+    filter := bson.M{
+        "user_id":          userId,
+        "badminton_slot_id": bson.M{"$exists": true}, // Count only badminton slots
+    }
+
+    count, err := col.CountDocuments(ctx, filter)
+    if err != nil {
+        return 0, fmt.Errorf("error counting badminton bookings: %w", err)
+    }
+
+    return int(count), nil
 }

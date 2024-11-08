@@ -17,12 +17,13 @@ func DbConn(pctx context.Context, cfg *config.Config) *mongo.Client {
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.Db.Url))
 	if err != nil {
-		log.Fatalf("Error: Conntect to database error: %s", err.Error())
+		log.Fatalf("Error: Failed to connect to database: %v", err)
 	}
 
 	if err := client.Ping(ctx, readpref.Primary()); err != nil {
-		log.Fatalf("Error: Pinging to database error: %s", err.Error())
+		log.Fatalf("Error: Failed to ping database: %v", err)
 	}
 
+	log.Println("Successfully connected and pinged MongoDB.")
 	return client
 }

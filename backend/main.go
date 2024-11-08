@@ -5,6 +5,7 @@ import (
 	"log"
 	"main/config"
 	"main/pkg/database"
+	"main/pkg/database/migration"
 	"main/server"
 	"os"
 )
@@ -24,11 +25,11 @@ func main() {
 	// Connect to the database
 	db := database.DbConn(ctx, &cfg)
 	defer db.Disconnect(ctx)
-	
 
-	// Perform database migrations
-	// migration.AuthMigrate(ctx, &cfg)
-	// migration.UserMigrate(ctx, &cfg)
+	// Perform database migrations once
+	if err := migration.SetupFacilities(ctx, &cfg, db); err != nil {
+		log.Fatalf("Migration setup failed: %v", err)
+	}
 
 	// Start the server
 	server.Start(ctx, &cfg, db)
