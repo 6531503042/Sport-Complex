@@ -7,6 +7,8 @@ import { Progress } from "../../components/ui/progress";
 import { Card } from "../../components/ui/card";
 import { useToast } from "../../components/ui/use-toast";
 import { QrCode, Timer, CreditCard, CheckCircle, Download } from "lucide-react";
+import saveAs from "file-saver";
+
 
 const Payment = () => {
   const router = useRouter(); // Use useRouter instead of useNavigate
@@ -20,7 +22,7 @@ const Payment = () => {
     // Fetch payment data from the API
     const fetchPaymentData = async () => {
       try {
-        const response = await fetch("http://localhost:1327/payment_v1/payments/67236f67f382436a8dd11b0f"); // Replace with your actual API endpoint
+        const response = await fetch("http://localhost:1327/payment_v1/payments/672de85bc687e7632684e789"); // Replace with your actual API endpoint
         const data = await response.json();
         setPaymentData(data);
       } catch (error) {
@@ -72,18 +74,22 @@ const Payment = () => {
   };
 
   const handleSaveQRCode = () => {
-    const link = document.createElement("a");
-    link.href = paymentData.qr_code_url; // Use the QR code URL
-    link.download = `QRCode_${paymentData.booking_id}.png`; // Specify the filename
-    document.body.appendChild(link); // Append link to the body
-    link.click(); // Trigger the download
-    document.body.removeChild(link); // Remove link after triggering
-    toast({
-      title: "Downloading QR Code",
-      description: "Your QR code is being downloaded...",
-      duration: 3000,
-    });
-    // Here you would implement actual QR code download logic
+    if (paymentData?.qr_code_url) {
+      fetch(paymentData.qr_code_url)
+        .then((response) => response.blob()) // แปลง QR code URL เป็น Blob
+        .then((blob) => {
+          // ใช้ FileSaver.js เพื่อดาวน์โหลด Blob เป็นไฟล์
+          saveAs(blob, `QRCode_${paymentData.booking_id}.png`);
+          toast({
+            title: "Downloading QR Code",
+            description: "Your QR code is being downloaded...",
+            duration: 3000,
+          });
+        })
+        .catch((error) => {
+          console.error("Error downloading QR code:", error);
+        });
+    }
   };
 
   if (!paymentData) {
@@ -96,7 +102,7 @@ const Payment = () => {
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold text-gray-900">QR Payment</h1>
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-gray-700">Tennis Court A</h2>
+            <h2 className="text-lg font-semibold text-gray-700">{paymentData.facility_name}</h2>
             <p className="text-3xl font-bold text-primary">{`฿${paymentData.amount}.00`}</p>
           </div>
         </div>
