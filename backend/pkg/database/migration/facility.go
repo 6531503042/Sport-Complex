@@ -14,13 +14,25 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+func CollectionExists(ctx context.Context, client *mongo.Client, db *mongo.Database, collectionName string) (bool, error) {
+	coll := db.Collection(collectionName)
+	_, err := coll.Indexes().List(ctx)
+	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return true, nil
+		}
+		return false, err
+	}
+	return false, nil
+}
+
 // ensureNoDuplicateFacility ensures that database names are not duplicated
 func ensureNoDuplicateFacility(pctx context.Context, client *mongo.Client, originalName string) (*mongo.Database, error) {
 	// Create the sanitized name by removing any unwanted suffixes like '_facility_facility'
 	normalizedName := strings.Replace(originalName, "_facility_facility", "_facility", -1)
 
 	// Check if the database already exists
-	dbNames, err := client.ListDatabaseNames(pctx, nil)
+	dbNames, err := client.ListDatabaseNames(pctx, bson.M{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list database names: %v", err)
 	}
@@ -39,17 +51,26 @@ func ensureNoDuplicateFacility(pctx context.Context, client *mongo.Client, origi
 	return db, nil
 }
 
-// SetupFacilities creates the required facilities without duplicating the database
+// SetupFacilities runs migration only if not already completed
 func SetupFacilities(pctx context.Context, cfg *config.Config, client *mongo.Client) error {
 	facilityNames := []string{"fitness_facility", "swimming_facility", "football_facility", "badminton_facility"}
 
 	for _, facilityName := range facilityNames {
-		// Ensure the database name is not duplicated
 		db, err := ensureNoDuplicateFacility(pctx, client, facilityName)
 		if err != nil {
 			return err
 		}
 
+		// Check migration flag to avoid duplicate migration
+		shouldMigrate, err := checkAndSetMigrationFlag(pctx, db, facilityName)
+		if err != nil {
+			return fmt.Errorf("failed during migration check for %s: %v", facilityName, err)
+		}
+
+		// Skip if migration was already completed
+		if !shouldMigrate {
+			continue
+		}
 		// Create "facility" collection with initial data if it doesn't exist
 		if err := createFacilityCollection(pctx, db, facilityName); err != nil {
 			log.Fatalf("Failed to create facility collection for %s: %v", facilityName, err)
@@ -71,6 +92,30 @@ func SetupFacilities(pctx context.Context, cfg *config.Config, client *mongo.Cli
 	}
 
 	return nil
+}
+
+// checkAndSetMigrationFlag checks if migration has already been done and sets a flag if not
+func checkAndSetMigrationFlag(pctx context.Context, db *mongo.Database, facilityName string) (bool, error) {
+	migrationCollection := db.Collection("_migrations")
+	filter := bson.M{"facility_name": facilityName}
+
+	// Check if migration flag already exists
+	var result bson.M
+	err := migrationCollection.FindOne(pctx, filter).Decode(&result)
+	if err == mongo.ErrNoDocuments {
+		// If not found, insert a new flag
+		_, err := migrationCollection.InsertOne(pctx, filter)
+		if err != nil {
+			return false, fmt.Errorf("failed to set migration flag for %s: %v", facilityName, err)
+		}
+		return true, nil // Migration should proceed
+	} else if err != nil {
+		return false, fmt.Errorf("error checking migration flag: %v", err)
+	}
+
+	// Migration flag found, so skip
+	log.Printf("Migration for facility '%s' already completed, skipping.", facilityName)
+	return false, nil
 }
 
 
