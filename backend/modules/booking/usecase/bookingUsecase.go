@@ -143,7 +143,9 @@ func (u *bookingUsecase) InsertBooking(ctx context.Context, facilityName string,
         ctx,
         req.UserId,
         "",  // BookingID will be set after booking creation
+        facilityName,
         price,
+        
     )
     if err != nil {
         return nil, fmt.Errorf("failed to create payment: %w", err)
