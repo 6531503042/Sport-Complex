@@ -389,15 +389,17 @@ function Gym_Booking({ params }: UserDataParams) {
               </p>
 
               {/* Close Button */}
-              <button
-                className="w-full bg-gradient-to-r from-[#000080] via-[#2A52BE] to-[#4169E1] text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
-                onClick={() => {
-                  setIsBookingSuccessful(false); // Close the popup
-                  setIsMobileView(false); // Return to the time slots view
-                }}
-              >
-                <Link href={`/payment/${id}`}>Close</Link>
-              </button>
+              <Link href={`/payment/${id}`}>
+                <button
+                  className="w-full bg-gradient-to-r from-[#000080] via-[#2A52BE] to-[#4169E1] text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
+                  onClick={() => {
+                    setIsBookingSuccessful(false);
+                    setIsMobileView(false);
+                  }}
+                >
+                  Close
+                </button>
+              </Link>
             </div>
           </div>
         )}
