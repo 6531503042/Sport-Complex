@@ -99,7 +99,7 @@ func (r *facilitiyReposiory) InsertFacility (pctx context.Context, req * facilit
 	defer cancel()
 
 	db := r.facilityDbConn(ctx, req.Name)
-	col := db.Collection("facility")
+	col := db.Collection("facilities")
 	
 	result, err := col.InsertOne(ctx, req)
 	if err != nil {
@@ -187,21 +187,12 @@ func (r *facilitiyReposiory) FindOneFacility(pctx context.Context, facilityId, f
 	defer cancel()
 
 	db := r.facilityDbConn(ctx, facilityName)
-	col := db.Collection("facility")
-
-	filter := bson.M{}
-	if facilityId != "" {
-		objID, err := primitive.ObjectIDFromHex(facilityId)
-		if err != nil {
-			return nil, fmt.Errorf("invalid facility ID: %w", err)
-		}
-		filter["_id"] = objID
-	}
+	col := db.Collection("facilities")
 
 	result := new(facility.FacilityBson)
 	if err := col.FindOne(
 		ctx,
-		filter,
+		bson.M{"_id": utils.ConvertToObjectId(facilityId)},
 		options.FindOne().SetProjection(
 			bson.M{
 				"_id": 1,
@@ -215,7 +206,7 @@ func (r *facilitiyReposiory) FindOneFacility(pctx context.Context, facilityId, f
 		),
 	).Decode(result); err != nil {
 		log.Printf("Error: FindOneFacility: %s", err.Error())
-		return nil, fmt.Errorf("error: find one facility failed: %w", err)
+		return nil, errors.New("error: find one facility failed")
 	}
 
 	return result, nil
@@ -237,29 +228,22 @@ func (r *facilitiyReposiory) FindManyFacility(ctx context.Context) ([]facility.F
     for _, dbName := range dbs {
         if strings.HasSuffix(dbName, "_facility") {
             db := r.client.Database(dbName)
-            col := db.Collection("facility")
+            col := db.Collection("facilities")
 
             var facilities []facility.FacilityBson
             cur, err := col.Find(ctx, bson.M{})
             if err != nil {
-                log.Printf("Error finding facilities in %s: %s", dbName, err.Error())
+                log.Printf("Error: FindAllFacilities: %s", err.Error())
                 continue
             }
-            
             if err = cur.All(ctx, &facilities); err != nil {
-                log.Printf("Error decoding facilities in %s: %s", dbName, err.Error())
+                log.Printf("Error: FindAllFacilities: %s", err.Error())
                 continue
             }
 
-            // Log the found facilities for debugging
-            log.Printf("Found %d facilities in database %s", len(facilities), dbName)
-            
             allFacilities = append(allFacilities, facilities...)
         }
     }
-
-    // Log total facilities found
-    log.Printf("Total facilities found across all databases: %d", len(allFacilities))
 
     return allFacilities, nil
 }

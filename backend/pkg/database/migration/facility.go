@@ -172,7 +172,7 @@ func convertToInterface(slots []facility.Slot) []interface{} {
 
 // Create normal slots for fitness, swimming, and football facilities
 func createNormalSlots(pctx context.Context, db *mongo.Database, facilityName string) error {
-	slotCollection := db.Collection("slots")
+	slotCollection := db.Collection("slot")
 	slots := []facility.Slot{}
 
 	switch facilityName {
@@ -249,7 +249,7 @@ func createBadmintonCourts(pctx context.Context, db *mongo.Database) error {
 
 // Create badminton slots from 10:00 to 21:00
 func createBadmintonSlots(pctx context.Context, db *mongo.Database) error {
-	slotCollection := db.Collection("slots")
+	slotCollection := db.Collection("badminton_slot")
 	slots := []facility.BadmintonSlot{}
 	startTime := time.Date(0, 1, 1, 10, 0, 0, 0, time.UTC)
 	endTime := time.Date(0, 1, 1, 21, 0, 0, 0, time.UTC)
@@ -273,4 +273,3 @@ func createBadmintonSlots(pctx context.Context, db *mongo.Database) error {
 	_, err := slotCollection.InsertMany(pctx, convertBadmintonToInterface(slots))
 	return err
 }
-
