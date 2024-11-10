@@ -341,7 +341,7 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
 
     var slot *facility.Slot
     if !isBadminton {
-        // Check slot availability for normal slots
+        // Check slot availability for noßrmal slots
         slot, err = r.checkSlotAvailability(ctx, facilityName, req)
         if err != nil {
             return nil, err
@@ -351,21 +351,19 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
         }
     }
 
-    // Create the booking document with all fields
+    // Create the booking document
     bookingDoc := bson.M{
         "user_id":    req.UserId,
         "facility":   facilityName,
-        "status":     req.Status,
-        "payment_id": req.PaymentId,  // Add PaymentId here
+        "status":     "pending", 
         "created_at": time.Now(),
         "updated_at": time.Now(),
     }
 
-    // Add the appropriate slot ID
-    if slotIdObject != nil {
+    if req.SlotId != nil {
         bookingDoc["slot_id"] = slotIdObject
     }
-    if badmintonSlotIdObject != nil {
+    if req.BadmintonSlotId != nil {
         bookingDoc["badminton_slot_id"] = badmintonSlotIdObject
     }
 
@@ -376,7 +374,6 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
         return nil, fmt.Errorf("error inserting booking: %w", err)
     }
 
-    // Update the slot's current booking count if needed
     if !isBadminton && slotIdObject != nil {
         // Update the slot's current booking count
         err = r.updateSlotCurrentBooking(ctx, facilityName, *slotIdObject, 1) // Increment by 1 for the new booking
