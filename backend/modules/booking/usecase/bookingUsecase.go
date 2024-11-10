@@ -142,7 +142,6 @@ func (u *bookingUsecase) InsertBooking(ctx context.Context, facilityName string,
     payment, err := u.paymentService.CreatePayment(
         ctx,
         req.UserId,
-        "",  // BookingID will be set after booking creation
         facilityName,
         price,
         
