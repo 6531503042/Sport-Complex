@@ -9,6 +9,8 @@ import (
 	"main/modules/booking"
 	bm "main/modules/booking"
 	"main/modules/booking/repository"
+	facilityUsecase "main/modules/facility/usecase"
+	paymentUsecase "main/modules/payment/usecase"
 	"main/pkg/utils"
 	"time"
 )
@@ -31,13 +33,21 @@ type(
 	bookingUsecase struct {
 		cfg              *config.Config
 		bookingRepository repository.BookingRepositoryService
+		facilityService   facilityUsecase.FacilityUsecaseService
+		paymentService    paymentUsecase.PaymentUsecaseService
 	}
 )
 
-func NewBookingUsecase(bookingRepository repository.BookingRepositoryService) BookingUsecaseService {
+func NewBookingUsecase(
+	bookingRepository repository.BookingRepositoryService,
+	facilityService facilityUsecase.FacilityUsecaseService,
+	paymentService paymentUsecase.PaymentUsecaseService,
+) BookingUsecaseService {
 	return &bookingUsecase{
 		cfg: &config.Config{},
 		bookingRepository: bookingRepository,
+		facilityService:   facilityService,
+		paymentService:    paymentService,
 	}
 }
 
@@ -106,34 +116,71 @@ func (u *bookingUsecase) InsertBooking(ctx context.Context, facilityName string,
         return nil, errors.New("error: Only one of SlotId or BadmintonSlotId should be provided")
     }
 
-    // Create the booking request struct for repository interaction
+    var price float64
+    dbFacilityName := facilityName + "_facility"  // Add _facility suffix for database name
+
+    // Get facility price based on facility type
+    if facilityName == "badminton" {
+        // For badminton, look up in badminton_facility database, facility collection
+        facility, err := u.facilityService.FindOneFacility(ctx, "", "badminton")
+        if err != nil {
+            log.Printf("Failed to find badminton facility: %v", err)
+            return nil, fmt.Errorf("failed to get facility info: %w", err)
+        }
+        price = facility.PriceInsider
+    } else {
+        // For other facilities, look up in {facilityName}_facility database, facility collection
+        facility, err := u.facilityService.FindOneFacility(ctx, "", facilityName)
+        if err != nil {
+            log.Printf("Failed to find facility %s in facility collection: %v", facilityName, err)
+            return nil, fmt.Errorf("failed to get facility info: %w", err)
+        }
+        price = facility.PriceInsider
+    }
+
+    // Create payment using the payment service
+    payment, err := u.paymentService.CreatePayment(
+        ctx,
+        req.UserId,
+        "",  // BookingID will be set after booking creation
+        price,
+    )
+    if err != nil {
+        return nil, fmt.Errorf("failed to create payment: %w", err)
+    }
+
+    // Create the booking request struct with payment ID
     bookingReq := &booking.Booking{
         UserId:          req.UserId,
         SlotId:          req.SlotId,
         BadmintonSlotId: req.BadmintonSlotId,
+        SlotType:        req.SlotType,
         Status:          "pending",
+        PaymentId:       payment.PaymentID,
+        Facility:        facilityName,
         CreatedAt:       time.Now(),
         UpdatedAt:       time.Now(),
     }
 
     // Insert booking using the repository
-        // Insert booking using the repository
-		booking, err := u.bookingRepository.InsertBooking(ctx, facilityName, bookingReq)
-		if err != nil {
-			return nil, fmt.Errorf("failed to insert booking: %w", err)
-		}
-	
-		// Map the internal booking struct to the response DTO
-		bookingResponse := &bm.BookingResponse{
-			Id:              booking.Id,
-			UserId:          booking.UserId,
-			SlotId:          booking.SlotId,
-			BadmintonSlotId: booking.BadmintonSlotId,
-			SlotType:        req.SlotType,
-			Status:          booking.Status,
-			CreatedAt:       booking.CreatedAt,
-			UpdatedAt:       booking.UpdatedAt,
-		}
+    createdBooking, err := u.bookingRepository.InsertBooking(ctx, dbFacilityName, bookingReq)
+    if err != nil {
+        return nil, fmt.Errorf("failed to insert booking: %w", err)
+    }
+
+    // Map the internal booking struct to the response DTO
+    bookingResponse := &bm.BookingResponse{
+        Id:              createdBooking.Id,
+        UserId:          createdBooking.UserId,
+        SlotId:          createdBooking.SlotId,
+        BadmintonSlotId: createdBooking.BadmintonSlotId,
+        SlotType:        req.SlotType,
+        Status:          createdBooking.Status,
+        PaymentID:       payment.PaymentID,
+        QRCodeURL:       payment.QRCodeURL,
+        CreatedAt:       createdBooking.CreatedAt,
+        UpdatedAt:       createdBooking.UpdatedAt,
+    }
 
     return bookingResponse, nil
 }
