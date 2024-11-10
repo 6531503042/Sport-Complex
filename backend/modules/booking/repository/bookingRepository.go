@@ -341,7 +341,7 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
 
     var slot *facility.Slot
     if !isBadminton {
-        // Check slot availability for noßrmal slots
+        // Check slot availability for normal slots
         slot, err = r.checkSlotAvailability(ctx, facilityName, req)
         if err != nil {
             return nil, err
