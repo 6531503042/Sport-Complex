@@ -4,9 +4,13 @@ import (
 	"context"
 	"log"
 	"main/config"
+	facilityRepository "main/modules/facility/repository"
+	facilityUsecase "main/modules/facility/usecase"
 	middlewarehttphandler "main/modules/middleware/middlewareHttpHandler"
 	middlewarerepository "main/modules/middleware/middlewareRepository"
 	middlewareusecase "main/modules/middleware/middlewareUsecase"
+	paymentRepository "main/modules/payment/repository"
+	paymentUsecase "main/modules/payment/usecase"
 	"main/pkg/jwt"
 	"net/http"
 	"os"
@@ -22,11 +26,15 @@ import (
 
 type (
 	server struct {
-		app        *echo.Echo
-		db         *mongo.Client
-		cfg        *config.Config
-		middleware middlewarehttphandler.MiddlewareHttpHandlerService
-		validator  *validator.Validate
+		app             *echo.Echo
+		db             *mongo.Client
+		cfg            *config.Config
+		middleware     middlewarehttphandler.MiddlewareHttpHandlerService
+		validator      *validator.Validate
+		paymentRepo    paymentRepository.PaymentRepositoryService
+		facilityRepo   facilityRepository.FacilityRepositoryService
+		paymentUsecase paymentUsecase.PaymentUsecaseService
+		facilityUsecase facilityUsecase.FacilityUsecaseService
 	}
 )
 
@@ -70,12 +78,17 @@ func (s *server) gracefulShutdown(pctx context.Context, quit <-chan os.Signal) {
 }
 
 func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
+	paymentRepo := paymentRepository.NewPaymentRepository(db)
+	facilityRepo := facilityRepository.NewFacilityRepository(db)
+
 	s := &server{
-		app:        echo.New(),
-		db:         db,
-		cfg:        cfg,
-		middleware: newMiddleware(cfg),
-		validator:  validator.New(),
+		app:           echo.New(),
+		db:            db,
+		cfg:           cfg,
+		middleware:    newMiddleware(cfg),
+		validator:     validator.New(),
+		paymentRepo:   paymentRepo,
+		facilityRepo:  facilityRepo,
 	}
 
 	// Set API Key for JWT
