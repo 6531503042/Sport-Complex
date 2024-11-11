@@ -19,6 +19,7 @@
     "@mui/material": "^6.1.5",
     "@nextui-org/react": "^2.4.8",
     "@tailwindcss/forms": "^0.5.8",
+    "axios": "^1.7.7",
     "daisyui": "^4.12.10",
     "flowbite": "^2.5.1",
     "flowbite-react": "^0.10.1",
@@ -29,6 +30,7 @@
     "swiper": "^11.1.12"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.4",
     "@types/node": "^20",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
