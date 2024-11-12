@@ -12,7 +12,7 @@ const LoginPage = () => {
   const router = useRouter();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const { setUser } = useAuth(); // Destructure setUser from useAuth
+  const { setUser } = useAuth(); 
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
