@@ -11,9 +11,17 @@ interface NewsItem {
   description: string;
 }
 
+// Function to format date with an offset in days
+const formatDate = (offset = 0) => {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric' };
+  return date.toLocaleDateString('en-GB', options); // e.g., "12 Nov 2024"
+};
+
 const Report: React.FC = () => {
   const [selectedNews, setSelectedNews] = useState<NewsItem>({
-    date: "06 sep 2024",
+    date: formatDate(),
     title: "Newest",
     description:
       "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aut, aliquam tempore. Rerum unde perspiciatis libero reiciendis ipsa a debitis neque?",
@@ -23,25 +31,25 @@ const Report: React.FC = () => {
 
   const newsItems: NewsItem[] = [
     {
-      date: "06 sep 2024",
+      date: formatDate(0),
       title: "Newest",
       description:
         "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aut, aliquam tempore. Rerum unde perspiciatis libero reiciendis ipsa a debitis neque?",
     },
     {
-      date: "07 sep 2024",
+      date: formatDate(1),
       title: "Latest Update",
       description:
         "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sint odit quasi molestias, officia at officiis vel saepe fugit soluta, facere quis repellat atque non ut tenetur eveniet nisi! Odit, odio?",
     },
     {
-      date: "08 sep 2024",
+      date: formatDate(2),
       title: "Further News",
       description:
         "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ut voluptatibus placeat minus consequatur qui laudantium perspiciatis reiciendis accusantium adipisci quos!",
     },
     {
-      date: "09 sep 2024",
+      date: formatDate(3),
       title: "More Updates",
       description:
         "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam eius eos aspernatur provident nisi quia.",
