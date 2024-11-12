@@ -84,12 +84,12 @@ const Report: React.FC = () => {
         <div className="lg:w-2/3 w-full">
           <h1 className="font-bold text-3xl mb-3">News</h1>
           <hr className="mt-3 border-zinc-900 rounded-full" />
-          <div className="container_of_report_des mt-5">
+          <div className="container_of_report_des">
             <div className="flex flex-col">
-              <div className="ps-5 cursor-pointer border-l-2 border-l-transparent hover:border-l-red-700 hover:border-y-0 hover:border-l-2 hover:bg-gray-50 p-4 mb-4">
-                <div className="flex flex-row justify-between">
-                  <p className="pt-2 text-sm text-gray-500">{selectedNews.date}</p>
-                  <p className="bg-red-600 p-1 text-sm text-center rounded-b-lg text-white">
+              <div className="ps-5 cursor-pointer border-l-2 border-l-transparent hover:border-l-red-700 hover:border-y-0 hover:border-l-2 hover:bg-gray-50 pb-2">
+                <div className="flex flex-row justify-between mb-1">
+                  <p className="pt-2 text-sm text-gray-500 ">{selectedNews.date}</p>
+                  <p className="bg-red-600 p-2 text-sm text-center rounded-b-lg text-white">
                     <FontAwesomeIcon
                       className="text-white me-1"
                       icon={faCircleExclamation}
