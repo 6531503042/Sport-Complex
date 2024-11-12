@@ -24,7 +24,7 @@ const Main = () => {
 
   return (
     <div>
-      {user ? <HomePage /> : <LoginPage />}
+      {user ? <HomePage /> : <HomePage />}
     </div>
   );
 };
