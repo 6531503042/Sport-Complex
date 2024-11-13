@@ -77,14 +77,13 @@ function Gym_Booking({ params }: UserDataParams) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
-  
+
     try {
       if (selectedCard === null || !slot || !slot[selectedCard]) {
         console.error("No slot selected");
-      return;
-}
+        return;
+      }
 
-  
       let accessToken = localStorage.getItem("access_token");
       if (!accessToken) {
         accessToken = await getAccessToken(storedRefreshToken);
@@ -94,8 +93,7 @@ function Gym_Booking({ params }: UserDataParams) {
           return;
         }
       }
-      
-  
+
       const bookingData = {
         user_id: formData.id,
         slot_id: slot[selectedCard]._id,
@@ -103,7 +101,7 @@ function Gym_Booking({ params }: UserDataParams) {
         slot_type: "normal",
         badminton_slot_id: null,
       };
-  
+
       const response = await fetch(
         "http://localhost:1326/booking_v1/fitness/booking",
         {
@@ -114,16 +112,15 @@ function Gym_Booking({ params }: UserDataParams) {
           },
           body: JSON.stringify(bookingData),
         }
-        
       );
-  
+
       if (!response.ok) {
         setIsBookingFailed(true); // Show booking failure popup
         return;
       }
-  
+
       const result = await response.json();
-    console.log("Booking Response:", result);
+      console.log("Booking Response:", result);
 
       console.log("Booking payload:", {
         user_id: formData.id,
@@ -132,8 +129,7 @@ function Gym_Booking({ params }: UserDataParams) {
         slot_type: "normal",
         badminton_slot_id: null,
       });
-      
-  
+
       setIsBookingSuccessful(true); // Show success popup
       setSelectedCard(null);
     } catch (error) {
@@ -415,27 +411,27 @@ function Gym_Booking({ params }: UserDataParams) {
           </div>
         )}
         {isBookingFailed && (
-  <div className="fixed inset-0 w-screen h-screen flex items-center justify-center z-50 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 ease-in-out">
-    <div className="relative bg-white w-full max-w-sm mx-auto p-8 rounded-lg shadow-xl transform transition-all duration-500 ease-in-out scale-100">
-      {/* Failure Popup Content */}
-      <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
-        Booking Failed
-      </h2>
-      <p className="text-gray-600 mb-6 text-center">
-        An error occurred while processing your booking. Please try again later.
-      </p>
+          <div className="fixed inset-0 w-screen h-screen flex items-center justify-center z-50 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 ease-in-out">
+            <div className="relative bg-white w-full max-w-sm mx-auto p-8 rounded-lg shadow-xl transform transition-all duration-500 ease-in-out scale-100">
+              {/* Failure Popup Content */}
+              <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+                Booking Failed
+              </h2>
+              <p className="text-gray-600 mb-6 text-center">
+                An error occurred while processing your booking. Please try
+                again later.
+              </p>
 
-      {/* Close Button */}
-      <button
-        className="w-full bg-gradient-to-r from-red-600 via-red-500 to-red-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
-        onClick={() => setIsBookingFailed(false)}
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
-
+              {/* Close Button */}
+              <button
+                className="w-full bg-gradient-to-r from-red-600 via-red-500 to-red-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
+                onClick={() => setIsBookingFailed(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
