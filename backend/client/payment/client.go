@@ -39,39 +39,8 @@ type PaymentResponse struct {
 
 
 func (c *PaymentClient) CreatePayment(req CreatePaymentRequest) (*PaymentResponse, error) {
-	// Handle specific logic for PromptPay
-	// if req.PaymentMethod == "PROMPTPAY" {
-	// 	// Add logic to generate PromptPay QR code
-	// 	body, err := json.Marshal(req)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	// 	}
 
-	// 	// Send the request to your service to create a PromptPay payment
-	// 	resp, err := http.Post(c.baseURL+"/payments/promptpay", "application/json", bytes.NewBuffer(body))
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("failed to send request: %w", err)
-	// 	}
-	// 	defer resp.Body.Close()
 
-	// 	if resp.StatusCode != http.StatusOK {
-	// 		respBody, _ := ioutil.ReadAll(resp.Body)
-	// 		return nil, fmt.Errorf("failed to create payment, status: %s, response: %s", resp.Status, string(respBody))
-	// 	}
-
-	// 	var paymentResp PaymentResponse
-	// 	if err := json.NewDecoder(resp.Body).Decode(&paymentResp); err != nil {
-	// 		return nil, fmt.Errorf("failed to decode response: %w", err)
-	// 	}
-
-	// 	// Log the QR code URL for debugging
-	// 	fmt.Println("QR Code URL: ", paymentResp.QRCodeURL)
-
-	// 	// Return the response, which should include the QR code URL
-	// 	return &paymentResp, nil
-	// }
-
-	// For other payment methods
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -83,10 +52,6 @@ func (c *PaymentClient) CreatePayment(req CreatePaymentRequest) (*PaymentRespons
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		respBody, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("failed to create payment, status: %s, response: %s", resp.Status, string(respBody))
-	}
 
 	var paymentResp PaymentResponse
 	if err := json.NewDecoder(resp.Body).Decode(&paymentResp); err != nil {
