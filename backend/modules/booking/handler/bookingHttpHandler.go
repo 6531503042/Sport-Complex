@@ -19,7 +19,7 @@ type (
 
 		FindBooking(c echo.Context) error
 		FindOneUserBooking(c echo.Context) error
-		CreateBooking (c echo.Context) error
+		CreateBooking(c echo.Context) error
 		UpdateBookingStatusToPaid(c echo.Context) error
 	}
 
@@ -35,78 +35,103 @@ func NewBookingHttpHandler(cfg *config.Config, bookingUsecase usecase.BookingUse
 }
 
 func (h *bookingHttpHandler) CreateBooking(c echo.Context) error {
-	var createBookingReq booking.CreateBookingRequest
-	if err := c.Bind(&createBookingReq); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
-	}
+    var createBookingReq booking.CreateBookingRequest
+    if err := c.Bind(&createBookingReq); err != nil {
+        log.Printf("Error binding request payload: %v", err)
+        return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
+    }
 
-	if err := c.Validate(&createBookingReq); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	}
+    if err := c.Validate(&createBookingReq); err != nil {
+        log.Printf("Error validating request payload: %v", err)
+        return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+    }
 
-	facilityName := c.Param("facilityName")
-	bookingResponse, err := h.bookingUsecase.InsertBooking(c.Request().Context(), facilityName, &createBookingReq)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to insert booking: " + err.Error()})
-	}
+    facilityName := c.Param("facilityName")
+    log.Printf("Received request to create booking for facility: %s", facilityName)
 
-	facilityURL := "http://localhost:1335/facility_v1/facility/facilities"
-	resp, err := http.Get(facilityURL)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get facility: " + err.Error()})
-	}
-	defer resp.Body.Close()
+    bookingResponse, err := h.bookingUsecase.InsertBooking(c.Request().Context(), facilityName, &createBookingReq)
+    if err != nil {
+        log.Printf("Error inserting booking in database: %v", err)
+        return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to insert booking: " + err.Error()})
+    }
 
-	var facilities []struct {
-		ID          string  `json:"id"`
-		Name        string  `json:"name"`
-		PriceInsider float64 `json:"price_insider"`
-	}
+    const PaymentMethods = "PromptPay"
+    facilityURL := "http://localhost:1335/facility_v1/facility/facilities"
+    log.Printf("Attempting to fetch facility details from URL: %s", facilityURL)
 
-	if err := json.NewDecoder(resp.Body).Decode(&facilities); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to decode facility response: " + err.Error()})
-	}
+    resp, err := http.Get(facilityURL)
+    if err != nil {
+        log.Printf("Error making GET request to facility service: %v", err)
+        return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get facility: " + err.Error()})
+    }
+    defer resp.Body.Close()
 
-	var priceInsider float64
-	for _, facility := range facilities {
-		if facility.Name == facilityName {
-			priceInsider = facility.PriceInsider
-			break
-		}
-	}
+    var facilities []struct {
+        ID           string  `json:"id"`
+        Name         string  `json:"name"`
+        PriceInsider float64 `json:"price_insider"`
+    }
 
-	paymentRequest := client.CreatePaymentRequest{
-		Amount:       priceInsider,
-		UserID:       bookingResponse.UserId,
-		BookingID:    bookingResponse.Id.Hex(), 
-		PaymentMethod: "PromptPay",
-		Currency:     "THB",
-	}
+    if err := json.NewDecoder(resp.Body).Decode(&facilities); err != nil {
+        log.Printf("Error decoding facility response JSON: %v", err)
+        return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to decode facility response: " + err.Error()})
+    }
+
+    var priceInsider float64
+    foundFacility := false
+    for _, facility := range facilities {
+        if facility.Name == facilityName {
+            priceInsider = facility.PriceInsider
+            foundFacility = true
+            break
+        }
+    }
+
+    if !foundFacility {
+        log.Printf("Facility name '%s' not found in response", facilityName)
+        return c.JSON(http.StatusBadRequest, map[string]string{"error": "Facility not found"})
+    }
+
+    paymentRequest := client.CreatePaymentRequest{
+        Amount:        priceInsider,
+        UserID:        bookingResponse.UserId,
+        BookingID:     bookingResponse.Id.Hex(),
+        PaymentMethod: PaymentMethods,
+        Currency:      "THB",
+        FacilityName:  facilityName,
+    }
+    log.Printf("Attempting to create payment with amount: %.2f", priceInsider)
 
 	paymentResponse, err := h.paymentClient.CreatePayment(paymentRequest)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create payment: " + err.Error()})
-	}
+    if err != nil {
+        return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+    }
 
-	// ตรวจสอบสถานะการชำระเงิน
-	paymentStatus, err := h.paymentClient.CheckPaymentStatus(paymentResponse.ID) // ใช้ paymentResponse.ID
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check payment status: " + err.Error()})
-	}
+    // Handle "PENDING" status without treating it as an error
+    if paymentResponse.Status == "PENDING" {
+        bookingResponse.PaymentID = paymentResponse.ID
+        bookingResponse.QRCodeURL = paymentResponse.QRCodeURL
 
-	if paymentStatus.Status != "PAID" { // ใช้ paymentStatus.Status
-		return c.JSON(http.StatusPaymentRequired, map[string]string{"error": "Payment is not completed"})
-	}
+        return c.JSON(http.StatusAccepted, map[string]interface{}{
+            "message":     "Payment is pending, please complete the payment using the provided QR code.",
+            "booking_id":  bookingResponse.Id.Hex(),
+            "payment_id":  paymentResponse.ID,
+            "qr_code_url": paymentResponse.QRCodeURL,
+            "status":      "PENDING",
+        })
+    }
 
-	// รวมข้อมูลการชำระเงินกลับไปใน response
-	bookingResponse.PaymentID = paymentResponse.ID
-	bookingResponse.QRCodeURL = paymentResponse.QRCodeURL
+    // Check if payment was successful
+    if paymentResponse.Status != "PAID" {
+        return c.JSON(http.StatusPaymentRequired, map[string]string{"error": "Payment is not completed"})
+    }
 
-	return c.JSON(http.StatusOK, bookingResponse)
+    bookingResponse.PaymentID = paymentResponse.ID
+    bookingResponse.QRCodeURL = paymentResponse.QRCodeURL
+
+    // Final response with a successful booking
+    return c.JSON(http.StatusOK, bookingResponse)
 }
-
-
-
 
 
 func (h *bookingHttpHandler) FindBooking(c echo.Context) error {

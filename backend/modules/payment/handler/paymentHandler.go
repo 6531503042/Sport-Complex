@@ -49,7 +49,7 @@ func (h *paymentHttpHandler) CreatePayment(c echo.Context) error {
 	}
 
 	// Call the usecase to create the payment
-	createdPayment, err := h.paymentUsecase.CreatePayment(c.Request().Context(), req.UserId, req.BookingId, req.Amount)
+	createdPayment, err := h.paymentUsecase.CreatePayment(c.Request().Context(), req.UserId, req.BookingId, req.PaymentMethod, req.FacilityName , req.Amount)
 	if err != nil {
 		return response.ErrResponse(c, http.StatusInternalServerError, "Failed to create payment: "+err.Error())
 	}
