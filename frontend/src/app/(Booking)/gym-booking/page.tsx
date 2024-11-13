@@ -8,7 +8,10 @@ import ClearIcon from "@mui/icons-material/Clear";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import GroupIcon from "@mui/icons-material/Group";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
-import Link from "next/link";
+import Link from "next/link"
+import { useRouter } from 'next/navigation';
+
+
 
 interface UserData {
   id: string;
@@ -43,10 +46,12 @@ async function getAccessToken(refreshToken: string | null) {
 }
 
 function Gym_Booking({ params }: UserDataParams) {
+  const router = useRouter();
   const { id } = params;
   const [storedRefreshToken, setStoredRefreshToken] = useState<string | null>(
     null
   );
+  const [paymentId, setPaymentId] = useState<string | null>(null); // State for storing payment_id
 
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -77,67 +82,78 @@ function Gym_Booking({ params }: UserDataParams) {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
     try {
-      if (selectedCard === null || !slot || !slot[selectedCard]) {
-        console.error("No slot selected");
-        return;
-      }
+        if (selectedCard === null || !slot || !slot[selectedCard]) {
+            console.error("No slot selected");
+            return;
+        }
 
-      let accessToken = localStorage.getItem("access_token");
-      if (!accessToken) {
-        accessToken = await getAccessToken(storedRefreshToken);
+        let accessToken = localStorage.getItem("access_token");
         if (!accessToken) {
-          console.error("Failed to obtain access token");
-          setIsBookingFailed(true); // Show booking failure popup
-          return;
+            accessToken = await getAccessToken(storedRefreshToken);
+            if (!accessToken) {
+                console.error("Failed to obtain access token");
+                setIsBookingFailed(true);
+                return;
+            }
         }
-      }
 
-      const bookingData = {
-        user_id: formData.id,
-        slot_id: slot[selectedCard]._id,
-        status: 1,
-        slot_type: "normal",
-        badminton_slot_id: null,
-      };
+        const bookingData = {
+            user_id: formData.id,
+            slot_id: slot[selectedCard]._id,
+            status: 1,
+            slot_type: "normal",
+            badminton_slot_id: null,
+        };
 
-      const response = await fetch(
-        "http://localhost:1326/booking_v1/fitness/booking",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(bookingData),
+        const response = await fetch("http://localhost:1326/booking_v1/fitness/booking", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify(bookingData),
+        });
+
+        if (!response.ok) {
+            setIsBookingFailed(true);
+            return;
         }
-      );
 
-      if (!response.ok) {
-        setIsBookingFailed(true); // Show booking failure popup
-        return;
-      }
+        // Parse the complete response
+        const result = await response.json();
+        console.log("Complete booking response:", result);
 
-      const result = await response.json();
-      console.log("Booking Response:", result);
+        // Store all payment-related information in localStorage
+        const paymentInfo = {
+            payment_id: result.payment_id,
+            booking_id: result.booking_id,
+            qr_code_url: result.qr_code_url,
+            status: result.status
+        };
+        localStorage.setItem('currentPaymentInfo', JSON.stringify(paymentInfo));
 
-      console.log("Booking payload:", {
-        user_id: formData.id,
-        slot_id: slot[selectedCard]._id,
-        status: 1,
-        slot_type: "normal",
-        badminton_slot_id: null,
-      });
+        setIsBookingSuccessful(true);
+        setSelectedCard(null);
 
-      setIsBookingSuccessful(true); // Show success popup
-      setSelectedCard(null);
+        // Redirect to payment page after a short delay
+        setTimeout(() => {
+            if (result.payment_id) {
+                router.push(`/payment/${result.payment_id}`);
+            } else {
+                console.error("Payment ID is undefined, cannot redirect.");
+                setIsBookingFailed(true);
+            }
+        }, 1000);
+
     } catch (error) {
-      console.error("Error submitting booking:", error);
-      setIsBookingFailed(true); // Show booking failure popup
+        console.error("Error submitting booking:", error);
+        setIsBookingFailed(true);
     }
-  };
+};
+
 
   const handleBackToTimeSlots = () => {
     setIsMobileView(false);
@@ -441,3 +457,4 @@ function Gym_Booking({ params }: UserDataParams) {
 }
 
 export default Gym_Booking;
+
