@@ -25,7 +25,7 @@ type PaymentRequest struct {
 // PaymentResponseModel ใช้สำหรับส่งข้อมูลการชำระเงินกลับไปยัง client
 type PaymentResponse struct {
 	Id            string        `json:"id"` // ID ของการชำระเงิน
-	PaymentID     string        `json:"payment_id"`
+	PaymentID     string        `json:"payment_id,omitempty"`
 	UserId        string        `bson:"user_id" json:"user_id"` // ID ของผู้ใช้ที่ทำการชำระเงิน
 	BookingId     string        `json:"booking_id"`             // ID ของการจอง
 	Amount        float64       `json:"amount"`                 // จำนวนเงินที่ชำระ
@@ -62,7 +62,7 @@ type PaymentSlipResponse struct {
 func NewPaymentResponse(payment *PaymentEntity) *PaymentResponse {
 	return &PaymentResponse{
 		Id:            payment.Id.Hex(),
-		PaymentID:     payment.PaymentID, // ส่งค่า payment_id กลับไปใน response ด้วย
+		PaymentID:     payment.Id.Hex(),
 		UserId:        payment.UserID,
 		BookingId:     payment.BookingID,
 		Amount:        payment.Amount,
