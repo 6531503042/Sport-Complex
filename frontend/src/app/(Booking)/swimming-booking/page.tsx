@@ -8,6 +8,7 @@ import GroupIcon from "@mui/icons-material/Group";
 import NavBar from "@/app/components/navbar/navbar";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import "./swimming.css";
+import { useRouter } from 'next/navigation';
 
 interface UserData {
   id: string;
@@ -43,6 +44,7 @@ async function getAccessToken(refreshToken: string | null) {
 
 function Swimming_Booking({ params }: UserDataParams) {
   const { id } = params;
+  const router = useRouter();
   const [storedRefreshToken, setStoredRefreshToken] = useState<string | null>(
     null
   );
@@ -76,26 +78,24 @@ function Swimming_Booking({ params }: UserDataParams) {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
     try {
-      // Ensure the selectedCard is valid before proceeding
       if (selectedCard === null || !slot[selectedCard]) {
         console.error("No slot selected");
         return;
       }
 
-      // Retrieve or refresh access token
       let accessToken = localStorage.getItem("access_token");
       if (!accessToken) {
         accessToken = await getAccessToken(storedRefreshToken);
         if (!accessToken) {
           console.error("Failed to obtain access token");
+          setIsBookingFailed(true);
           return;
         }
       }
 
-      // Prepare booking data
       const bookingData = {
         user_id: formData.id,
         slot_id: slot[selectedCard]._id,
@@ -104,36 +104,55 @@ function Swimming_Booking({ params }: UserDataParams) {
         badminton_slot_id: null,
       };
 
-      // Send booking request
-      const response = await fetch(
-        "http://localhost:1326/booking_v1/swimming/booking",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(bookingData),
-        }
-      );
+      console.log("Sending booking data:", bookingData); // Debug log
+
+      const response = await fetch("http://localhost:1326/booking_v1/swimming/booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(bookingData),
+      });
 
       if (!response.ok) {
-        setIsBookingFailed(true); // Show booking failure popup
+        console.error("Booking failed with status:", response.status);
+        setIsBookingFailed(true);
         return;
       }
 
       const result = await response.json();
-      console.log("Booking successful:", result);
-      console.log("Booking payload:", {
-        user_id: formData.id,
-        slot_id: slot[selectedCard]._id,
-        status: 1,
-        slot_type: "normal",
-        badminton_slot_id: null,
-      });
+      console.log("Complete booking response:", result); // Debug log
 
-      setIsBookingSuccessful(true); // Show success popup
+      if (!result.payment_id) {
+        console.error("No payment_id in response");
+        setIsBookingFailed(true);
+        return;
+      }
+
+      // Store payment information in localStorage
+      const paymentInfo = {
+        payment_id: result.payment_id,
+        booking_id: result.booking_id,
+        qr_code_url: result.qr_code_url,
+        status: result.status
+      };
+      localStorage.setItem('currentPaymentInfo', JSON.stringify(paymentInfo));
+      console.log("Stored payment info:", paymentInfo); // Debug log
+
+      setIsBookingSuccessful(true);
       setSelectedCard(null);
+
+      // Immediate redirect to payment page
+      setTimeout(() => {
+        if (result.payment_id) {
+            router.push(`/payment/${result.payment_id}`);
+        } else {
+            console.error("Payment ID is undefined, cannot redirect.");
+            setIsBookingFailed(true);
+        }
+    }, 1000);
+
     } catch (error) {
       console.error("Error submitting booking:", error);
       setIsBookingFailed(true);
