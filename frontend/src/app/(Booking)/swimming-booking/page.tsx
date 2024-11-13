@@ -56,6 +56,7 @@ function Swimming_Booking({ params }: UserDataParams) {
 
   const [isBookingSuccessful, setIsBookingSuccessful] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false); // New state for mobile view
+  const [isBookingFailed, setIsBookingFailed] = useState(false);
 
   const handleCardClick = (lot: any) => {
     // Allow booking if the slot is not fully booked
@@ -116,14 +117,26 @@ function Swimming_Booking({ params }: UserDataParams) {
         }
       );
 
+      if (!response.ok) {
+        setIsBookingFailed(true); // Show booking failure popup
+        return;
+      }
+
       const result = await response.json();
       console.log("Booking successful:", result);
+      console.log("Booking payload:", {
+        user_id: formData.id,
+        slot_id: slot[selectedCard]._id,
+        status: 1,
+        slot_type: "normal",
+        badminton_slot_id: null,
+      });
 
-      // Show the booking success popup
-      setIsBookingSuccessful(true);
+      setIsBookingSuccessful(true); // Show success popup
       setSelectedCard(null);
     } catch (error) {
       console.error("Error submitting booking:", error);
+      setIsBookingFailed(true);
     }
   };
 
@@ -390,6 +403,28 @@ function Swimming_Booking({ params }: UserDataParams) {
                   setIsBookingSuccessful(false); // Close the popup
                   setIsMobileView(false); // Return to the time slots view
                 }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+        {isBookingFailed && (
+          <div className="fixed inset-0 w-screen h-screen flex items-center justify-center z-50 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 ease-in-out">
+            <div className="relative bg-white w-full max-w-sm mx-auto p-8 rounded-lg shadow-xl transform transition-all duration-500 ease-in-out scale-100">
+              {/* Failure Popup Content */}
+              <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+                Booking Failed
+              </h2>
+              <p className="text-gray-600 mb-6 text-center">
+                An error occurred while processing your booking. Please try
+                again later.
+              </p>
+
+              {/* Close Button */}
+              <button
+                className="w-full bg-gradient-to-r from-red-600 via-red-500 to-red-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
+                onClick={() => setIsBookingFailed(false)}
               >
                 Close
               </button>
