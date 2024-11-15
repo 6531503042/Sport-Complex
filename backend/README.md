@@ -41,6 +41,7 @@ go run ./pkg/database/script/migration.go ./env/dev/.env.user && \
 go run ./pkg/database/script/migration.go ./env/dev/.env.auth && \
 go run ./pkg/database/script/migration.go ./env/dev/.env.booking && \
 go run ./pkg/database/script/migration.go ./env/dev/.env.facility && \
+go run ./pkg/database/script/migration.go ./env/dev/.env.payment && \
 
 ```
 
@@ -61,37 +62,23 @@ protoc --go_out=. --go_opt=paths=source_relative \
     modules/auth/proto/authPb.proto
 ```
 
-<p>Gym</p>
+<p>Facility</p>
 
 ```bash
 protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    modules/booking/proto/gymPb.proto
+    modules/facility/proto/facilityPb.proto
 ```
 
-<p>Swimming</p>
+<p>Payment</p>
 
 ```bash
 protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    modules/swimming/proto/swimmingPb.proto
+    modules/payment/proto/paymentPb.proto
 ```
 
-<p>Badminton</p>
 
-```bash
-protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    modules/badminton/proto/badmintonPb.proto
-```
-
-<p>Football</p>
-
-```bash
-protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    modules/football/proto/footballPb.proto
-```
 
 
 <h2>🐳 Docker Build</h2>
