@@ -52,10 +52,10 @@ func (s *BookingQueueService) Start(ctx context.Context) {
                 continue
             }
 
-			if err := s.repo.ProcessBookingQueue(ctx, s.cfg, &bookingMsg); err != nil {
-                log.Printf("Error processing booking: %v", err)
-                continue
-            }
+			// if err := s.repo.ProcessBookingQueue(ctx, s.cfg, &bookingMsg); err != nil {
+            //     log.Printf("Error processing booking: %v", err)
+            //     continue
+            // }
 
         case err := <-partitionConsumer.Errors():
             log.Printf("Error from consumer: %v", err)
