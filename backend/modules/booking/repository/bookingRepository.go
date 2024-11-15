@@ -40,6 +40,10 @@ type (
 		MoveOldBookingTransactionToHistory(ctx context.Context) error 
         ResetFacilitySlots(ctx context.Context, facilityName string) error
         UpdateStatusPaid(ctx context.Context, bookingID string) error
+
+        //Queue with ciritcal section
+        // ProcessBookingQueue(pctx context.Context, cfg *config.Config, queueMsg *booking.BookingQueueMessage) error
+        InsertBookingQueue(pctx context.Context, cfg *config.Config, facilityName string, req *booking.Booking) (*booking.Booking, error)
 	}
 
 	bookingRepository struct {
@@ -535,11 +539,38 @@ func validateBookingRequest(req *booking.Booking) error {
     return nil
 }
 
+
+
+func (r *bookingRepository) countUserBadmintonBookings(ctx context.Context, userId string) (int, error) {
+    col := r.bookingDbConn(ctx).Collection("booking_transaction")
+
+    filter := bson.M{
+        "user_id":          userId,
+        "badminton_slot_id": bson.M{"$exists": true}, // Count only badminton slots
+    }
+
+    count, err := col.CountDocuments(ctx, filter)
+    if err != nil {
+        return 0, fmt.Errorf("error counting badminton bookings: %w", err)
+    }
+
+    return int(count), nil
+}
+
 func (r *bookingRepository) InsertBookingQueue(pctx context.Context, cfg *config.Config, facilityName string, req *booking.Booking) (*booking.Booking, error) {
     ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
     defer cancel()
 
     col := r.bookingDbConn(ctx).Collection("booking_transaction")
+
+    queueMsg := &booking.BookingQueueMessage{
+        UserId:          req.UserId,
+        SlotId:          req.SlotId,
+        BadmintonSlotId: req.BadmintonSlotId,
+        SlotType:        req.SlotType,
+        FacilityName:    facilityName,
+        CreatedAt:       time.Now(),
+    }
 
     if err := validateBookingRequest(req); err != nil {
         return nil, err
@@ -602,6 +633,12 @@ func (r *bookingRepository) InsertBookingQueue(pctx context.Context, cfg *config
         return nil, fmt.Errorf("error marshalling booking for Kafka: %w", err)
     }
 
+    //Convert
+    message, err = json.Marshal(queueMsg)
+    if err != nil {
+        return nil, fmt.Errorf("error marshalling booking for Kafka: %w", err)
+    }
+
     retryCount := 3
     for i := 0; i < retryCount; i++ {
         kafkaErr := queue.PushMessageWithKeyToQueue(
@@ -635,18 +672,41 @@ func (r *bookingRepository) InsertBookingQueue(pctx context.Context, cfg *config
     return req, nil
 }
 
-func (r *bookingRepository) countUserBadmintonBookings(ctx context.Context, userId string) (int, error) {
-    col := r.bookingDbConn(ctx).Collection("booking_transaction")
+// func (r *bookingRepository) ProcessBookingQueue(pctx context.Context, cfg *config.Config, queueMsg *booking.BookingQueueMessage) error {
+//     ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+//     defer cancel()
 
-    filter := bson.M{
-        "user_id":          userId,
-        "badminton_slot_id": bson.M{"$exists": true}, // Count only badminton slots
-    }
+//     conn, err := grpc.NewGrpcClient(cfg.Grpc.FacilityUrl)
+//     if err != nil {
+//         return fmt.Errorf("error creating gRPC client: %w", err)
+//     }
 
-    count, err := col.CountDocuments(ctx, filter)
-    if err != nil {
-        return 0, fmt.Errorf("error counting badminton bookings: %w", err)
-    }
+//     var slotId string
+//     if queueMsg.SlotId != nil {
+//         slotId = *queueMsg.SlotId
+//     } else if queueMsg.BadmintonSlotId != nil {
+//         slotId = *queueMsg.BadmintonSlotId
+//     }
 
-    return int(count), nil
-}
+//     bookingDoc := bson.M{
+//         "user_id":           queueMsg.UserId,
+//         "facility":          queueMsg.FacilityName,
+//         "status":           "pending",
+//         "created_at":       queueMsg.CreatedAt,
+//         "updated_at":       time.Now(),
+//     }
+
+//     if queueMsg.SlotId != nil {
+//         bookingDoc["slot_id"] = *queueMsg.SlotId
+//     } else if queueMsg.BadmintonSlotId != nil {
+//         bookingDoc["badminton_slot_id"] = *queueMsg.BadmintonSlotId
+//     }
+
+//     col := r.bookingDbConn(ctx).Collection("booking_transaction")
+//     _, err = col.InsertOne(ctx, bookingDoc)
+//     if err != nil {
+//         return fmt.Errorf("error inserting booking: %w", err)
+//     }
+
+//     return nil
+// }
