@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"main/modules/auth"
 	"main/modules/user"
 	userPb "main/modules/user/proto"
 	"main/modules/user/repository"
@@ -48,6 +49,11 @@ func (u *userUsecase) CreateUser(pctx context.Context, req *user.CreateUserReq) 
         return nil, errors.New("error: failed to hash password")
     }
 
+    roleCode := req.RoleCode
+    if roleCode == 0 {
+        roleCode = auth.RoleUser // Default to user role
+    }
+
     // Insert the new user
     userId, err := u.userRepository.InsertOneUser(pctx, &user.User{
         Email:     req.Email,
@@ -57,16 +63,26 @@ func (u *userUsecase) CreateUser(pctx context.Context, req *user.CreateUserReq) 
         UpdatedAt: utils.LocalTime(),
         UserRoles: []user.UserRole{
             {
-                RoleTitle: "user",
-                RoleCode:  0,
+                RoleTitle: getRoleTitle(roleCode),
+                RoleCode:  roleCode,
             },
         },
-	})
+    })
     if err != nil {
         return nil, errors.New("error: failed to create user")
     }
 
     return u.FindOneUserProfile(pctx, userId.Hex())
+}
+
+// Helper function to get role title
+func getRoleTitle(roleCode int) string {
+    switch roleCode {
+    case auth.RoleAdmin:
+        return "admin"
+    default:
+        return "user"
+    }
 }
 
 func (u *userUsecase) UpdateOneUser(ctx context.Context, userId string, updateFields map[string]interface{}) error {
