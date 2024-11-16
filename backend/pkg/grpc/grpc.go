@@ -8,6 +8,7 @@ import (
 	authPb "main/modules/auth/proto"
 	bookingPb "main/modules/booking/proto"
 	userPb "main/modules/user/proto"
+	paymentPb "main/modules/payment/proto"
 	"main/pkg/jwt"
 	"net"
 
@@ -24,6 +25,7 @@ type (
 		Auth() authPb.AuthGrpcServiceClient
 		Booking() bookingPb.BookingServiceClient
 		Facility() facilityPb.FacilityServiceClient
+		Payment() paymentPb.PaymentServiceClient
 	}
 
 	grpcClientFactory struct {
@@ -49,6 +51,10 @@ func (g *grpcClientFactory) Booking() bookingPb.BookingServiceClient {
 
 func (g *grpcClientFactory) Facility() facilityPb.FacilityServiceClient {
 	return facilityPb.NewFacilityServiceClient(g.client)
+}
+
+func (g *grpcClientFactory) Payment() paymentPb.PaymentServiceClient { // Implement Payment service client
+	return paymentPb.NewPaymentServiceClient(g.client)
 }
 
 func NewGrpcClient(host string) (GrpcClientFactoryHandler, error) {
