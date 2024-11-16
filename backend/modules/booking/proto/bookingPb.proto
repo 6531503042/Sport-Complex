@@ -1,55 +1,52 @@
 syntax = "proto3";
 
-option go_package = "github.com/6531503042/Sport-Complex/modules/booking/proto";
+package booking;
 
-import "google/protobuf/timestamp.proto";
+option go_package = "github.com/Sport-Complex/backend/modules/booking/proto";
 
-message Slot {
-    string id = 1;
-    string start_time = 2;
-    string end_time = 3;
+service BookingService {
+    rpc CreateBooking (CreateBookingRequest) returns (BookingResponse);
+    rpc GetBooking (GetBookingRequest) returns (BookingResponse);
+    rpc UpdateBookingStatus (UpdateBookingStatusRequest) returns (BookingResponse);
+    rpc GetUserBookings (GetUserBookingsRequest) returns (GetUserBookingsResponse);
 }
 
-message Booking {
+message CreateBookingRequest {
+    string user_id = 1;
+    string slot_id = 2;
+    string badminton_slot_id = 3;
+    string slot_type = 4;
+    string facility_name = 5;
+}
+
+message GetBookingRequest {
+    string booking_id = 1;
+}
+
+message UpdateBookingStatusRequest {
+    string booking_id = 1;
+    string status = 2;
+}
+
+message GetUserBookingsRequest {
+    string user_id = 1;
+}
+
+message BookingResponse {
     string id = 1;
     string user_id = 2;
     string slot_id = 3;
-    string status = 4;
-    google.protobuf.Timestamp created_at = 5;
-    google.protobuf.Timestamp updated_at = 6;
+    string badminton_slot_id = 4;
+    string slot_type = 5;
+    string status = 6;
+    string payment_id = 7;
+    string qr_code_url = 8;
+    string created_at = 9;
+    string updated_at = 10;
+    string error_message = 11;
 }
 
-message InsertBookingRequest {
-    string user_id = 1;
-    string facilityName = 2;
-    string slot_id = 3;
+message GetUserBookingsResponse {
+    repeated BookingResponse bookings = 1;
+    string error_message = 2;
 }
-
-message InsertBookingResponse {
-    string bookingId = 1;
-    string status = 2;
-  }
-
-message UpdateBookingRequest {
-    string booking_id = 1;
-    string facilityName = 2;
-}
-
-message UpdateBookingResponse {
-    string status = 1;
-  }
-
-message FindBookingRequest {
-    string bookingId = 1;
-  }
-  
-  message FindBookingResponse {
-    string bookingId = 1;
-    string status = 2;
-  }
-
-  service BookingService {
-    rpc InsertBooking (InsertBookingRequest) returns (InsertBookingResponse);
-    rpc UpdateBooking (UpdateBookingRequest) returns (UpdateBookingResponse);
-    rpc FindBooking (FindBookingRequest) returns (FindBookingResponse);
-  }
