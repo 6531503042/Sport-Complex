@@ -10,7 +10,9 @@ import (
 
 	"main/modules/booking"
 	"main/modules/facility"
+	facilityPb "main/modules/facility/proto"
 	"main/modules/models"
+	"main/pkg/grpc"
 	"main/pkg/queue"
 	"time"
 
@@ -39,25 +41,29 @@ type (
 		ClearingBookingAtMidnight(ctx context.Context) error
 		MoveOldBookingTransactionToHistory(ctx context.Context) error 
         ResetFacilitySlots(ctx context.Context, facilityName string) error
-        UpdateStatusPaid(ctx context.Context, bookingID string) error
+        UpdateStatusPaid(ctx context.Context, bookingID string, paymentID string, qrCodeURL string) error
 
         //Queue with ciritcal section
-        // ProcessBookingQueue(pctx context.Context, cfg *config.Config, queueMsg *booking.BookingQueueMessage) error
+        ProcessBookingQueue(pctx context.Context, cfg *config.Config, queueMsg *booking.BookingQueueMessage) error
         InsertBookingQueue(pctx context.Context, cfg *config.Config, facilityName string, req *booking.Booking) (*booking.Booking, error)
+        CleanupExpiredBookings()
 	}
 
 	bookingRepository struct {
 		db     *mongo.Client
 		client *mongo.Client
+        cfg    *config.Config
 	}
 )
 
 // NewBookingRepository returns a new instance of BookingRepositoryService using the given mongo client.
 // It provides access to the booking database and its collections.
-func NewBookingRepository(db *mongo.Client) BookingRepositoryService {
+func NewBookingRepository(db *mongo.Client, cfg *config.Config) BookingRepositoryService {
 	return &bookingRepository{
 		db:     db,
-		client: db,}
+		client: db,
+		cfg:    cfg,
+	}
 }
 
 func (r *bookingRepository) bookingDbConn(ctx context.Context) *mongo.Database {
@@ -192,7 +198,7 @@ func (r *bookingRepository) GetOffset(pctx context.Context) (int64, error) {
 	defer cancel()
 
 	db := r.bookingDbConn(ctx)
-	col := db.Collection("booking_queue")
+	col := db.Collection("booking_transaction")
 
 	result := new(models.KafkaOffset)
 	if err := col.FindOne(ctx, bson.M{}).Decode(result); err != nil {
@@ -214,7 +220,7 @@ func (r *bookingRepository) UpOffset(pctx context.Context, newOffset int64) erro
 	}
 
 	db := r.bookingDbConn(ctx)
-	col := db.Collection("booking_queue")
+	col := db.Collection("booking_transaction")
 
 	filter := bson.M{} // Assuming you're updating the only document
 	update := bson.M{
@@ -284,19 +290,15 @@ func (r *bookingRepository) updateSlotCurrentBooking(pctx context.Context, facil
 }
 
 func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName string, req *booking.Booking) (*booking.Booking, error) {
-    ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+    ctx, cancel := context.WithTimeout(pctx, 120*time.Second)
     defer cancel()
 
-    // Initialize database collection
     col := r.bookingDbConn(ctx).Collection("booking_transaction")
 
     // Validate incoming request
     if err := validateBookingRequest(req); err != nil {
         return nil, err
     }
-
-    // Log booking attempt
-    log.Printf("Attempting to insert booking for userId: %s", req.UserId)
 
     // Convert SlotId or BadmintonSlotId to ObjectID
     var slotIdObject *primitive.ObjectID
@@ -317,8 +319,8 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
         isBadminton = true
     }
 
-     // Check if user has already booked the max number of badminton slots
-     if isBadminton {
+    // Check badminton booking limit
+    if isBadminton {
         count, err := r.countUserBadmintonBookings(ctx, req.UserId)
         if err != nil {
             log.Printf("Error counting user's badminton bookings: %s", err)
@@ -329,23 +331,20 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
         }
     }
 
-   // Log booking attempt
-    log.Printf("Attempting to insert booking for userId: %s, facilityName: %s", req.UserId, facilityName)
+    // Check for duplicate booking
+    exists, err := r.checkDuplicateBooking(ctx, req.UserId, slotIdObject, badmintonSlotIdObject)
+    if err != nil {
+        log.Printf("Error while checking duplicate booking: %s", err)
+        return nil, err
+    }
+    if exists {
+        log.Printf("User %s has already booked slot %v/%v", req.UserId, slotIdObject, badmintonSlotIdObject)
+        return nil, errors.New("error: user has already booked this slot")
+    }
 
-     // Check if the user has already booked the same slot
-     exists, err := r.checkDuplicateBooking(ctx, req.UserId, slotIdObject, badmintonSlotIdObject)
-     if err != nil {
-         log.Printf("Error while checking duplicate booking: %s", err)
-         return nil, err
-     }
-     if exists {
-         log.Printf("User %s has already booked slot %v/%v", req.UserId, slotIdObject, badmintonSlotIdObject)
-         return nil, errors.New("error: user has already booked this slot")
-     }
-
+    // Check slot availability
     var slot *facility.Slot
     if !isBadminton {
-        // Check slot availability for noßrmal slots
         slot, err = r.checkSlotAvailability(ctx, facilityName, req)
         if err != nil {
             return nil, err
@@ -355,44 +354,157 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
         }
     }
 
-    // Create the booking document
-    bookingDoc := bson.M{
-        "user_id":    req.UserId,
-        "facility":   facilityName,
-        "status":     "pending", 
-        "created_at": time.Now(),
-        "updated_at": time.Now(),
+    // Create booking document with explicit fields
+    bookingDoc := bson.D{
+        {"user_id", req.UserId},
+        {"slot_id", req.SlotId},
+        {"slot_type", req.SlotType},
+        {"facility_name", facilityName},  // Set facility name explicitly
+        {"status", "pending"},
+        {"payment_id", ""},
+        {"qr_code_url", ""},
+        {"created_at", time.Now().UTC()},
+        {"updated_at", time.Now().UTC()},
     }
 
-    if req.SlotId != nil {
-        bookingDoc["slot_id"] = slotIdObject
-    }
     if req.BadmintonSlotId != nil {
-        bookingDoc["badminton_slot_id"] = badmintonSlotIdObject
+        bookingDoc = append(bookingDoc, bson.E{"badminton_slot_id", req.BadmintonSlotId})
     }
 
-    // Insert the booking document into the collection
-    res, err := col.InsertOne(ctx, bookingDoc)
+    // Insert booking
+    result, err := col.InsertOne(ctx, bookingDoc)
     if err != nil {
-        log.Printf("Error inserting booking: %s", err.Error())
         return nil, fmt.Errorf("error inserting booking: %w", err)
     }
 
-    if !isBadminton && slotIdObject != nil {
-        // Update the slot's current booking count
-        err = r.updateSlotCurrentBooking(ctx, facilityName, *slotIdObject, 1) // Increment by 1 for the new booking
-        if err != nil {
-            return nil, err
+    // Set the values back to the request object
+    req.Id = result.InsertedID.(primitive.ObjectID)
+    req.FacilityName = facilityName
+    req.Status = "pending"
+    req.PaymentID = ""
+    req.QRCodeURL = ""
+    req.CreatedAt = bookingDoc[7].Value.(time.Time)
+    req.UpdatedAt = bookingDoc[8].Value.(time.Time)
+
+    // Update slot booking count if needed
+    if !isBadminton && slot != nil {
+        if err := r.updateSlotCurrentBooking(ctx, facilityName, slot.Id, 1); err != nil {
+            // Rollback if slot update fails
+            if _, deleteErr := col.DeleteOne(ctx, bson.M{"_id": req.Id}); deleteErr != nil {
+                log.Printf("Error rolling back booking: %v", deleteErr)
+            }
+            return nil, fmt.Errorf("error updating slot booking count: %w", err)
         }
-    } else {
-        log.Printf("Skipping slot availability and booking count update for badminton slot")
     }
 
-    // Return the inserted booking with the new ID
-    req.Id = res.InsertedID.(primitive.ObjectID) // Assign the new ID to the booking
+    // Create queue message
+    queueMsg := &booking.BookingQueueMessage{
+        UserId:          req.UserId,
+        SlotId:          req.SlotId,
+        BadmintonSlotId: req.BadmintonSlotId,
+        SlotType:        req.SlotType,
+        FacilityName:    facilityName,
+        CreatedAt:       time.Now(),
+    }
+
+    // Send to Kafka asynchronously
+    go func() {
+        message, err := json.Marshal(queueMsg)
+        if err != nil {
+            log.Printf("Warning: Failed to marshal booking message: %v", err)
+            return
+        }
+
+        for i := 0; i < 3; i++ {
+            err = queue.PushMessageWithKeyToQueue(
+                []string{r.cfg.Kafka.Url},
+                r.cfg.Kafka.ApiKey,
+                r.cfg.Kafka.Secret,
+                "booking",
+                req.UserId,
+                message,
+            )
+            if err == nil {
+                log.Printf("Successfully sent booking to Kafka after %d attempts", i+1)
+                break
+            }
+            log.Printf("Warning: Failed to send booking to Kafka (attempt %d): %v", i+1, err)
+            time.Sleep(time.Second * time.Duration(i+1))
+        }
+    }()
+
     return req, nil
 }
 
+func (r *bookingRepository) checkDuplicateBooking(ctx context.Context, userId string, slotId, badmintonSlotId *primitive.ObjectID) (bool, error) {
+    log.Printf("Checking duplicate booking for user %s", userId)
+
+    // Base filter for active bookings
+    filter := bson.M{
+        "user_id": userId,
+        "status": bson.M{"$in": []string{"pending", "paid"}},
+    }
+
+    // For normal slots
+    if slotId != nil {
+        filter["slot_id"] = slotId.Hex()
+        
+        count, err := r.bookingDbConn(ctx).Collection("booking_transaction").CountDocuments(ctx, filter)
+        if err != nil {
+            log.Printf("Error checking normal slot booking: %v", err)
+            return false, err
+        }
+        
+        if count > 0 {
+            log.Printf("Found existing booking for slot %s", slotId.Hex())
+            return true, errors.New("you already have a booking for this slot")
+        }
+    }
+
+    // For badminton slots
+    if badmintonSlotId != nil {
+        // First check if this specific slot is already booked
+        filter["badminton_slot_id"] = badmintonSlotId.Hex()
+        
+        count, err := r.bookingDbConn(ctx).Collection("booking_transaction").CountDocuments(ctx, filter)
+        if err != nil {
+            log.Printf("Error checking badminton slot booking: %v", err)
+            return false, err
+        }
+        
+        if count > 0 {
+            log.Printf("Found existing booking for badminton slot %s", badmintonSlotId.Hex())
+            return true, errors.New("you already have a booking for this badminton slot")
+        }
+
+        // Then check daily limit for badminton (2 slots per day)
+        today := time.Now().UTC().Truncate(24 * time.Hour)
+        tomorrow := today.Add(24 * time.Hour)
+
+        dailyFilter := bson.M{
+            "user_id": userId,
+            "slot_type": "badminton",
+            "status": bson.M{"$in": []string{"pending", "paid"}},
+            "created_at": bson.M{
+                "$gte": today,
+                "$lt":  tomorrow,
+            },
+        }
+
+        dailyCount, err := r.bookingDbConn(ctx).Collection("booking_transaction").CountDocuments(ctx, dailyFilter)
+        if err != nil {
+            log.Printf("Error checking daily badminton limit: %v", err)
+            return false, err
+        }
+
+        if dailyCount >= 2 {
+            log.Printf("User %s has reached daily badminton limit", userId)
+            return true, errors.New("you have reached the maximum daily limit for badminton bookings (2 slots)")
+        }
+    }
+
+    return false, nil
+}
 
 func (r *bookingRepository) UpdateBooking (ctx context.Context, booking *booking.Booking) (*booking.Booking, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -445,52 +557,49 @@ func (r*bookingRepository) FindOneUserBooking (ctx context.Context, userId strin
 	return result, nil
 }
 
-func (r *bookingRepository) UpdateStatusPaid(ctx context.Context, bookingID string) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	db := r.bookingDbConn(ctx)
-	col := db.Collection("booking_transaction")
-
-	// Convert bookingID to ObjectID
-	objID, err := primitive.ObjectIDFromHex(bookingID)
-	if err != nil {
-		log.Printf("Error: Invalid booking ID format: %s", err.Error())
-		return errors.New("invalid booking ID format")
-	}
-
-	filter := bson.M{"_id": objID}
-	update := bson.M{"$set": bson.M{"status": "PAID"}}
-
-	_, err = col.UpdateOne(ctx, filter, update)
-	if err != nil {
-		log.Printf("Error: UpdateStatusPaid: %s", err.Error())
-		return errors.New("error: update status to paid failed")
-	}
-
-	return nil
-}
-
-func (r *bookingRepository) checkDuplicateBooking(ctx context.Context, userId string, slotId, badmintonSlotId *primitive.ObjectID) (bool, error) {
-    filter := bson.M{
-        "user_id": userId,
-    }
-
-    // Add slot filter depending on slot type
-    if slotId != nil {
-        filter["slot_id"] = slotId
-    } else if badmintonSlotId != nil {
-        filter["badminton_slot_id"] = badmintonSlotId
-    }
-
-    // Count documents matching the filter
-    count, err := r.bookingDbConn(ctx).Collection("booking_transaction").CountDocuments(ctx, filter)
+func (r *bookingRepository) UpdateStatusPaid(ctx context.Context, bookingID string, paymentID, qrCodeURL string) error {
+    objID, err := primitive.ObjectIDFromHex(bookingID)
     if err != nil {
-        return false, err
+        return fmt.Errorf("invalid booking ID: %w", err)
     }
 
-    return count > 0, nil // True if a duplicate booking exists
+    filter := bson.M{"_id": objID}
+    update := bson.M{
+        "$set": bson.M{
+            "status":      "PAID",
+            "payment_id": paymentID,
+            "qr_code_url": qrCodeURL,
+            "updated_at":  time.Now().UTC(),
+        },
+    }
+
+    _, err = r.bookingDbConn(ctx).Collection("booking_transaction").UpdateOne(ctx, filter, update)
+    if err != nil {
+        return fmt.Errorf("failed to update booking status: %w", err)
+    }
+
+    return nil
 }
+
+// func (r *bookingRepository) checkDuplicateBooking(ctx context.Context, userId string, slotId, badmintonSlotId *primitive.ObjectID) (bool, error) {
+//     filter := bson.M{
+//         "user_id": userId,
+//     }
+
+//     if slotId != nil {
+//         filter["slot_id"] = slotId
+//     }
+//     if badmintonSlotId != nil {
+//         filter["badminton_slot_id"] = badmintonSlotId
+//     }
+
+//     count, err := r.bookingDbConn(ctx).Collection("booking_transaction").CountDocuments(ctx, filter)
+//     if err != nil {
+//         return false, err
+//     }
+
+//     return count > 0, nil
+// }
 
 func (r *bookingRepository) checkUserBookingExists(pctx context.Context, userId string, facilityName string, slotId *primitive.ObjectID, badmintonSlotId *primitive.ObjectID) (bool, error) {
     log.Printf("Checking if booking exists for userId: %s, facilityName: %s, slotId: %v, badmintonSlotId: %v", userId, facilityName, slotId, badmintonSlotId)
@@ -621,26 +730,13 @@ func (r *bookingRepository) InsertBookingQueue(pctx context.Context, cfg *config
     req.CreatedAt = time.Now().UTC()
     req.UpdatedAt = time.Now().UTC()
 
-    res, err := col.InsertOne(ctx, req)
+    // Send to Kafka queue with better error handling
+    message, err := json.Marshal(queueMsg)
     if err != nil {
-        return nil, fmt.Errorf("error inserting booking: %w", err)
-    }
-
-    req.Id = res.InsertedID.(primitive.ObjectID)
-
-    message, err := json.Marshal(req)
-    if err != nil {
-        return nil, fmt.Errorf("error marshalling booking for Kafka: %w", err)
-    }
-
-    //Convert
-    message, err = json.Marshal(queueMsg)
-    if err != nil {
-        return nil, fmt.Errorf("error marshalling booking for Kafka: %w", err)
-    }
-
-    retryCount := 3
-    for i := 0; i < retryCount; i++ {
+        log.Printf("Error marshalling message: %v", err)
+        // Continue with booking creation even if Kafka fails
+    } else {
+        // Try to send to Kafka but don't fail the booking if it doesn't work
         kafkaErr := queue.PushMessageWithKeyToQueue(
             []string{cfg.Kafka.Url},
             cfg.Kafka.ApiKey,
@@ -649,64 +745,192 @@ func (r *bookingRepository) InsertBookingQueue(pctx context.Context, cfg *config
             req.UserId,
             message,
         )
-        if kafkaErr == nil {
-            log.Printf("Booking sent to Kafka: UserId=%s, BookingId=%s", req.UserId, req.Id.Hex())
-            break
+        if kafkaErr != nil {
+            log.Printf("Warning: Failed to send booking to Kafka: %v", kafkaErr)
+            // Continue with booking creation
         }
-        log.Printf("Failed to send booking to Kafka (attempt %d): %s", i+1, kafkaErr.Error())
-        if i == retryCount-1 {
-            return nil, fmt.Errorf("error sending booking to Kafka after %d attempts: %w", retryCount, kafkaErr)
-        }
-        time.Sleep(time.Second)
     }
 
-    if !isBadminton && slotIdObject != nil {
-        err = r.updateSlotCurrentBooking(ctx, facilityName, *slotIdObject, 1)
-        if err != nil {
-            return nil, fmt.Errorf("failed to update slot booking count: %w", err)
-        }
-    } else {
-        log.Printf("Skipping slot availability and booking count update for badminton slot")
+    // Create the booking regardless of Kafka status
+    result, err := col.InsertOne(ctx, req)
+    if err != nil {
+        return nil, fmt.Errorf("error inserting booking: %w", err)
     }
 
+    req.Id = result.InsertedID.(primitive.ObjectID)
     return req, nil
 }
 
-// func (r *bookingRepository) ProcessBookingQueue(pctx context.Context, cfg *config.Config, queueMsg *booking.BookingQueueMessage) error {
-//     ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
-//     defer cancel()
+func (r *bookingRepository) ProcessBookingQueue(pctx context.Context, cfg *config.Config, queueMsg *booking.BookingQueueMessage) error {
+    ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+    defer cancel()
 
-//     conn, err := grpc.NewGrpcClient(cfg.Grpc.FacilityUrl)
-//     if err != nil {
-//         return fmt.Errorf("error creating gRPC client: %w", err)
-//     }
+    // Create gRPC client for facility service
+    grpcClient, err := grpc.NewGrpcClient(cfg.Grpc.FacilityUrl)
+    if err != nil {
+        return fmt.Errorf("error creating gRPC client: %w", err)
+    }
 
-//     var slotId string
-//     if queueMsg.SlotId != nil {
-//         slotId = *queueMsg.SlotId
-//     } else if queueMsg.BadmintonSlotId != nil {
-//         slotId = *queueMsg.BadmintonSlotId
-//     }
+    // Get facility client
+    facilityClient := grpcClient.Facility()
 
-//     bookingDoc := bson.M{
-//         "user_id":           queueMsg.UserId,
-//         "facility":          queueMsg.FacilityName,
-//         "status":           "pending",
-//         "created_at":       queueMsg.CreatedAt,
-//         "updated_at":       time.Now(),
-//     }
+    // Get the appropriate slot ID
+    var slotId string
+    if queueMsg.SlotId != nil {
+        slotId = *queueMsg.SlotId
+    } else if queueMsg.BadmintonSlotId != nil {
+        slotId = *queueMsg.BadmintonSlotId
+    }
 
-//     if queueMsg.SlotId != nil {
-//         bookingDoc["slot_id"] = *queueMsg.SlotId
-//     } else if queueMsg.BadmintonSlotId != nil {
-//         bookingDoc["badminton_slot_id"] = *queueMsg.BadmintonSlotId
-//     }
+    // Check slot availability using gRPC
+    availabilityResp, err := facilityClient.CheckSlotAvailability(ctx, &facilityPb.CheckSlotRequest{
+        SlotId:       slotId,
+        FacilityName: queueMsg.FacilityName,
+        SlotType:     queueMsg.SlotType,
+    })
+    if err != nil {
+        return fmt.Errorf("error checking slot availability: %w", err)
+    }
 
-//     col := r.bookingDbConn(ctx).Collection("booking_transaction")
-//     _, err = col.InsertOne(ctx, bookingDoc)
-//     if err != nil {
-//         return fmt.Errorf("error inserting booking: %w", err)
-//     }
+    // If slot is not available, return error
+    if !availabilityResp.IsAvailable {
+        return fmt.Errorf("slot %s is not available: %s", slotId, availabilityResp.ErrorMessage)
+    }
 
-//     return nil
-// }
+    // Create booking document
+    bookingDoc := bson.M{
+        "user_id":     queueMsg.UserId,
+        "facility":    queueMsg.FacilityName,
+        "status":      "pending",
+        "created_at":  queueMsg.CreatedAt,
+        "updated_at":  time.Now(),
+    }
+
+    // Add the appropriate slot ID to the document
+    if queueMsg.SlotId != nil {
+        bookingDoc["slot_id"] = *queueMsg.SlotId
+    } else if queueMsg.BadmintonSlotId != nil {
+        bookingDoc["badminton_slot_id"] = *queueMsg.BadmintonSlotId
+    }
+
+    // Insert the booking
+    col := r.bookingDbConn(ctx).Collection("booking_transaction")
+    result, err := col.InsertOne(ctx, bookingDoc)
+    if err != nil {
+        return fmt.Errorf("error inserting booking: %w", err)
+    }
+
+    // Update slot booking count
+    updateResp, err := facilityClient.UpdateSlotBookingCount(ctx, &facilityPb.UpdateSlotRequest{
+        SlotId:       slotId,
+        FacilityName: queueMsg.FacilityName,
+        Increment:    1,
+    })
+    if err != nil {
+        // If updating slot fails, try to rollback the booking
+        if _, deleteErr := col.DeleteOne(ctx, bson.M{"_id": result.InsertedID}); deleteErr != nil {
+            log.Printf("Failed to rollback booking after slot update failure: %v", deleteErr)
+        }
+        return fmt.Errorf("error updating slot booking count: %w", err)
+    }
+
+    if !updateResp.Success {
+        // If update was not successful, rollback the booking
+        if _, deleteErr := col.DeleteOne(ctx, bson.M{"_id": result.InsertedID}); deleteErr != nil {
+            log.Printf("Failed to rollback booking after unsuccessful slot update: %v", deleteErr)
+        }
+        return fmt.Errorf("failed to update slot: %s", updateResp.ErrorMessage)
+    }
+
+    log.Printf("Successfully processed booking for user %s, slot %s", queueMsg.UserId, slotId)
+    return nil
+}
+
+// Add cleanup function for expired pending bookings
+func (r *bookingRepository) CleanupExpiredBookings() {
+    ticker := time.NewTicker(1 * time.Minute)
+    go func() {
+        for range ticker.C {
+            ctx := context.Background()
+            fifteenMinutesAgo := time.Now().Add(-15 * time.Minute)
+
+            // Find expired pending bookings
+            filter := bson.M{
+                "status":     "pending",
+                "created_at": bson.M{"$lt": fifteenMinutesAgo},
+            }
+
+            cursor, err := r.bookingDbConn(ctx).Collection("booking_transaction").Find(ctx, filter)
+            if err != nil {
+                log.Printf("Error finding expired bookings: %v", err)
+                continue
+            }
+
+            var expiredBookings []booking.Booking
+            if err := cursor.All(ctx, &expiredBookings); err != nil {
+                log.Printf("Error decoding expired bookings: %v", err)
+                continue
+            }
+
+            for _, expiredBooking := range expiredBookings {
+                // Move to failed bookings collection
+                failedBooking := bson.M{
+                    "booking_id":     expiredBooking.Id,
+                    "user_id":        expiredBooking.UserId,
+                    "slot_id":        expiredBooking.SlotId,
+                    "facility_name":  expiredBooking.FacilityName,  // Use the stored facility name
+                    "status":         "failed",
+                    "failed_at":      time.Now(),
+                    "reason":         "payment_timeout",
+                    "created_at":     expiredBooking.CreatedAt,
+                }
+
+                _, err := r.bookingDbConn(ctx).Collection("booking_failed").InsertOne(ctx, failedBooking)
+                if err != nil {
+                    log.Printf("Error inserting failed booking: %v", err)
+                    continue
+                }
+
+                // Delete from booking_transaction
+                _, err = r.bookingDbConn(ctx).Collection("booking_transaction").DeleteOne(ctx, bson.M{"_id": expiredBooking.Id})
+                if err != nil {
+                    log.Printf("Error deleting expired booking: %v", err)
+                    continue
+                }
+
+                // Update slot current booking count
+                if expiredBooking.SlotId != nil {
+                    slotId, err := primitive.ObjectIDFromHex(*expiredBooking.SlotId)
+                    if err != nil {
+                        log.Printf("Error converting slot ID: %v", err)
+                        continue
+                    }
+                    if err := r.updateSlotCurrentBooking(ctx, expiredBooking.FacilityName, slotId, -1); err != nil {
+                        log.Printf("Error updating slot booking count: %v", err)
+                    }
+                }
+
+                // Publish event to Kafka
+                message := map[string]interface{}{
+                    "booking_id":    expiredBooking.Id,
+                    "user_id":       expiredBooking.UserId,
+                    "facility_name": expiredBooking.FacilityName,
+                    "status":        "failed",
+                    "reason":        "payment_timeout",
+                }
+                
+                messageBytes, _ := json.Marshal(message)
+                if err := queue.PushMessageWithKeyToQueue(
+                    []string{r.cfg.Kafka.Url},
+                    r.cfg.Kafka.ApiKey,
+                    r.cfg.Kafka.Secret,
+                    "booking.failed",
+                    expiredBooking.UserId,
+                    messageBytes,
+                ); err != nil {
+                    log.Printf("Error publishing failed booking event: %v", err)
+                }
+            }
+        }
+    }()
+}
