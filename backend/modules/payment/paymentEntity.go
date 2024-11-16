@@ -18,10 +18,9 @@ const (
 
 // PaymentEntity เป็นโครงสร้างข้อมูลสำหรับการจัดเก็บ transaction การชำระเงิน
 type PaymentEntity struct {
-	Id            primitive.ObjectID `bson:"_id,omitempty" json:"id"`      // MongoDB ObjectID
+	Id            primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	UserID        string             `bson:"user_id" json:"user_id"`       // ID of the user making the payment
 	BookingID     string             `bson:"booking_id" json:"booking_id"` // ID of the booking associated with the payment
-	PaymentID     string             `bson:"payment_id" json:"payment_id"`
 	Amount        float64            `bson:"amount" json:"amount"`                 // Amount to be paid
 	Currency      string             `bson:"currency" json:"currency"`             // Currency used, e.g., THB, USD
 	PaymentMethod string             `bson:"payment_method" json:"payment_method"` // Payment method, e.g., PromptPay, CreditCard

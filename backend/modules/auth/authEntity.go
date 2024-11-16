@@ -21,6 +21,7 @@ type (
 		Id    primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 		Title string             `json:"title" bson:"title"`
 		Code  int                `json:"code" bson:"code"`
+		Permissions []string     `json:"permissions" bson:"permissions"`
 	}
 
 	UpdateRefreshTokenReq struct {
@@ -29,4 +30,18 @@ type (
 		RefreshToken string `bson:"refresh_token"`
 		UpdatedAt time.Time `json:"updated_at"`
 	}
+)
+
+const (
+	RoleUser  = 0
+	RoleAdmin = 1
+)
+
+const (
+	PermissionReadUser      = "read:user"
+	PermissionCreateUser    = "create:user"
+	PermissionUpdateUser    = "update:user"
+	PermissionDeleteUser    = "delete:user"
+	PermissionAccessDashboard = "access:dashboard"
+	PermissionManageBookings  = "manage:bookings"
 )

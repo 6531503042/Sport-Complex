@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"main/modules/auth"
 	"main/modules/user"
 	userPb "main/modules/user/proto"
 	"main/modules/user/repository"
@@ -23,6 +24,7 @@ type (
         UpdateOneUser(ctx context.Context, userId string, updateFields map[string]interface{}) error
         FindManyUser(pctx context.Context) ([]user.UserProfile, error)
         DeleteUser(ctx context.Context, userId string) error
+        GetUserAnalytics(pctx context.Context, query *user.AnalyticsQuery) (*user.UserAnalytics, error)
 	}
 
 	userUsecase struct {
@@ -48,6 +50,11 @@ func (u *userUsecase) CreateUser(pctx context.Context, req *user.CreateUserReq) 
         return nil, errors.New("error: failed to hash password")
     }
 
+    roleCode := req.RoleCode
+    if roleCode == 0 {
+        roleCode = auth.RoleUser // Default to user role
+    }
+
     // Insert the new user
     userId, err := u.userRepository.InsertOneUser(pctx, &user.User{
         Email:     req.Email,
@@ -57,16 +64,26 @@ func (u *userUsecase) CreateUser(pctx context.Context, req *user.CreateUserReq) 
         UpdatedAt: utils.LocalTime(),
         UserRoles: []user.UserRole{
             {
-                RoleTitle: "user",
-                RoleCode:  0,
+                RoleTitle: getRoleTitle(roleCode),
+                RoleCode:  roleCode,
             },
         },
-	})
+    })
     if err != nil {
         return nil, errors.New("error: failed to create user")
     }
 
     return u.FindOneUserProfile(pctx, userId.Hex())
+}
+
+// Helper function to get role title
+func getRoleTitle(roleCode int) string {
+    switch roleCode {
+    case auth.RoleAdmin:
+        return "admin"
+    default:
+        return "user"
+    }
 }
 
 func (u *userUsecase) UpdateOneUser(ctx context.Context, userId string, updateFields map[string]interface{}) error {
@@ -176,4 +193,22 @@ func (u *userUsecase) FindManyUser(pctx context.Context) ([]user.UserProfile, er
     }
 
     return userProfiles, nil
+}
+
+func (u *userUsecase) GetUserAnalytics(pctx context.Context, query *user.AnalyticsQuery) (*user.UserAnalytics, error) {
+    startDate, err := time.Parse("2006-01-02", query.StartDate)
+    if err != nil {
+        return nil, errors.New("invalid start date format")
+    }
+
+    endDate, err := time.Parse("2006-01-02", query.EndDate)
+    if err != nil {
+        return nil, errors.New("invalid end date format")
+    }
+
+    if endDate.Before(startDate) {
+        return nil, errors.New("end date must be after start date")
+    }
+
+    return u.userRepository.GetUserAnalytics(pctx, query.Period, startDate, endDate)
 }

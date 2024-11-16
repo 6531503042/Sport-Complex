@@ -45,12 +45,22 @@ type (
 		Status          string                `json:"status"`
 		CreatedAt       time.Time          `bson:"created_at" json:"created_at"`
 		UpdatedAt       time.Time          `bson:"updated_at" json:"updated_at"`
-		PaymentID   string `json:"payment_id"`  
-    	QRCodeURL   string `json:"qr_code_url"`
+		PaymentID       string             `json:"payment_id"`
+		QRCodeURL       string             `json:"qr_code_url"`
 	}
 
 	// EnableOrDisableBookingRequest is used to enable or disable a booking
 	EnableOrDisableBookingRequest struct {
 		Status string `json:"status" validate:"required"`
+	}
+
+	BookingQueueMessage struct {
+		UserId          string    `json:"user_id" validate:"required"`
+		SlotId          *string   `json:"slot_id,omitempty"`
+		BadmintonSlotId *string   `json:"badminton_slot_id,omitempty"`
+		SlotType        string    `json:"slot_type" validate:"required"`
+		FacilityName    string    `json:"facility_name" validate:"required"`
+		Amount          float64   `json:"amount"`
+		CreatedAt       time.Time `json:"created_at"`
 	}
 )

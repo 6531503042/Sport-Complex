@@ -40,7 +40,7 @@ func NewPaymentUsecase(cfg *config.Config, paymentRepository repository.PaymentR
 
 func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, bookingId string, PaymentMethod string ,facilityName string, amount float64) (*payment.PaymentResponse, error) {
 	paymentDoc := &payment.PaymentEntity{
-		PaymentID:     primitive.NewObjectID().Hex(),
+		Id:            primitive.NewObjectID(),
 		UserID:        userId,
 		BookingID:     bookingId,
 		Amount:        amount,
@@ -80,7 +80,7 @@ func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, booki
 
 	response := &payment.PaymentResponse{
 		Id:           paymentResult.Id.Hex(),
-		PaymentID:    paymentResult.PaymentID,
+		PaymentID:    paymentResult.Id.Hex(),
 		UserId:       paymentResult.UserID,
 		BookingId:    paymentResult.BookingID,
 		Amount:       paymentResult.Amount,

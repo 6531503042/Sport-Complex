@@ -7,6 +7,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
+import { useRouter } from 'next/navigation';
 
 interface UserData {
   id: string;
@@ -42,7 +43,7 @@ async function getAccessToken(refreshToken: string | null) {
 function Football_Booking({ params }: UserDataParams) {
   const { id } = params;
   const [storedRefreshToken, setStoredRefreshToken] = useState<string | null>(null);
-
+  const router = useRouter();
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -68,13 +69,11 @@ function Football_Booking({ params }: UserDataParams) {
     e.preventDefault();
 
     try {
-      // Ensure a valid slot is selected
       if (selectedCard === null || !slot[selectedCard]) {
         console.error("No slot selected");
         return;
       }
 
-      // Retrieve or refresh access token
       let accessToken = localStorage.getItem("access_token");
       if (!accessToken) {
         accessToken = await getAccessToken(storedRefreshToken);
@@ -84,7 +83,6 @@ function Football_Booking({ params }: UserDataParams) {
         }
       }
 
-      // Prepare booking data
       const bookingData = {
         user_id: formData.id,
         slot_id: slot[selectedCard]._id,
@@ -93,26 +91,50 @@ function Football_Booking({ params }: UserDataParams) {
         badminton_slot_id: null,
       };
 
-      // Send booking request
-      const response = await fetch(
-        "http://localhost:1326/booking_v1/football/booking",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify(bookingData),
-        }
-      );
+      console.log("Sending booking data:", bookingData); // Debug log
 
+      const response = await fetch("http://localhost:1326/booking_v1/football/booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(bookingData),
+      });
+
+      if (!response.ok) {
+        console.error("Booking failed with status:", response.status);
+        return;
+      }
 
       const result = await response.json();
-      console.log("Booking successful:", result);
+      console.log("Complete booking response:", result); // Debug log
 
-      // Show success popup and reset form
+      if (!result.payment_id) {
+        console.error("No payment_id in response");
+        return;
+      }
+
+      // Store payment information in localStorage
+      const paymentInfo = {
+        payment_id: result.payment_id,
+        booking_id: result.booking_id,
+        status: result.status
+      };
+      localStorage.setItem('currentPaymentInfo', JSON.stringify(paymentInfo));
+      console.log("Stored payment info:", paymentInfo); // Debug log
+
       setIsBookingSuccessful(true);
       setSelectedCard(null);
+
+      setTimeout(() => {
+        if (result.payment_id) {
+            router.push(`/payment/${result.payment_id}`);
+        } else {
+            console.error("Payment ID is undefined, cannot redirect.");
+        }
+    }, 1000);
+
     } catch (error) {
       console.error("Error submitting booking:", error);
     }

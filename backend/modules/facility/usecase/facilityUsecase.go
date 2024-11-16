@@ -26,6 +26,8 @@ type (
 		FindManySlot(ctx context.Context,facilityName string) ([]facility.Slot, error)
 		EnableOrDisableSlot(ctx context.Context, facilityName, slotId string, status int) (*facility.Slot, error)
 
+		UpdateSlot(ctx context.Context, facilityName string, slot *facility.Slot) (*facility.Slot, error)
+
 		//Court - usecase
 		InsertBadCourt(ctx context.Context, court *facility.BadmintonCourt) (primitive.ObjectID, error)
 		FindBadCourt(ctx context.Context) ([]facility.BadmintonCourt, error)

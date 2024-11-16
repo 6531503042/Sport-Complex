@@ -18,6 +18,7 @@ type (
 		RbacAuthorization(c echo.Context, cfg *config.Config, expected []int) (echo.Context, error)
 		IsAdminRole(c echo.Context, cfg *config.Config, roleCode int) (int64, error)
 		UserIdParamValidation(c echo.Context) (echo.Context, error)
+		CheckPermission(c echo.Context, requiredPermission string) error
 	}
 
 	middlewareUsecase struct {
@@ -92,4 +93,14 @@ func (u *middlewareUsecase) UserIdParamValidation(c echo.Context) (echo.Context,
 func (u *middlewareUsecase) IsAdminRole(c echo.Context, cfg *config.Config, roleCode int) (int64, error) {
 	ctx := c.Request().Context()
 	return u.middlewareRepository.IsAdminRole(ctx, cfg.Grpc.AuthUrl, roleCode)
+}
+
+func (u *middlewareUsecase) CheckPermission(c echo.Context, requiredPermission string) error {
+	roleCode := c.Get("role_code").(int)
+	
+	if !rbac.HasPermission(roleCode, requiredPermission) {
+		return echo.NewHTTPError(http.StatusForbidden, "Permission denied")
+	}
+	
+	return nil
 }

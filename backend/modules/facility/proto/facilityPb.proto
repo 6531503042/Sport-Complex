@@ -1,16 +1,51 @@
 syntax = "proto3";
 
-option go_package = "https://github.com/6531503042/Sport-Complex";
+package facility;
 
-message facility {
-    string id = 1;
-    string name = 2;
-    string description = 3;
-    string image = 4;
-    string address = 5;
-    string phone = 6;
-    string email = 7;
-    string created_at = 8;
-    string updated_at = 9;
+option go_package = "github.com/Sport-Complex/backend/modules/facility/proto";
+
+// Facility service definition
+service FacilityService {
+    rpc CheckSlotAvailability (CheckSlotRequest) returns (SlotAvailabilityResponse);
+    rpc GetFacilityPrice (FacilityPriceRequest) returns (FacilityPriceResponse);
+    rpc UpdateSlotBookingCount (UpdateSlotRequest) returns (UpdateSlotResponse);
+}
+
+// Message for checking slot availability
+message CheckSlotRequest {
+    string slot_id = 1;
+    string facility_name = 2;
+    string slot_type = 3; // "normal" or "badminton"
+}
+
+message SlotAvailabilityResponse {
+    bool is_available = 1;
+    int32 current_bookings = 2;
+    int32 max_bookings = 3;
+    string error_message = 4;
+}
+
+// Message for getting facility price
+message FacilityPriceRequest {
+    string facility_name = 1;
+    string user_type = 2; // "insider" or "outsider"
+}
+
+message FacilityPriceResponse {
+    double price = 1;
+    string currency = 2;
+    string error_message = 3;
+}
+
+// Message for updating slot booking count
+message UpdateSlotRequest {
+    string slot_id = 1;
+    string facility_name = 2;
+    int32 increment = 3; // Can be positive or negative
+}
+
+message UpdateSlotResponse {
+    bool success = 1;
+    string error_message = 2;
 }
 

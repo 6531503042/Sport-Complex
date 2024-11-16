@@ -27,14 +27,70 @@ const Badminton_Booking: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Booking confirmed:", {
-      ...formData,
-      court: selectedCourt,
-      timeSlot: selectedTimeSlot,
-    });
-    setVisible(false); // Close the modal after submission
+
+    try {
+      let accessToken = localStorage.getItem("access_token");
+      if (!accessToken) {
+        accessToken = await getAccessToken(localStorage.getItem("refresh_token"));
+        if (!accessToken) {
+          console.error("Failed to obtain access token");
+          return;
+        }
+      }
+
+      const bookingData = {
+        user_id: formData.id,
+        slot_id: selectedCourt,
+        time_slot: selectedTimeSlot,
+        status: 1,
+        slot_type: "normal",
+        badminton_slot_id: null,
+      };
+
+      const response = await fetch("http://localhost:1326/booking_v1/badminton/booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(bookingData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Booking failed");
+      }
+
+      const result = await response.json();
+      console.log("Booking response:", result);
+
+      // Store payment information in localStorage
+      const paymentInfo = {
+        payment_id: result.payment_id,
+        booking_id: result.booking_id,
+        qr_code_url: result.qr_code_url,
+        status: result.status
+      };
+      localStorage.setItem('currentPaymentInfo', JSON.stringify(paymentInfo));
+
+      // Close modal and reset form
+      setVisible(false);
+      setSelectedCourt("");
+      setSelectedTimeSlot("");
+
+      // Redirect to payment page after a short delay
+      setTimeout(() => {
+        if (result.payment_id) {
+          router.push(`/payment/${result.payment_id}`);
+        } else {
+          console.error("Payment ID is undefined");
+        }
+      }, 1000);
+
+    } catch (error) {
+      console.error("Error submitting booking:", error);
+    }
   };
 
   const handleClose = () => {

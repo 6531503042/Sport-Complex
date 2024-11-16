@@ -347,19 +347,27 @@ func (r *facilitiyReposiory) FindManySlot (ctx context.Context, facilityName str
 	return result, nil
 }
 
-func (r *facilitiyReposiory) UpdateSlot(ctx context.Context, facilityName string, req *facility.Slot) (*facility.Slot, error) {
+func (r *facilitiyReposiory) UpdateSlot(ctx context.Context, facilityName string, slot *facility.Slot) (*facility.Slot, error) {
     ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
     defer cancel()
 
     db := r.slotDbConn(ctx, facilityName)
     col := db.Collection("slots")
 
-    _, err := col.UpdateOne(ctx, bson.M{"_id": req.Id}, bson.M{"$set": req})
-    if err != nil {
-        log.Printf("Error: UpdateSlot: %s", err.Error())
-        return nil, fmt.Errorf("error: update slot failed: %w", err)
+    update := bson.M{
+        "$set": bson.M{
+            "current_bookings": slot.CurrentBookings,
+            "updated_at":      slot.UpdatedAt,
+        },
     }
-    return req, nil
+
+    _, err := col.UpdateOne(ctx, bson.M{"_id": slot.Id}, update)
+    if err != nil {
+        log.Printf("Error updating slot: %v", err)
+        return nil, fmt.Errorf("failed to update slot: %w", err)
+    }
+
+    return slot, nil
 }
 
 

@@ -121,14 +121,17 @@ func checkAndSetMigrationFlag(pctx context.Context, db *mongo.Database, facility
 
 // Create facility collection and add initial data if not already present
 func createFacilityCollection(pctx context.Context, db *mongo.Database, facilityName string) error {
-	facilityCollection := db.Collection("facility")
+	facilitiesCollection := db.Collection("facilities")
 
-	// Check if facility already exists in the database
+	// Sanitize the facility name by removing the "_facility" suffix
+	normalizedName := strings.Replace(facilityName, "_facility", "", -1)
+
+	// Check if facility already exists in the database using the sanitized name
 	var existingFacility facility.Facilitiy
-	err := facilityCollection.FindOne(pctx, bson.M{"name": facilityName}).Decode(&existingFacility)
+	err := facilitiesCollection.FindOne(pctx, bson.M{"name": normalizedName}).Decode(&existingFacility)
 	if err == nil {
 		// Facility already exists, so skip insertion
-		fmt.Printf("Facility %s already exists, skipping initialization.\n", facilityName)
+		fmt.Printf("Facility %s already exists, skipping initialization.\n", normalizedName)
 		return nil
 	} else if err != mongo.ErrNoDocuments {
 		// Return any unexpected error
@@ -137,27 +140,27 @@ func createFacilityCollection(pctx context.Context, db *mongo.Database, facility
 
 	// Facility does not exist, so insert initial data
 	var priceInsider, priceOutsider float64
-	switch facilityName {
-	case "fitness_facility":
+	switch normalizedName {
+	case "fitness":
 		priceInsider, priceOutsider = 30.0, 40.0
-	case "swimming_facility":
+	case "swimming":
 		priceInsider, priceOutsider = 40.0, 80.0
-	case "football_facility":
+	case "football":
 		priceInsider, priceOutsider = 300.0, 400.0
-	case "badminton_facility":
+	case "badminton":
 		priceInsider, priceOutsider = 80.0, 120.0
 	}
 
 	initialFacility := facility.Facilitiy{
-		Id:           primitive.NewObjectID(),
-		Name:         facilityName,
-		PriceInsider: priceInsider,
-		PriceOutsider: priceOutsider,
-		Description:  fmt.Sprintf("Description of %s", facilityName),
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		Id:             primitive.NewObjectID(),
+		Name:           normalizedName, // Use the sanitized facilityName
+		PriceInsider:   priceInsider,
+		PriceOutsider:  priceOutsider,
+		Description:    fmt.Sprintf("Description of %s", normalizedName),
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	}
-	_, err = facilityCollection.InsertOne(pctx, initialFacility)
+	_, err = facilitiesCollection.InsertOne(pctx, initialFacility)
 	return err
 }
 
@@ -172,7 +175,7 @@ func convertToInterface(slots []facility.Slot) []interface{} {
 
 // Create normal slots for fitness, swimming, and football facilities
 func createNormalSlots(pctx context.Context, db *mongo.Database, facilityName string) error {
-	slotCollection := db.Collection("slot")
+	slotCollection := db.Collection("slots")
 	slots := []facility.Slot{}
 
 	switch facilityName {
@@ -249,7 +252,7 @@ func createBadmintonCourts(pctx context.Context, db *mongo.Database) error {
 
 // Create badminton slots from 10:00 to 21:00
 func createBadmintonSlots(pctx context.Context, db *mongo.Database) error {
-	slotCollection := db.Collection("badminton_slot")
+	slotCollection := db.Collection("slots")
 	slots := []facility.BadmintonSlot{}
 	startTime := time.Date(0, 1, 1, 10, 0, 0, 0, time.UTC)
 	endTime := time.Date(0, 1, 1, 21, 0, 0, 0, time.UTC)
