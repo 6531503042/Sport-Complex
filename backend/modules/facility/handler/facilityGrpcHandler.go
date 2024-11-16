@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"main/modules/facility"
 	facilityPb "main/modules/facility/proto"
 	"main/modules/facility/usecase"
 )
@@ -12,26 +13,54 @@ type facilityGrpcHandler struct {
     facilityPb.UnimplementedFacilityServiceServer
 }
 
-func NewFacilityGrpcHandler(facilityUsecase usecase.FacilityUsecaseService) *facilityGrpcHandler {
+func NewFacilityGrpcHandler(facilityUsecase usecase.FacilityUsecaseService) facilityPb.FacilityServiceServer {
     return &facilityGrpcHandler{
         facilityUsecase: facilityUsecase,
     }
 }
 
 func (h *facilityGrpcHandler) CheckSlotAvailability(ctx context.Context, req *facilityPb.CheckSlotRequest) (*facilityPb.SlotAvailabilityResponse, error) {
-    slot, err := h.facilityUsecase.FindOneSlot(ctx, req.FacilityName, req.SlotId)
-    if err != nil {
-        return &facilityPb.SlotAvailabilityResponse{
-            IsAvailable:  false,
-            ErrorMessage: fmt.Sprintf("Failed to find slot: %v", err),
-        }, nil
+    var slot interface{}
+    var err error
+
+    if req.SlotType == "badminton" {
+        // Handle badminton slot check
+        slots, err := h.facilityUsecase.FindBadmintonSlot(ctx)
+        if err != nil {
+            return &facilityPb.SlotAvailabilityResponse{
+                IsAvailable:  false,
+                ErrorMessage: fmt.Sprintf("Failed to find badminton slot: %v", err),
+            }, nil
+        }
+        // Find the specific slot
+        for _, s := range slots {
+            if s.Id.Hex() == req.SlotId {
+                return &facilityPb.SlotAvailabilityResponse{
+                    IsAvailable: s.Status == 0,
+                }, nil
+            }
+        }
+    } else {
+        // Handle normal slot check
+        slot, err = h.facilityUsecase.FindOneSlot(ctx, req.FacilityName, req.SlotId)
+        if err != nil {
+            return &facilityPb.SlotAvailabilityResponse{
+                IsAvailable:  false,
+                ErrorMessage: fmt.Sprintf("Failed to find slot: %v", err),
+            }, nil
+        }
+        if s, ok := slot.(*facility.Slot); ok {
+            return &facilityPb.SlotAvailabilityResponse{
+                IsAvailable:     s.CurrentBookings < s.MaxBookings,
+                CurrentBookings: int32(s.CurrentBookings),
+                MaxBookings:     int32(s.MaxBookings),
+            }, nil
+        }
     }
 
-    isAvailable := slot.CurrentBookings < slot.MaxBookings
     return &facilityPb.SlotAvailabilityResponse{
-        IsAvailable:     isAvailable,
-        CurrentBookings: int32(slot.CurrentBookings),
-        MaxBookings:     int32(slot.MaxBookings),
+        IsAvailable:  false,
+        ErrorMessage: "Slot not found",
     }, nil
 }
 
@@ -65,10 +94,8 @@ func (h *facilityGrpcHandler) UpdateSlotBookingCount(ctx context.Context, req *f
         }, nil
     }
 
-    // Update current bookings
     slot.CurrentBookings += int(req.Increment)
     
-    // Ensure we don't go below 0 or above max
     if slot.CurrentBookings < 0 {
         slot.CurrentBookings = 0
     } else if slot.CurrentBookings > slot.MaxBookings {
@@ -78,7 +105,6 @@ func (h *facilityGrpcHandler) UpdateSlotBookingCount(ctx context.Context, req *f
         }, nil
     }
 
-    // Update the slot
     _, err = h.facilityUsecase.UpdateSlot(ctx, req.FacilityName, slot)
     if err != nil {
         return &facilityPb.UpdateSlotResponse{
