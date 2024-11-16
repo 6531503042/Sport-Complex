@@ -13,6 +13,7 @@ type (
 		SlotId          *string            `bson:"slot_id,omitempty" json:"slot_id,omitempty"`                     // String type for normal slot ID
 		BadmintonSlotId *string            `bson:"badminton_slot_id,omitempty" json:"badminton_slot_id,omitempty"` // String type for badminton slot ID
 		SlotType        string             `bson:"slot_type" json:"slot_type"`       // "normal" or "badminton"
+		FacilityName    string             `bson:"facility_name" json:"facility_name"`
 		Status          string             `bson:"status" json:"status"`
 		PaymentID       string             `bson:"payment_id"`
 		QRCodeURL       string             `bson:"qr_code_url"`
