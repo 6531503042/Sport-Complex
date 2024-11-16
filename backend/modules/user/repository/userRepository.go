@@ -32,6 +32,8 @@ type (
 		//Kafka
 		GetOffset(pctx context.Context) (int64, error)
 		UpsetOffset(pctx context.Context, offset int64) error
+
+		GetUserAnalytics(pctx context.Context, period string, startDate, endDate time.Time) (*user.UserAnalytics, error)
 	}
 
 	UserRepository struct {
@@ -371,4 +373,136 @@ func (r *UserRepository) FindManyUser(pctx context.Context) ([]user.UserProfileB
 	}
 
 	return profiles, nil
+}
+
+func (r *UserRepository) GetUserAnalytics(pctx context.Context, period string, startDate, endDate time.Time) (*user.UserAnalytics, error) {
+	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	defer cancel()
+
+	db := r.userDbConn(ctx)
+	col := db.Collection("users")
+
+	// Get total users
+	totalUsers, err := col.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get active users (users who have logged in within last 30 days)
+	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+	activeUsers, err := col.CountDocuments(ctx, bson.M{
+		"updated_at": bson.M{"$gte": thirtyDaysAgo},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get users by period
+	pipeline := r.buildAnalyticsPipeline(period, startDate, endDate)
+	cursor, err := col.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var usersByPeriod []user.UserActivityPeriod
+	if err := cursor.All(ctx, &usersByPeriod); err != nil {
+		return nil, err
+	}
+
+	// Find peak activity
+	peakActivity := user.PeakActivity{Count: 0}
+	for _, p := range usersByPeriod {
+		if p.Count > peakActivity.Count {
+			peakActivity.Count = p.Count
+			peakActivity.Date = p.Period
+		}
+	}
+
+	return &user.UserAnalytics{
+		TotalUsers:      totalUsers,
+		ActiveUsers:     activeUsers,
+		UsersByPeriod:   usersByPeriod,
+		PeakActivityDay: peakActivity,
+	}, nil
+}
+
+func (r *UserRepository) buildAnalyticsPipeline(period string, startDate, endDate time.Time) []bson.M {
+	var dateFormat string
+	var groupId bson.M
+
+	switch period {
+	case "daily":
+		dateFormat = "%Y-%m-%d"
+		groupId = bson.M{
+			"$dateToString": bson.M{
+				"format": dateFormat,
+				"date":   "$created_at",
+			},
+		}
+	case "weekly":
+		dateFormat = "%Y-W%V"
+		groupId = bson.M{
+			"$dateToString": bson.M{
+				"format": dateFormat,
+				"date":   "$created_at",
+			},
+		}
+	case "monthly":
+		dateFormat = "%Y-%m"
+		groupId = bson.M{
+			"$dateToString": bson.M{
+				"format": dateFormat,
+				"date":   "$created_at",
+			},
+		}
+	case "yearly":
+		dateFormat = "%Y"
+		groupId = bson.M{
+			"$dateToString": bson.M{
+				"format": dateFormat,
+				"date":   "$created_at",
+			},
+		}
+	}
+
+	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+
+	return []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id":    groupId,
+				"count":  bson.M{"$sum": 1},
+				"active": bson.M{
+					"$sum": bson.M{
+						"$cond": bson.A{
+							bson.M{"$gte": []interface{}{"$updated_at", thirtyDaysAgo}},
+							1,
+							0,
+						},
+					},
+				},
+			},
+		},
+		{
+			"$project": bson.M{
+				"_id":      0,
+				"period":   "$_id",
+				"count":    1,
+				"active":   1,
+				"inactive": bson.M{"$subtract": []interface{}{"$count", "$active"}},
+			},
+		},
+		{
+			"$sort": bson.M{"period": 1},
+		},
+	}
 }
