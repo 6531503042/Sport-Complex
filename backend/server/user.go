@@ -44,21 +44,25 @@ func (s *server) userService() {
 
 	// Protected endpoints (require authentication)
 	protected := user.Group("", middlewareHandler.JwtAuthorizationMiddleware(s.cfg))
-	
-	// User routes
-	protected.GET("/profile/:user_id", httpHandler.FindOneUserProfile, 
+
+	// User routes - users can only read their own profile
+	protected.GET("/profile/:user_id", httpHandler.FindOneUserProfile,
 		middlewareHandler.RequirePermission(auth.PermissionReadUser))
 
-	// Admin routes
-	admin := protected.Group("/admin", 
+	// Admin routes - requires dashboard access
+	admin := protected.Group("/admin",
 		middlewareHandler.RequirePermission(auth.PermissionAccessDashboard))
-	
-	admin.GET("/users", httpHandler.FindManyUser, 
+
+	// Each admin route needs both dashboard access and specific permission
+	admin.GET("/users", httpHandler.FindManyUser,
 		middlewareHandler.RequirePermission(auth.PermissionReadUser))
-	admin.POST("/users", httpHandler.CreateUser, 
+
+	admin.POST("/users", httpHandler.CreateUser,
 		middlewareHandler.RequirePermission(auth.PermissionCreateUser))
-	admin.PUT("/users/:user_id", httpHandler.UpdateUser, 
+
+	admin.PUT("/users/:user_id", httpHandler.UpdateUser,
 		middlewareHandler.RequirePermission(auth.PermissionUpdateUser))
-	admin.DELETE("/users/:user_id", httpHandler.DeleteUser, 
+
+	admin.DELETE("/users/:user_id", httpHandler.DeleteUser,
 		middlewareHandler.RequirePermission(auth.PermissionDeleteUser))
 }
