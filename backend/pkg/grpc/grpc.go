@@ -6,9 +6,12 @@ import (
 	"log"
 	"main/config"
 	authPb "main/modules/auth/proto"
+	bookingPb "main/modules/booking/proto"
 	userPb "main/modules/user/proto"
 	"main/pkg/jwt"
 	"net"
+
+	facilityPb "main/modules/facility/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,6 +22,8 @@ type (
 	GrpcClientFactoryHandler interface {
 		User() userPb.UserGrpcServiceClient
 		Auth() authPb.AuthGrpcServiceClient
+		Booking() bookingPb.BookingServiceClient
+		Facility() facilityPb.FacilityServiceClient
 	}
 
 	grpcClientFactory struct {
@@ -38,6 +43,13 @@ func (g *grpcClientFactory) Auth() authPb.AuthGrpcServiceClient {
 	return authPb.NewAuthGrpcServiceClient(g.client)
 }
 
+func (g *grpcClientFactory) Booking() bookingPb.BookingServiceClient {
+	return bookingPb.NewBookingServiceClient(g.client)
+}
+
+func (g *grpcClientFactory) Facility() facilityPb.FacilityServiceClient {
+	return facilityPb.NewFacilityServiceClient(g.client)
+}
 
 func NewGrpcClient(host string) (GrpcClientFactoryHandler, error) {
     opts := make([]grpc.DialOption, 0)
