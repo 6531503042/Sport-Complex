@@ -7,7 +7,6 @@ import (
 	"log"
 	"main/config"
 	"main/modules/booking"
-	bm "main/modules/booking"
 	"main/modules/booking/repository"
 	"main/pkg/utils"
 	"time"
@@ -24,7 +23,7 @@ type(
 		//Kafka Interface
 		GetOffSet(ctx context.Context) (int64, error)
 		UpOffSet(ctx context.Context, newOffset int64) error
-		UpdateBookingStatusPaid(ctx context.Context, bookingID string) error
+		UpdateBookingStatusPaid(ctx context.Context, bookingID string, paymentID string, qrCodeURL string) error
 		ScheduleMidnightClearing()
 	}
 
@@ -95,8 +94,9 @@ func (u *bookingUsecase) UpOffSet(ctx context.Context, newOffset int64) error {
 }
 
 func (u *bookingUsecase) InsertBooking(ctx context.Context, facilityName string, req *booking.CreateBookingRequest) (*booking.BookingResponse, error) {
-    // Validate slot type and IDs
-    if req.SlotType == "normal" && req.SlotId == nil {
+    
+	// validate the request
+	if req.SlotType == "normal" && req.SlotId == nil {
         return nil, errors.New("error: SlotId is required for normal bookings")
     }
     if req.SlotType == "badminton" && req.BadmintonSlotId == nil {
@@ -105,40 +105,34 @@ func (u *bookingUsecase) InsertBooking(ctx context.Context, facilityName string,
     if req.SlotId != nil && req.BadmintonSlotId != nil {
         return nil, errors.New("error: Only one of SlotId or BadmintonSlotId should be provided")
     }
-
-    // Create the booking request struct for repository interaction
+	
+	// Create the booking request
     bookingReq := &booking.Booking{
         UserId:          req.UserId,
         SlotId:          req.SlotId,
         BadmintonSlotId: req.BadmintonSlotId,
+        SlotType:        req.SlotType,
         Status:          "pending",
-        CreatedAt:       time.Now(),
-        UpdatedAt:       time.Now(),
     }
 
-    // Insert booking using the repository
-        // Insert booking using the repository
-		booking, err := u.bookingRepository.InsertBooking(ctx, facilityName, bookingReq)
-		if err != nil {
-			return nil, fmt.Errorf("failed to insert booking: %w", err)
-		}
-	
-		// Map the internal booking struct to the response DTO
-		bookingResponse := &bm.BookingResponse{
-			Id:              booking.Id,
-			UserId:          booking.UserId,
-			SlotId:          booking.SlotId,
-			BadmintonSlotId: booking.BadmintonSlotId,
-			SlotType:        req.SlotType,
-			Status:          booking.Status,
-			CreatedAt:       booking.CreatedAt,
-			UpdatedAt:       booking.UpdatedAt,
-		}
+    // Insert the booking using the queue
+    result, err := u.bookingRepository.InsertBookingQueue(ctx, u.cfg, facilityName, bookingReq)
+    if err != nil {
+        return nil, err
+    }
 
-    return bookingResponse, nil
+    // Convert to response
+    return &booking.BookingResponse{
+        Id:              result.Id,
+        UserId:          result.UserId,
+        SlotId:          result.SlotId,
+        BadmintonSlotId: result.BadmintonSlotId,
+        SlotType:        result.SlotType,
+        Status:          result.Status,
+        CreatedAt:       result.CreatedAt,
+        UpdatedAt:       result.UpdatedAt,
+    }, nil
 }
-
-
 
 
 func (u *bookingUsecase) UpdateBooking (ctx context.Context, bookingId string, status string) (*booking.Booking, error) {
@@ -166,6 +160,6 @@ func (u * bookingUsecase) FindOneUserBooking(ctx context.Context, userId string)
 	return u.bookingRepository.FindOneUserBooking(ctx, userId)
 }
 
-func (u *bookingUsecase) UpdateBookingStatusPaid(ctx context.Context, bookingID string) error {
-	return u.bookingRepository.UpdateStatusPaid(ctx, bookingID)
+func (u *bookingUsecase) UpdateBookingStatusPaid(ctx context.Context, bookingID string, paymentID string, qrCodeURL string) error {
+    return u.bookingRepository.UpdateStatusPaid(ctx, bookingID, paymentID, qrCodeURL)
 }
