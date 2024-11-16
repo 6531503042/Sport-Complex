@@ -65,4 +65,7 @@ func (s *server) userService() {
 
 	admin.DELETE("/users/:user_id", httpHandler.DeleteUser,
 		middlewareHandler.RequirePermission(auth.PermissionDeleteUser))
+
+	admin.GET("/analytics", httpHandler.GetUserAnalytics,
+		middlewareHandler.RequirePermission(auth.PermissionAccessDashboard))
 }
