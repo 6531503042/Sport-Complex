@@ -24,6 +24,7 @@ type (
         UpdateOneUser(ctx context.Context, userId string, updateFields map[string]interface{}) error
         FindManyUser(pctx context.Context) ([]user.UserProfile, error)
         DeleteUser(ctx context.Context, userId string) error
+        GetUserAnalytics(pctx context.Context, query *user.AnalyticsQuery) (*user.UserAnalytics, error)
 	}
 
 	userUsecase struct {
@@ -192,4 +193,22 @@ func (u *userUsecase) FindManyUser(pctx context.Context) ([]user.UserProfile, er
     }
 
     return userProfiles, nil
+}
+
+func (u *userUsecase) GetUserAnalytics(pctx context.Context, query *user.AnalyticsQuery) (*user.UserAnalytics, error) {
+    startDate, err := time.Parse("2006-01-02", query.StartDate)
+    if err != nil {
+        return nil, errors.New("invalid start date format")
+    }
+
+    endDate, err := time.Parse("2006-01-02", query.EndDate)
+    if err != nil {
+        return nil, errors.New("invalid end date format")
+    }
+
+    if endDate.Before(startDate) {
+        return nil, errors.New("end date must be after start date")
+    }
+
+    return u.userRepository.GetUserAnalytics(pctx, query.Period, startDate, endDate)
 }
