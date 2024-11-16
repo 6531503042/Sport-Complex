@@ -1,4 +1,4 @@
-package middlewareHandler
+package middlewareHttpHandler
 
 import (
 	"main/config"
