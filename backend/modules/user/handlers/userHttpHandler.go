@@ -20,6 +20,7 @@ type (
 		FindManyUser (c echo.Context) error
 		DeleteUser(c echo.Context) error
 		UpdateUser(c echo.Context) error
+		GetUserAnalytics(c echo.Context) error
 	}
 
 	userHttpHandler struct {
@@ -113,4 +114,24 @@ func (h *userHttpHandler) DeleteUser(c echo.Context) error {
 	}
 
 	return response.SuccessResponse(c, http.StatusOK, "User deleted successfully")
+}
+
+func (h *userHttpHandler) GetUserAnalytics(c echo.Context) error {
+	ctx := c.Request().Context()
+	
+	query := new(user.AnalyticsQuery)
+	if err := c.Bind(query); err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, "Invalid query parameters")
+	}
+
+	if err := c.Validate(query); err != nil {
+		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	analytics, err := h.userUsecase.GetUserAnalytics(ctx, query)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, analytics)
 }
