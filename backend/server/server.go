@@ -105,7 +105,7 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 	// Logger Middleware
 	s.app.Use(middleware.Logger())
 
-	// Route service based on App Name
+	// Route service based on App Name with error handling
 	switch s.cfg.App.Name {
 	case "user":
 		s.userService()
@@ -117,6 +117,8 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 		s.facilityService()
 	case "payment":
 		s.paymentService()
+	default:
+		log.Fatalf("Unknown service name: %s", s.cfg.App.Name)
 	}
 
 	// Graceful Shutdown
@@ -125,6 +127,9 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 
 	go s.gracefulShutdown(pctx, quit)
 
-	// Start HTTP Server
-	s.httpListening()
+	// Start HTTP Server with error handling
+	if err := s.app.Start(s.cfg.App.Url); err != nil && err != http.ErrServerClosed {
+		log.Printf("HTTP server error: %v", err)
+		os.Exit(1)
+	}
 }
