@@ -24,6 +24,12 @@ func HasPermission(roleCode int, permission string) bool {
         return false
     }
 
+    // Admin has access to everything
+    if roleCode == auth.RoleAdmin {
+        return true
+    }
+
+    // For other roles, check specific permissions
     for _, p := range permissions {
         if p == permission {
             return true
