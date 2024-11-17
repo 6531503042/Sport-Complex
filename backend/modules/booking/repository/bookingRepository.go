@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
 
 	"errors"
 	"fmt"
@@ -11,10 +10,7 @@ import (
 	"main/modules/booking"
 	"main/modules/facility"
 	"main/modules/models"
-	"main/pkg/queue"
 	"time"
-
-	"main/config"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -43,7 +39,7 @@ type (
 
         //Queue with ciritcal section
         // ProcessBookingQueue(pctx context.Context, cfg *config.Config, queueMsg *booking.BookingQueueMessage) error
-        InsertBookingQueue(pctx context.Context, cfg *config.Config, facilityName string, req *booking.Booking) (*booking.Booking, error)
+        // InsertBookingQueue(pctx context.Context, cfg *config.Config, facilityName string, req *booking.Booking) (*booking.Booking, error)
 	}
 
 	bookingRepository struct {
@@ -557,120 +553,120 @@ func (r *bookingRepository) countUserBadmintonBookings(ctx context.Context, user
     return int(count), nil
 }
 
-func (r *bookingRepository) InsertBookingQueue(pctx context.Context, cfg *config.Config, facilityName string, req *booking.Booking) (*booking.Booking, error) {
-    ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
-    defer cancel()
+// func (r *bookingRepository) InsertBookingQueue(pctx context.Context, cfg *config.Config, facilityName string, req *booking.Booking) (*booking.Booking, error) {
+//     ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+//     defer cancel()
 
-    col := r.bookingDbConn(ctx).Collection("booking_transaction")
+//     col := r.bookingDbConn(ctx).Collection("booking_transaction")
 
-    queueMsg := &booking.BookingQueueMessage{
-        UserId:          req.UserId,
-        SlotId:          req.SlotId,
-        BadmintonSlotId: req.BadmintonSlotId,
-        SlotType:        req.SlotType,
-        FacilityName:    facilityName,
-        CreatedAt:       time.Now(),
-    }
+//     queueMsg := &booking.BookingQueueMessage{
+//         UserId:          req.UserId,
+//         SlotId:          req.SlotId,
+//         BadmintonSlotId: req.BadmintonSlotId,
+//         SlotType:        req.SlotType,
+//         FacilityName:    facilityName,
+//         CreatedAt:       time.Now(),
+//     }
 
-    if err := validateBookingRequest(req); err != nil {
-        return nil, err
-    }
+//     if err := validateBookingRequest(req); err != nil {
+//         return nil, err
+//     }
 
-    log.Printf("Attempting to insert booking for userId: %s, facilityName: %s", req.UserId, facilityName)
+//     log.Printf("Attempting to insert booking for userId: %s, facilityName: %s", req.UserId, facilityName)
 
-    var slotIdObject *primitive.ObjectID
-    var badmintonSlotIdObject *primitive.ObjectID
-    isBadminton := false
-    if req.SlotId != nil {
-        slotId, err := primitive.ObjectIDFromHex(*req.SlotId)
-        if err != nil {
-            return nil, fmt.Errorf("invalid SlotId: %w", err)
-        }
-        slotIdObject = &slotId
-    } else if req.BadmintonSlotId != nil {
-        badmintonSlotId, err := primitive.ObjectIDFromHex(*req.BadmintonSlotId)
-        if err != nil {
-            return nil, fmt.Errorf("invalid BadmintonSlotId: %w", err)
-        }
-        badmintonSlotIdObject = &badmintonSlotId
-        isBadminton = true
-    }
+//     var slotIdObject *primitive.ObjectID
+//     var badmintonSlotIdObject *primitive.ObjectID
+//     isBadminton := false
+//     if req.SlotId != nil {
+//         slotId, err := primitive.ObjectIDFromHex(*req.SlotId)
+//         if err != nil {
+//             return nil, fmt.Errorf("invalid SlotId: %w", err)
+//         }
+//         slotIdObject = &slotId
+//     } else if req.BadmintonSlotId != nil {
+//         badmintonSlotId, err := primitive.ObjectIDFromHex(*req.BadmintonSlotId)
+//         if err != nil {
+//             return nil, fmt.Errorf("invalid BadmintonSlotId: %w", err)
+//         }
+//         badmintonSlotIdObject = &badmintonSlotId
+//         isBadminton = true
+//     }
 
-    exists, err := r.checkDuplicateBooking(ctx, req.UserId, slotIdObject, badmintonSlotIdObject)
-    if err != nil {
-        log.Printf("Error while checking duplicate booking: %s", err)
-        return nil, err
-    }
-    if exists {
-        log.Printf("User %s has already booked slot %v/%v", req.UserId, slotIdObject, badmintonSlotIdObject)
-        return nil, errors.New("error: user has already booked this slot")
-    }
+//     exists, err := r.checkDuplicateBooking(ctx, req.UserId, slotIdObject, badmintonSlotIdObject)
+//     if err != nil {
+//         log.Printf("Error while checking duplicate booking: %s", err)
+//         return nil, err
+//     }
+//     if exists {
+//         log.Printf("User %s has already booked slot %v/%v", req.UserId, slotIdObject, badmintonSlotIdObject)
+//         return nil, errors.New("error: user has already booked this slot")
+//     }
 
-    var slot *facility.Slot
-    if !isBadminton {
-        slot, err = r.checkSlotAvailability(ctx, facilityName, req)
-        if err != nil {
-            return nil, err
-        }
-        if slot.CurrentBookings >= slot.MaxBookings {
-            log.Printf("Slot %v is full for facility %s", slot.Id, facilityName)
-            return nil, errors.New("error: Slot is full")
-        }
-    }
+//     var slot *facility.Slot
+//     if !isBadminton {
+//         slot, err = r.checkSlotAvailability(ctx, facilityName, req)
+//         if err != nil {
+//             return nil, err
+//         }
+//         if slot.CurrentBookings >= slot.MaxBookings {
+//             log.Printf("Slot %v is full for facility %s", slot.Id, facilityName)
+//             return nil, errors.New("error: Slot is full")
+//         }
+//     }
 
-    req.CreatedAt = time.Now().UTC()
-    req.UpdatedAt = time.Now().UTC()
+//     req.CreatedAt = time.Now().UTC()
+//     req.UpdatedAt = time.Now().UTC()
 
-    res, err := col.InsertOne(ctx, req)
-    if err != nil {
-        return nil, fmt.Errorf("error inserting booking: %w", err)
-    }
+//     res, err := col.InsertOne(ctx, req)
+//     if err != nil {
+//         return nil, fmt.Errorf("error inserting booking: %w", err)
+//     }
 
-    req.Id = res.InsertedID.(primitive.ObjectID)
+//     req.Id = res.InsertedID.(primitive.ObjectID)
 
-    message, err := json.Marshal(req)
-    if err != nil {
-        return nil, fmt.Errorf("error marshalling booking for Kafka: %w", err)
-    }
+//     message, err := json.Marshal(req)
+//     if err != nil {
+//         return nil, fmt.Errorf("error marshalling booking for Kafka: %w", err)
+//     }
 
-    //Convert
-    message, err = json.Marshal(queueMsg)
-    if err != nil {
-        return nil, fmt.Errorf("error marshalling booking for Kafka: %w", err)
-    }
+//     //Convert
+//     message, err = json.Marshal(queueMsg)
+//     if err != nil {
+//         return nil, fmt.Errorf("error marshalling booking for Kafka: %w", err)
+//     }
 
-    retryCount := 3
-    for i := 0; i < retryCount; i++ {
-        kafkaErr := queue.PushMessageWithKeyToQueue(
-            []string{cfg.Kafka.Url},
-            cfg.Kafka.ApiKey,
-            cfg.Kafka.Secret,
-            "booking",
-            req.UserId,
-            message,
-        )
-        if kafkaErr == nil {
-            log.Printf("Booking sent to Kafka: UserId=%s, BookingId=%s", req.UserId, req.Id.Hex())
-            break
-        }
-        log.Printf("Failed to send booking to Kafka (attempt %d): %s", i+1, kafkaErr.Error())
-        if i == retryCount-1 {
-            return nil, fmt.Errorf("error sending booking to Kafka after %d attempts: %w", retryCount, kafkaErr)
-        }
-        time.Sleep(time.Second)
-    }
+//     retryCount := 3
+//     for i := 0; i < retryCount; i++ {
+//         kafkaErr := queue.PushMessageWithKeyToQueue(
+//             []string{cfg.Kafka.Url},
+//             cfg.Kafka.ApiKey,
+//             cfg.Kafka.Secret,
+//             "booking",
+//             req.UserId,
+//             message,
+//         )
+//         if kafkaErr == nil {
+//             log.Printf("Booking sent to Kafka: UserId=%s, BookingId=%s", req.UserId, req.Id.Hex())
+//             break
+//         }
+//         log.Printf("Failed to send booking to Kafka (attempt %d): %s", i+1, kafkaErr.Error())
+//         if i == retryCount-1 {
+//             return nil, fmt.Errorf("error sending booking to Kafka after %d attempts: %w", retryCount, kafkaErr)
+//         }
+//         time.Sleep(time.Second)
+//     }
 
-    if !isBadminton && slotIdObject != nil {
-        err = r.updateSlotCurrentBooking(ctx, facilityName, *slotIdObject, 1)
-        if err != nil {
-            return nil, fmt.Errorf("failed to update slot booking count: %w", err)
-        }
-    } else {
-        log.Printf("Skipping slot availability and booking count update for badminton slot")
-    }
+//     if !isBadminton && slotIdObject != nil {
+//         err = r.updateSlotCurrentBooking(ctx, facilityName, *slotIdObject, 1)
+//         if err != nil {
+//             return nil, fmt.Errorf("failed to update slot booking count: %w", err)
+//         }
+//     } else {
+//         log.Printf("Skipping slot availability and booking count update for badminton slot")
+//     }
 
-    return req, nil
-}
+//     return req, nil
+// }
 
 // func (r *bookingRepository) ProcessBookingQueue(pctx context.Context, cfg *config.Config, queueMsg *booking.BookingQueueMessage) error {
 //     ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
