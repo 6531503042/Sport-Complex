@@ -1,13 +1,11 @@
 package server
 
 import (
-	"context"
 	"log"
 	client "main/client/payment"
 	"main/modules/booking/handler"
 	bookingPb "main/modules/booking/proto"
 	"main/modules/booking/repository"
-	"main/modules/booking/service"
 	"main/modules/booking/usecase"
 	"main/pkg/grpc"
 )
@@ -26,11 +24,11 @@ func (s *server) bookingService() {
 	bookingGrpcHandler := handler.NewBookingGrpcHandler(bookingUsecase)
 
 	// Initialize and start queue service
-	queueService, err := service.NewBookingQueueService(s.cfg, bookingRepo)
-	if err != nil {
-		log.Fatalf("Failed to initialize queue service: %v", err)
-	}
-	go queueService.Start(context.Background())
+	// queueService, err := service.NewBookingQueueService(s.cfg, bookingRepo)
+	// if err != nil {
+	// 	log.Fatalf("Failed to initialize queue service: %v", err)
+	// }
+	// go queueService.Start(context.Background())
 
 	// Start gRPC server
 	go func() {
