@@ -129,36 +129,37 @@
   }
 
   .header {
-    font-size: 1.5rem; /* Adjust font size for tablets */
+    font-size: 1.5rem; 
   }
 
   .underheader {
-    font-size: 0.875rem; /* Adjust font size for tablets */
+    font-size: 0.875rem; 
   }
 
   .button {
-    font-size: 1rem; /* Adjust button font size for tablets */
+    font-size: 1rem; 
   }
 
   .bottomImage {
-    width: 50px; /* Adjust image size for tablets */
+    width: 50px; 
   }
 }
 
 @media (max-width: 480px) {
   .header {
-    font-size: 1.25rem; /* Adjust font size for mobile phones */
+    font-size: 1.25rem; 
   }
 
   .underheader {
-    font-size: 0.75rem; /* Adjust font size for mobile phones */
+    font-size: 0.75rem; 
   }
 
   .button {
-    font-size: 0.875rem; /* Adjust button font size for mobile phones */
+    font-size: 0.875rem; 
   }
 
   .bottomImage {
-    width: 40px; /* Adjust image size for mobile phones */
+    width: 40px; 
   }
 }
+ 
