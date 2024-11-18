@@ -33,6 +33,9 @@ SPINNER_STYLE=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
 LOADING_BAR="▓"
 EMPTY_BAR="░"
 
+# Create logs directory if it doesn't exist
+mkdir -p ./logs
+
 # Function to get env file for service
 get_env_file() {
     local service=$1
@@ -66,23 +69,14 @@ open_terminal() {
     local current_dir=$(pwd)
     
     if [ "$OS" = "Darwin" ]; then
-        # macOS - fixed AppleScript syntax
-        osascript <<EOF
-            tell application "Terminal"
-                do script "cd \"${current_dir}\" && echo \"Starting ${service} service...\" && go run main.go \"${env_file}\""
-                tell window 1
-                    set custom title to "${service}"
-                end tell
-            end tell
-EOF
+        # macOS - Run in background without new terminal window
+        nohup go run main.go "$env_file" > "./logs/${service}.log" 2>&1 &
     elif [ "$OS" = "Linux" ]; then
-        # Linux with gnome-terminal
-        gnome-terminal --title="$service" -- bash -c "cd \"$current_dir\" && echo -e '${GREEN}Starting $service service...${NC}' && go run main.go \"$env_file\"; exec bash"
+        # Linux - Run in background
+        nohup go run main.go "$env_file" > "./logs/${service}.log" 2>&1 &
     else
         # Fallback for other systems
-        echo -e "${RED}Unsupported operating system for terminal windows${NC}"
-        echo -e "${GREEN}Starting $service service in background...${NC}"
-        cd "$current_dir" && go run main.go "$env_file" &
+        go run main.go "$env_file" > "./logs/${service}.log" 2>&1 &
     fi
 }
 
@@ -153,10 +147,51 @@ show_fancy_spinner() {
     echo -ne "\r"
 }
 
-# Optimize the start_service function
+# Add this function at the top with other functions
+get_service_port() {
+    local service=$1
+    local env_file=$(get_env_file "$service")
+    
+    if [ -f "$env_file" ]; then
+        # Extract port from env file
+        local port=$(grep "PORT=" "$env_file" | cut -d'=' -f2)
+        echo "$port"
+    fi
+}
+
+# Function to kill process using a specific port
+kill_port_process() {
+    local port=$1
+    
+    # Kill process using port with sudo if needed
+    if [ "$OS" = "Darwin" ]; then
+        # For macOS - try without sudo first
+        local pids=$(lsof -i -Pn | grep ":${port}" | awk '{print $2}')
+        if [ -z "$pids" ]; then
+            # If no PIDs found, try with sudo
+            pids=$(sudo lsof -i -Pn | grep ":${port}" | awk '{print $2}')
+        fi
+        if [ ! -z "$pids" ]; then
+            echo -e "${YELLOW}${WARNING} Port ${port} is in use. Stopping existing process...${NC}"
+            echo "$pids" | xargs kill -9 2>/dev/null || echo "$pids" | xargs sudo kill -9 2>/dev/null
+        fi
+    else
+        # For Linux
+        local pids=$(lsof -i -Pn | grep ":${port}" | awk '{print $2}' || sudo lsof -i -Pn | grep ":${port}" | awk '{print $2}')
+        if [ ! -z "$pids" ]; then
+            echo -e "${YELLOW}${WARNING} Port ${port} is in use. Stopping existing process...${NC}"
+            echo "$pids" | xargs kill -9 2>/dev/null || echo "$pids" | xargs sudo kill -9 2>/dev/null
+        fi
+    fi
+    
+    sleep 1
+}
+
+# Modified start_service function
 start_service() {
     local service=$1
     local env_file=$(get_env_file "$service")
+    local port=$(get_service_port "$service")
     
     if [ ! -f "$env_file" ]; then
         echo -e "\n${RED}${CROSS_MARK} Environment file not found: $env_file${NC}"
@@ -166,62 +201,169 @@ start_service() {
     echo -e "\n${CYAN}${ROCKET} Starting ${BOLD}$service${NC}"
     show_loading_bar 0.5 "Initializing"
     
-    open_terminal "$service" "$env_file" &
-    sleep 0.5
+    # Kill any existing instances first
+    stop_service "$service" > /dev/null 2>&1
     
-    if pgrep -f "go run main.go.*$service" > /dev/null; then
-        echo -e "${GREEN}${CHECK_MARK} ${service}${NC} ${DIM}ready${NC}"
+    # Start the service
+    open_terminal "$service" "$env_file"
+    
+    # Wait for service to start
+    for i in {1..10}; do
+        sleep 1
+        if pgrep -f "go run main.go.*$service" > /dev/null; then
+            if [ ! -z "$port" ]; then
+                if [ "$OS" = "Darwin" ]; then
+                    if lsof -i :${port} | grep "main" > /dev/null; then
+                        echo -e "${GREEN}${CHECK_MARK} ${service}${NC} ${DIM}ready on port ${port}${NC}"
+                        return 0
+                    fi
+                else
+                    if netstat -tlpn 2>/dev/null | grep ":${port}" | grep "main" > /dev/null; then
+                        echo -e "${GREEN}${CHECK_MARK} ${service}${NC} ${DIM}ready on port ${port}${NC}"
+                        return 0
+                    fi
+                fi
+            else
+                echo -e "${GREEN}${CHECK_MARK} ${service}${NC} ${DIM}ready${NC}"
+                return 0
+            fi
+        fi
+    done
+    
+    echo -e "${RED}${CROSS_MARK} ${service}${NC} ${DIM}failed to start${NC}"
+    return 1
+}
+
+# Add this helper function to check if a port is in use
+is_port_in_use() {
+    local port=$1
+    if [ "$OS" = "Darwin" ]; then
+        lsof -i :${port} >/dev/null 2>&1
+        return $?
     else
-        echo -e "${RED}${CROSS_MARK} ${service}${NC} ${DIM}failed${NC}"
+        netstat -tuln | grep ":${port} " >/dev/null 2>&1
+        return $?
     fi
 }
 
-# Optimize the status function to be simpler and faster
+# Modified status function to check ports
 status() {
-    echo -e "\n${BLUE}╭───────────────────────╮${NC}"
-    echo -e "${BLUE}│${NC} ${BOLD}Services Status${NC}      ${BLUE}│${NC}"
-    echo -e "${BLUE}╰───────────────────────╯${NC}\n"
+    echo -e "\n${BLUE}╭───────────────────────────────────╮${NC}"
+    echo -e "${BLUE}│${NC} ${BOLD}Services Status${NC}                  ${BLUE}│${NC}"
+    echo -e "${BLUE}╰───────────────────────────────────╯${NC}\n"
     
     local running=0
     local total=${#SERVICES[@]}
     
-    for service in "${SERVICES[@]}"
-    do
-        if pgrep -f "go run main.go.*$service" > /dev/null; then
-            echo -e "${GREEN}${CHECK_MARK}${NC} ${BOLD}${service}${NC} ${DIM}(running)${NC}"
+    # Define service ports
+    declare -A SERVICE_PORTS=(
+        ["user"]="1323"
+        ["auth"]="1326"
+        ["facility"]="1335"
+        ["booking"]="1327"
+        ["payment"]="1325"
+    )
+    
+    for service in "${SERVICES[@]}"; do
+        local port="${SERVICE_PORTS[$service]}"
+        if [ ! -z "$port" ] && is_port_in_use "$port"; then
+            echo -e "${GREEN}${CHECK_MARK}${NC} ${BOLD}${service}${NC} ${DIM}(running on port ${port})${NC}"
             ((running++))
         else
             echo -e "${RED}${CROSS_MARK}${NC} ${BOLD}${service}${NC} ${DIM}(stopped)${NC}"
         fi
     done
     
-    echo -e "\n${DIM}Running: ${GREEN}$running${NC}${DIM} of ${total}${NC}"
+    echo -e "\n${DIM}Running: ${GREEN}$running${NC}${DIM} of ${total} services${NC}"
+    
+    # Show detailed port status
+    echo -e "\n${BLUE}Port Status:${NC}"
+    for service in "${SERVICES[@]}"; do
+        local port="${SERVICE_PORTS[$service]}"
+        if [ ! -z "$port" ]; then
+            if is_port_in_use "$port"; then
+                echo -e "${DIM}  ├─ ${NC}${GREEN}:${port}${NC} ${DIM}(${service})${NC}"
+            else
+                echo -e "${DIM}  ├─ ${NC}${RED}:${port}${NC} ${DIM}(${service} - not active)${NC}"
+            fi
+        fi
+    done
+    echo -e "${DIM}  └─${NC}"
 }
 
-# Optimize the stop_service function
+# Modified stop_service function
 stop_service() {
     local service=$1
+    local port="${SERVICE_PORTS[$service]}"
     echo -e "\n${RED}${STOP_SIGN} Stopping ${BOLD}$service${NC}"
-    
-    if [ "$OS" = "Darwin" ]; then
-        osascript <<EOF
-            tell application "Terminal"
-                set windowList to every window whose name contains "${service}"
-                repeat with windowItem in windowList
-                    close windowItem
-                end repeat
-            end tell
-EOF
-    else
-        pkill -f "go run main.go.*$service"
+
+    # First: Kill IDE terminal processes (more aggressive)
+    if [ ! -z "$port" ]; then
+        # Kill all processes on the port (IDE terminal specific)
+        sudo kill -9 $(sudo lsof -t -i:${port}) 2>/dev/null
+        
+        # Force kill any remaining port processes
+        sudo lsof -i :${port} | awk 'NR>1 {print $2}' | sudo xargs -r kill -9 2>/dev/null
+        
+        # Additional port killing methods
+        sudo fuser -k -n tcp ${port} 2>/dev/null
+        sudo netstat -tlpn 2>/dev/null | grep ":${port}" | awk '{print $7}' | cut -d'/' -f1 | sudo xargs -r kill -9 2>/dev/null
     fi
+
+    # Second: Kill all possible process variations
+    local patterns=(
+        "go run main.go.*${service}"
+        "go build.*${service}"
+        "__debug_bin.*${service}"
+        "dlv.*${service}"          # Debug processes
+        "gopls.*${service}"        # Go language server
+        ".*${service}.*"           # Any process containing service name
+    )
+
+    for pattern in "${patterns[@]}"; do
+        # Kill with different signals
+        sudo pkill -SIGTERM -f "${pattern}" 2>/dev/null
+        sleep 1
+        sudo pkill -SIGKILL -f "${pattern}" 2>/dev/null
+    done
+
+    # Third: Kill parent processes that might be keeping the service alive
+    ps -ef | grep "${service}" | grep -v grep | awk '{print $3}' | sudo xargs -r kill -9 2>/dev/null
+
+    # Fourth: Kill terminal sessions running the service
+    ps aux | grep "[t]erminal.*${service}" | awk '{print $2}' | sudo xargs -r kill -9 2>/dev/null
     
-    sleep 0.5
+    # Wait for processes to die
+    sleep 2
+
+    # Final verification
+    local is_running=0
     
-    if ! pgrep -f "go run main.go.*$service" > /dev/null; then
-        echo -e "${GREEN}${CHECK_MARK} ${service}${NC} ${DIM}stopped${NC}"
+    # Check port
+    if [ ! -z "$port" ] && (sudo lsof -i :${port} >/dev/null 2>&1); then
+        is_running=1
+        # One last attempt to kill port
+        sudo kill -9 $(sudo lsof -t -i:${port}) 2>/dev/null
+    fi
+
+    # Check processes
+    if pgrep -f ".*${service}.*" >/dev/null 2>&1; then
+        is_running=1
+        # One last attempt to kill processes
+        sudo pkill -9 -f ".*${service}.*" 2>/dev/null
+    fi
+
+    # Reset terminal if needed
+    if [ $is_running -eq 1 ]; then
+        # Reset terminal
+        reset >/dev/null 2>&1
+        clear
+        echo -e "${RED}${WARNING} ${service}${NC} ${DIM}could not be stopped completely${NC}"
+        echo -e "${DIM}You may need to restart your IDE terminal${NC}"
+        return 1
     else
-        echo -e "${RED}${WARNING} ${service}${NC} ${DIM}failed to stop${NC}"
+        echo -e "${GREEN}${CHECK_MARK} ${service}${NC} ${DIM}stopped successfully${NC}"
+        return 0
     fi
 }
 
