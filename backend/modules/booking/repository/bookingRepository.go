@@ -283,21 +283,18 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
     ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
     defer cancel()
 
-    // Initialize database collection
     col := r.bookingDbConn(ctx).Collection("booking_transaction")
 
-    // Validate incoming request
     if err := validateBookingRequest(req); err != nil {
         return nil, err
     }
 
-    // Log booking attempt
     log.Printf("Attempting to insert booking for userId: %s", req.UserId)
 
-    // Convert SlotId or BadmintonSlotId to ObjectID
     var slotIdObject *primitive.ObjectID
     var badmintonSlotIdObject *primitive.ObjectID
     isBadminton := false
+
     if req.SlotId != nil {
         slotId, err := primitive.ObjectIDFromHex(*req.SlotId)
         if err != nil {
@@ -313,51 +310,79 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
         isBadminton = true
     }
 
-     // Check if user has already booked the max number of badminton slots
-     if isBadminton {
+    // Check for duplicate bookings
+    exists, err := r.checkDuplicateBooking(ctx, req.UserId, slotIdObject, badmintonSlotIdObject)
+    if err != nil {
+        log.Printf("Error while checking duplicate booking: %s", err)
+        return nil, err
+    }
+    if exists {
+        log.Printf("User %s has already booked slot %v/%v", req.UserId, slotIdObject, badmintonSlotIdObject)
+        return nil, errors.New("error: user has already booked this slot")
+    }
+
+    var updatedSlot *facility.Slot
+    // Check slot availability and update bookings
+    if isBadminton {
+        // Check badminton slot availability
         count, err := r.countUserBadmintonBookings(ctx, req.UserId)
         if err != nil {
-            log.Printf("Error counting user's badminton bookings: %s", err)
             return nil, err
         }
         if count >= 2 {
             return nil, errors.New("error: user has reached the maximum limit of 2 badminton slots")
         }
-    }
 
-   // Log booking attempt
-    log.Printf("Attempting to insert booking for userId: %s, facilityName: %s", req.UserId, facilityName)
+        // Get current slot state before update
+        updatedSlot, err = r.getBadmintonSlot(ctx, *badmintonSlotIdObject)
+        if err != nil {
+            return nil, err
+        }
 
-     // Check if the user has already booked the same slot
-     exists, err := r.checkDuplicateBooking(ctx, req.UserId, slotIdObject, badmintonSlotIdObject)
-     if err != nil {
-         log.Printf("Error while checking duplicate booking: %s", err)
-         return nil, err
-     }
-     if exists {
-         log.Printf("User %s has already booked slot %v/%v", req.UserId, slotIdObject, badmintonSlotIdObject)
-         return nil, errors.New("error: user has already booked this slot")
-     }
+        // Update badminton slot booking count
+        err = r.updateBadmintonSlotBookings(ctx, *badmintonSlotIdObject, 1)
+        if err != nil {
+            return nil, fmt.Errorf("failed to update badminton slot booking count: %w", err)
+        }
 
-    var slot *facility.Slot
-    if !isBadminton {
-        // Check slot availability for noßrmal slots
-        slot, err = r.checkSlotAvailability(ctx, facilityName, req)
+        // Get updated slot state
+        updatedSlot, err = r.getBadmintonSlot(ctx, *badmintonSlotIdObject)
+        if err != nil {
+            return nil, err
+        }
+    } else {
+        // Handle normal slot booking
+        slot, err := r.checkSlotAvailability(ctx, facilityName, req)
         if err != nil {
             return nil, err
         }
         if slot.CurrentBookings >= slot.MaxBookings {
             return nil, errors.New("error: Slot is full")
         }
+        
+        // Update normal slot booking count
+        err = r.updateSlotCurrentBooking(ctx, facilityName, *slotIdObject, 1)
+        if err != nil {
+            return nil, err
+        }
+
+        // Get updated slot state
+        updatedSlot, err = r.getSlot(ctx, facilityName, *slotIdObject)
+        if err != nil {
+            return nil, err
+        }
     }
 
-    // Create the booking document
+    // Create booking document with all necessary fields
     bookingDoc := bson.M{
-        "user_id":    req.UserId,
-        "facility":   facilityName,
-        "status":     "pending", 
-        "created_at": time.Now(),
-        "updated_at": time.Now(),
+        "user_id":          req.UserId,
+        "facility":         facilityName,
+        "status":          "pending",
+        "created_at":      time.Now(),
+        "updated_at":      time.Now(),
+        "slot_type":       isBadminton,
+        "current_bookings": updatedSlot.CurrentBookings,
+        "max_bookings":    updatedSlot.MaxBookings,
     }
 
     if req.SlotId != nil {
@@ -367,25 +392,19 @@ func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName str
         bookingDoc["badminton_slot_id"] = badmintonSlotIdObject
     }
 
-    // Insert the booking document into the collection
+    // Insert booking
     res, err := col.InsertOne(ctx, bookingDoc)
     if err != nil {
         log.Printf("Error inserting booking: %s", err.Error())
         return nil, fmt.Errorf("error inserting booking: %w", err)
     }
 
-    if !isBadminton && slotIdObject != nil {
-        // Update the slot's current booking count
-        err = r.updateSlotCurrentBooking(ctx, facilityName, *slotIdObject, 1) // Increment by 1 for the new booking
-        if err != nil {
-            return nil, err
-        }
-    } else {
-        log.Printf("Skipping slot availability and booking count update for badminton slot")
-    }
+    // Create complete response
+    req.Id = res.InsertedID.(primitive.ObjectID)
+    req.Status = "pending"
+    req.CreatedAt = bookingDoc["created_at"].(time.Time)
+    req.UpdatedAt = bookingDoc["updated_at"].(time.Time)
 
-    // Return the inserted booking with the new ID
-    req.Id = res.InsertedID.(primitive.ObjectID) // Assign the new ID to the booking
     return req, nil
 }
 
@@ -713,6 +732,7 @@ func (r *bookingRepository) updateBadmintonSlotBookings(ctx context.Context, slo
 
     update := bson.M{
         "$inc": bson.M{"current_bookings": increment},
+        "$set": bson.M{"updated_at": time.Now()},
     }
 
     result, err := col.UpdateOne(ctx, bson.M{"_id": slotId}, update)
@@ -725,4 +745,31 @@ func (r *bookingRepository) updateBadmintonSlotBookings(ctx context.Context, slo
     }
 
     return nil
+}
+
+// Add these helper functions to get slot information
+func (r *bookingRepository) getBadmintonSlot(ctx context.Context, slotId primitive.ObjectID) (*facility.Slot, error) {
+    db := r.facilityDbConn(ctx, "badminton")
+    col := db.Collection("slots")
+
+    var slot facility.Slot
+    err := col.FindOne(ctx, bson.M{"_id": slotId}).Decode(&slot)
+    if err != nil {
+        return nil, fmt.Errorf("failed to get badminton slot: %w", err)
+    }
+
+    return &slot, nil
+}
+
+func (r *bookingRepository) getSlot(ctx context.Context, facilityName string, slotId primitive.ObjectID) (*facility.Slot, error) {
+    db := r.facilityDbConn(ctx, facilityName)
+    col := db.Collection("slots")
+
+    var slot facility.Slot
+    err := col.FindOne(ctx, bson.M{"_id": slotId}).Decode(&slot)
+    if err != nil {
+        return nil, fmt.Errorf("failed to get slot: %w", err)
+    }
+
+    return &slot, nil
 }
