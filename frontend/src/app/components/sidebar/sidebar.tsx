@@ -62,7 +62,6 @@ const Sidebar: React.FC<SidebarProps> = ({ setLoading }) => {
     { href: "/contact", icon: faEnvelope, label: "Contact" },
     { href: "/payment", icon: faWallet, label: "Payment" },
     { href: "/profile", icon: faUser, label: "Profile" },
-    { href: "/admin_dashboard", icon: faUser, label: "( Admin )" },
   ];
 
   return (
