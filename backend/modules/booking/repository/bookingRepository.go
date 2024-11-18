@@ -258,25 +258,47 @@ func (r *bookingRepository) checkSlotAvailability(pctx context.Context, facility
 }
 
 
-func (r *bookingRepository) updateSlotCurrentBooking(pctx context.Context, facilityName string, slotId primitive.ObjectID, increment int) error {
-	// Connect to the facility DB
-	facilityDb := r.facilityDbConn(pctx, facilityName)
-	slotCol := facilityDb.Collection("slots")
+func (r *bookingRepository) updateSlotCurrentBooking(ctx context.Context, facilityName string, slotId primitive.ObjectID, increment int) error {
+    log.Printf("Updating %s slot %s bookings by %d", facilityName, slotId.Hex(), increment)
+    
+    db := r.facilityDbConn(ctx, facilityName)
+    col := db.Collection("slots")
 
-	// Update the current booking count
-	_, err := slotCol.UpdateOne(
-		pctx,
-		bson.M{"_id": slotId},
-		bson.M{"$inc": bson.M{"current_bookings": increment}},
-	)
+    // First get current slot state
+    var currentSlot facility.Slot
+    err := col.FindOne(ctx, bson.M{"_id": slotId}).Decode(&currentSlot)
+    if err != nil {
+        return fmt.Errorf("failed to get current slot state: %w", err)
+    }
 
-	// Handle error during update
-	if err != nil {
-		log.Printf("Error: updateSlotCurrentBooking failed: %s", err.Error())
-		return fmt.Errorf("error: updateSlotCurrentBooking failed: %w", err)
-	}
+    log.Printf("Current bookings before update: %d", currentSlot.CurrentBookings)
 
-	return nil
+    // Update the slot
+    update := bson.M{
+        "$set": bson.M{
+            "current_bookings": currentSlot.CurrentBookings + increment,
+            "updated_at": time.Now(),
+        },
+    }
+
+    result, err := col.UpdateOne(ctx, bson.M{"_id": slotId}, update)
+    if err != nil {
+        return fmt.Errorf("failed to update slot bookings: %w", err)
+    }
+
+    if result.MatchedCount == 0 {
+        return errors.New("slot not found")
+    }
+
+    // Verify the update
+    var updatedSlot facility.Slot
+    err = col.FindOne(ctx, bson.M{"_id": slotId}).Decode(&updatedSlot)
+    if err != nil {
+        return fmt.Errorf("failed to verify update: %w", err)
+    }
+
+    log.Printf("Current bookings after update: %d", updatedSlot.CurrentBookings)
+    return nil
 }
 
 func (r *bookingRepository) InsertBooking(pctx context.Context, facilityName string, req *booking.Booking) (*booking.Booking, error) {
@@ -727,12 +749,26 @@ func (r *bookingRepository) countUserBadmintonBookings(ctx context.Context, user
 // }
 
 func (r *bookingRepository) updateBadmintonSlotBookings(ctx context.Context, slotId primitive.ObjectID, increment int) error {
+    log.Printf("Updating badminton slot %s bookings by %d", slotId.Hex(), increment)
+    
     db := r.facilityDbConn(ctx, "badminton")
     col := db.Collection("slots")
 
+    // First get current slot state
+    var currentSlot facility.Slot
+    err := col.FindOne(ctx, bson.M{"_id": slotId}).Decode(&currentSlot)
+    if err != nil {
+        return fmt.Errorf("failed to get current slot state: %w", err)
+    }
+
+    log.Printf("Current bookings before update: %d", currentSlot.CurrentBookings)
+
+    // Update the slot
     update := bson.M{
-        "$inc": bson.M{"current_bookings": increment},
-        "$set": bson.M{"updated_at": time.Now()},
+        "$set": bson.M{
+            "current_bookings": currentSlot.CurrentBookings + increment,
+            "updated_at": time.Now(),
+        },
     }
 
     result, err := col.UpdateOne(ctx, bson.M{"_id": slotId}, update)
@@ -744,6 +780,14 @@ func (r *bookingRepository) updateBadmintonSlotBookings(ctx context.Context, slo
         return errors.New("badminton slot not found")
     }
 
+    // Verify the update
+    var updatedSlot facility.Slot
+    err = col.FindOne(ctx, bson.M{"_id": slotId}).Decode(&updatedSlot)
+    if err != nil {
+        return fmt.Errorf("failed to verify update: %w", err)
+    }
+
+    log.Printf("Current bookings after update: %d", updatedSlot.CurrentBookings)
     return nil
 }
 
