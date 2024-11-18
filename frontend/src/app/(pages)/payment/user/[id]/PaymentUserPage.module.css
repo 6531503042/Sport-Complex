@@ -1,16 +1,21 @@
 .tableAuto {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* Changed from collapse to separate */
+  border-spacing: 0; /* Ensures the border radius is visible */
+  border-radius: 8px; /* Rounded corners for the entire table */
+  overflow: hidden; /* Ensures the border radius is applied correctly */
 }
 
 .tableAuto thead {
   background-color: #333;
   color: #fff;
+  border-top-left-radius: 8px; /* Rounded corners for the top-left */
+  border-top-right-radius: 8px; /* Rounded corners for the top-right */
 }
 
 .tableAuto th,
 .tableAuto td {
-  border: none; 
+  border: none; /* Remove borders */
   padding: 1rem;
   text-align: left;
 }
@@ -31,6 +36,14 @@
 
 .tableAuto tbody tr:hover {
   background-color: #555;
+}
+
+.tableAuto tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px; /* Rounded corners for the bottom-left */
+}
+
+.tableAuto tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px; /* Rounded corners for the bottom-right */
 }
 
 .tableAuto a {
