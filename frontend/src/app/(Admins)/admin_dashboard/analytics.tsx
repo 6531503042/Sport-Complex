@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -21,7 +20,9 @@ import {
   Legend,
 } from "chart.js";
 import { Users, TrendingUp, DollarSign, Activity } from "lucide-react";
-
+import { fetchAnalyticsData } from "@/app/(Admins)/admin_dashboard/services/api";
+import { AnalyticsResponse } from "@/app/(Admins)/admin_dashboard/types/analytics";
+import { useToast } from "@/app/components/ui/use-toast";
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -33,61 +34,44 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
-// Define types for dynamic data
-type AnalyticsData = {
-  totalUsers: number;
-  totalBookings: number;
-  totalRevenue: number;
-  growthRate: number;
-  userGrowthData: {
-    labels: string[];
-    data: number[];
-  };
-  facilityUsageData: {
-    labels: string[];
-    data: number[];
-  };
-  revenueTrendData: {
-    labels: string[];
-    data: number[];
-  };
-};
-
 const Analytics = () => {
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch data on component mount
+  const { toast } = useToast();
   useEffect(() => {
-    const fetchAnalyticsData = async () => {
+    const loadAnalyticsData = async () => {
       try {
-        const response = await fetch('/api/analytics');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+        const data = await fetchAnalyticsData('monthly');
         setAnalyticsData(data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError("Error fetching data");
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load analytics data. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
         setLoading(false);
       }
     };
-
-    fetchAnalyticsData();
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
-  if (!analyticsData) return <div>No data available</div>;
-
+    loadAnalyticsData();
+  }, [toast]);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  if (!analyticsData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg text-muted-foreground">No data available</p>
+      </div>
+    );
+  }
   return (
     <div className="space-y-6">
       <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -130,7 +114,6 @@ const Analytics = () => {
           </CardContent>
         </Card>
       </div>
-
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -170,7 +153,6 @@ const Analytics = () => {
           </CardContent>
         </Card>
       </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Revenue Trend</CardTitle>
@@ -191,7 +173,6 @@ const Analytics = () => {
           />
         </CardContent>
       </Card>
-
       <div className="space-y-4">
         <h3 className="text-2xl font-bold">Insights for System Growth</h3>
         <ul className="list-disc pl-5 space-y-2">
@@ -220,5 +201,4 @@ const Analytics = () => {
     </div>
   );
 };
-
 export default Analytics;

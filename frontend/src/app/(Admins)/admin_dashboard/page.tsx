@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/sidebar_admin/sidebar";
 import Logo from "../../assets/Logo.png";
-import Analytics from "@/app/lib/analytics";
+import Analytics from "@/app/(Admins)/admin_dashboard/analytics";
 
 const UserManagementPage = () => {
   return (
