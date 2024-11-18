@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Input, Button } from '@nextui-org/react';
+import { Input, Button, Card, Spacer } from '@nextui-org/react';
 import Image from 'next/image';
 import styles from './SignUp.module.css';
 
@@ -52,13 +52,14 @@ const SignUpPage = () => {
         <h1 className={styles.header}>WELCOME NEW USER</h1>
         <p className={styles.underheader}>Welcome to MFU Sport complex.</p>
         {isSuccessful ? (
-          <div className={styles.successMessage}>
-            <h2>Signup Successful</h2>
-            <p>Welcome to MFU Sport Complex! Your signup was successful.</p>
+          <Card className={styles.successCard}>
+            <h2 className={styles.successHeader}>Signup Successful</h2>
+            <p className={styles.successText}>Welcome to MFU Sport Complex! Your signup was successful.</p>
+            <Spacer y={1} />
             <Button className={styles.button} color="primary" onClick={handleLoginRedirect}>
               OK
             </Button>
-          </div>
+          </Card>
         ) : (
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.input}>
