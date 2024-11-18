@@ -10,7 +10,8 @@
 
 .tableAuto th,
 .tableAuto td {
-  border: none; /* Remove borders */
+  border: none; 
+  border-radius: 15%;
   padding: 1rem;
   text-align: left;
 }
