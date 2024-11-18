@@ -542,41 +542,46 @@ func (r *facilitiyReposiory) UpdateBadmintonSlot(ctx context.Context, req *facil
 
 
 func (r *facilitiyReposiory) FindBadmintonSlot(ctx context.Context) ([]facility.BadmintonSlot, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
 
-	// Connect to the badminton facility collection
-	db := r.courtDbConn(ctx)
-	col := db.Collection("slots")
+    // Connect to the badminton facility collection
+    db := r.courtDbConn(ctx)
+    col := db.Collection("slots")
 
-	// Find all slots with relevant fields
-	cursor, err := col.Find(ctx, bson.M{}, options.Find().SetProjection(bson.M{
-		"_id":        1,
-		"start_time": 1,
-		"end_time":   1,
-		"court_id":   1,
-		"status":     1,
-		"created_at": 1,
-		"updated_at": 1, // Include created_at and updated_at in the projection
-	}))
-	if err != nil {
-		log.Printf("Error: Find Badminton Slot: %s", err.Error())
-		return nil, fmt.Errorf("error: find badminton slot failed: %w", err)
-	}
-	defer func() {
-		if err := cursor.Close(ctx); err != nil {
-			log.Printf("Error: Find Badminton Slot - failed to close cursor: %s", err.Error())
-		}
-	}()
+    // Find all slots with all fields included
+    cursor, err := col.Find(ctx, bson.M{}, options.Find().SetProjection(bson.M{
+        "_id":              1,
+        "start_time":       1,
+        "end_time":         1,
+        "court_id":         1,
+        "status":           1,
+        "max_bookings":     1,  // Added this field
+        "current_bookings": 1,  // Added this field
+        "created_at":       1,
+        "updated_at":       1,
+    }))
+    if err != nil {
+        log.Printf("Error: Find Badminton Slot: %s", err.Error())
+        return nil, fmt.Errorf("error: find badminton slot failed: %w", err)
+    }
+    defer cursor.Close(ctx)
 
-	// Decode all found documents into BadmintonSlot slice
-	var result []facility.BadmintonSlot
-	if err = cursor.All(ctx, &result); err != nil {
-		log.Printf("Error: Find Badminton Slot - failed to decode cursor: %s", err.Error())
-		return nil, fmt.Errorf("error: find badminton slot failed: %w", err)
-	}
+    var result []facility.BadmintonSlot
+    if err = cursor.All(ctx, &result); err != nil {
+        log.Printf("Error: Find Badminton Slot - failed to decode cursor: %s", err.Error())
+        return nil, fmt.Errorf("error: find badminton slot failed: %w", err)
+    }
 
-	return result, nil
+    // Log the results for debugging
+    for _, slot := range result {
+        log.Printf("Slot %s: current_bookings=%d, max_bookings=%d", 
+            slot.Id.Hex(), 
+            slot.CurrentBookings, 
+            slot.MaxBookings)
+    }
+
+    return result, nil
 }
 
 func (r *facilitiyReposiory) DeleteBadmintonSlot(ctx context.Context, slotId string) error {
