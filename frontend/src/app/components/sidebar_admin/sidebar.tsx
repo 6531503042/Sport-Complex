@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -52,8 +52,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
 
   return (
     <div
-      className={`bg-red-900 text-white h-full flex flex-col px-5 py-10 transition-all duration-500 ${isCollapsed ? "w-28" : "md:w-72"}`}
+      className={`bg-red-900 text-white h-full flex flex-col px-5 py-10 transition-all duration-500 ${isCollapsed ? "w-28 justify-center items-center" : "md:w-72"}`}
     >
+      {/* Logo Section */}
       <Link href="/" className="inline-flex flex-row justify-center md:gap-3.5">
         <img src={Logo.src} alt="Logo" className="w-7 h-min" />
         {!isCollapsed && (
@@ -72,6 +73,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
         )}
       </Link>
       <br />
+
+      {/* Sidebar Toggle Button */}
       <div className="relative justify-center items-center md:inline-flex hidden">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className={`w-full h-0.5 bg-white ${isCollapsed ? "" : ""}`}></div>
@@ -88,6 +91,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
         </div>
       </div>
 
+      {/* Sidebar Menu */}
       <br />
       <ul className={`inline-flex flex-col px-5 gap-10 ${isCollapsed ? "md:items-start items-center px-5 gap-10" : ""}`}>
         <li className={getActiveClass("admin_dashboard")} style={{ cursor: "pointer" }}>
@@ -121,16 +125,19 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
           </Link>
         </li>
       </ul>
+
+      {/* Logout Button */}
       <div className="flex h-full items-end justify-center">
-      <button
+        <button
           onClick={handleLogout}
           className="inline-flex gap-2 bg-red-600 py-2 px-4 rounded-md shadow-lg hover:shadow-2xl hover:bg-red-700 transition-all duration-300 uppercase"
         >
           Log Out
         </button>
-        </div>
+      </div>
+
+      {/* User Name */}
       <div className="items-end justify-center h-full flex">
-        {/* Dynamically show admin name here */}
         {userName ? truncateUserName(userName) : "Loading..."}
       </div>
     </div>
