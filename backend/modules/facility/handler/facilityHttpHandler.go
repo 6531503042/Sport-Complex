@@ -160,19 +160,23 @@ func (h *facilityHttpHandler) FindOneSlot (c echo.Context) error {
 
 func (h *facilityHttpHandler) FindAllSlots(c echo.Context) error {
 	ctx := c.Request().Context()
+	facilityName := c.Param("facilityName")
 
-	facilityName := c.Param("facilityName") // Retrieve facilityName from path params
-
-	if facilityName == "" {
-		return response.ErrResponse(c, http.StatusBadRequest, "Facility name is required")
-	}
+	log.Printf("Finding slots for facility: %s", facilityName)
 
 	slots, err := h.facilityUsecase.FindManySlot(ctx, facilityName)
 	if err != nil {
+		log.Printf("Error finding slots: %v", err)
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, slots)
+	log.Printf("Found %d slots for %s", len(slots), facilityName)
+
+	// Return consistent response format
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status": "success",
+		"data": slots,
+	})
 }
 
 func (h *facilityHttpHandler) InsertBadCourt ( c echo.Context) error {
@@ -194,14 +198,15 @@ func (h *facilityHttpHandler) InsertBadCourt ( c echo.Context) error {
 func (h *facilityHttpHandler) FindCourt(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var court []facility.BadmintonCourt // Change the variable type to a slice
-
-	court, err := h.facilityUsecase.FindBadCourt(ctx)
+	courts, err := h.facilityUsecase.FindBadCourt(ctx)
 	if err != nil {
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, court)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status": "success",
+		"data": courts,
+	})
 }
 
 func (h *facilityHttpHandler) InsertBadmintonSlot ( c echo.Context) error {
@@ -223,11 +228,13 @@ func (h *facilityHttpHandler) InsertBadmintonSlot ( c echo.Context) error {
 func (h *facilityHttpHandler) FindBadmintonSlot(c echo.Context) error {
 	ctx := c.Request().Context()
 
-
-	slot, err := h.facilityUsecase.FindBadmintonSlot(ctx)
+	slots, err := h.facilityUsecase.FindBadmintonSlot(ctx)
 	if err != nil {
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, slot)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status": "success",
+		"data": slots,
+	})
 }
