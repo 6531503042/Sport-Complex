@@ -34,22 +34,24 @@ func (s *server) facilityService() {
 
 	// HTTP routes
 	facility := s.app.Group("/facility_v1")
-	facility.GET("/facility/facilities", fHttpHandler.FindManyFacility)
-	facility.GET("/facility/:facility_id", fHttpHandler.FindOneFacility)
-	facility.POST("/facility/facility", fHttpHandler.CreateFacility)
 
-	// Slot Routes
+	// Regular facility routes
+	facility.GET("/facilities", fHttpHandler.FindManyFacility)
+	facility.GET("/facility/:facility_id", fHttpHandler.FindOneFacility)
+	facility.POST("/facility", fHttpHandler.CreateFacility)
+
+	// Slot Routes for each facility type
 	facilitySlot := facility.Group("/:facilityName/slot_v1")
 	facilitySlot.POST("/slots", fHttpHandler.InsertSlot)
-	facilitySlot.GET("/slots/:slot_id", fHttpHandler.FindOneSlot)
 	facilitySlot.GET("/slots", fHttpHandler.FindAllSlots)
+	facilitySlot.GET("/slots/:slot_id", fHttpHandler.FindOneSlot)
 
-	// Badminton Routes
+	// Badminton specific routes
 	badminton := facility.Group("/badminton_v1")
-	badminton.POST("/court", fHttpHandler.InsertBadCourt)
-	badminton.POST("/slot", fHttpHandler.InsertBadmintonSlot)
-	badminton.GET("/slots", fHttpHandler.FindBadmintonSlot)
 	badminton.GET("/courts", fHttpHandler.FindCourt)
+	badminton.POST("/court", fHttpHandler.InsertBadCourt)
+	badminton.GET("/slots", fHttpHandler.FindBadmintonSlot)
+	badminton.POST("/slot", fHttpHandler.InsertBadmintonSlot)
 
 	// Admin routes with analytics
 	adminFacility := s.app.Group("/admin/facility_v1", s.middleware.JwtAuthorizationMiddleware(s.cfg))
