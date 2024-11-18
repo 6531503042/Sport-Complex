@@ -10,7 +10,7 @@ type (
         Date           time.Time `json:"date"`
         TotalBookings  int       `json:"total_bookings"`
         CompletedBookings int    `json:"completed_bookings"`
-        CanceledBookings int     `json:"canceled_bookings"`
+        FailedBookings   int       `json:"failed_bookings"`
         Revenue        float64   `json:"revenue"`
         PeakHours      []int    `json:"peak_hours"`
         UtilizationRate float64  `json:"utilization_rate"` // percentage of capacity used
