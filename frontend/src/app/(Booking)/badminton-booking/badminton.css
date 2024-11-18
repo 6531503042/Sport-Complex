@@ -1,8 +1,7 @@
 .name-input-football{
-  border: 1px solid rgba(182, 173, 173, 0.644);
-  border-radius: 16px;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-  transition: border-color 0.2s ease;
+  @apply border border-gray-300 rounded-lg shadow-sm px-4 py-3 w-full
+  focus:ring-2 focus:ring-blue-500 focus:border-transparent
+  transition-all duration-200;
 }
 
 .name-input-football:focus {
@@ -13,25 +12,13 @@
 
 
 .slot-unavailable-card {
-  background-color: #fef2f2; /* Light red background for caution */
-  border: 1px solid #fca5a5; /* Light red border */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  border-radius: 1rem;
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 2rem;
-  transition: transform 0.2s ease-in-out;
-}
-
-.slot-unavailable-card:hover {
-  transform: scale(1.05);
+  @apply bg-red-50 border border-red-200 rounded-xl p-8
+  transform transition-all duration-300 hover:scale-105;
 }
 
 .slot-unavailable-icon {
+  @apply text-red-500 mx-auto block mb-4 animate-pulse;
   font-size: 3rem;
-  color: #dc2626; /* Red for danger */
-  margin-bottom: 1rem;
-  animation: pulse 1.5s ease-in-out infinite; /* Gentle pulse animation */
 }
 
 @keyframes pulse {
@@ -49,5 +36,249 @@
   color: #4b5563;
   font-size: 1.125rem;
   margin-top: 0.5rem;
+}
+
+.court-card {
+  @apply relative overflow-hidden rounded-xl transition-all duration-300;
+}
+
+.court-card-available {
+  @apply bg-white hover:bg-gradient-to-br from-blue-50 to-indigo-50
+    transform transition-all duration-300 ease-in-out
+    border border-gray-100;
+}
+
+.court-card-booked {
+  @apply bg-gray-50 cursor-not-allowed;
+}
+
+.booking-status-indicator {
+  @apply absolute top-2 right-2 flex items-center space-x-2;
+}
+
+.status-dot {
+  @apply w-3 h-3 rounded-full;
+}
+
+.status-dot-available {
+  @apply w-3 h-3 bg-green-400 rounded-full 
+    animate-pulse shadow-lg shadow-green-200;
+}
+
+.status-dot-limited {
+  @apply bg-yellow-400 animate-pulse;
+}
+
+.status-dot-booked {
+  @apply bg-red-400;
+}
+
+.booked-overlay {
+  @apply absolute inset-0 
+    backdrop-filter backdrop-blur-[2px]
+    bg-gray-100/50 rounded-xl 
+    flex items-center justify-center
+    transition-all duration-300;
+}
+
+.booked-stamp {
+  @apply text-red-600 font-bold text-lg
+    border-2 border-red-600 px-4 py-2 rounded
+    transform -rotate-12 shadow-md
+    bg-white/80;
+}
+
+/* Animation for available slots */
+@keyframes gentle-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.available-animation {
+  animation: gentle-bounce 2s infinite ease-in-out;
+}
+
+/* Hover effects */
+.court-card:not(.court-card-booked):hover {
+  @apply shadow-lg transform scale-105;
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
+}
+
+/* Status badges */
+.status-badge {
+  @apply px-4 py-1.5 rounded-full text-sm font-medium
+    shadow-sm transition-all duration-200
+    flex items-center justify-center gap-2;
+}
+
+.status-badge-available {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-badge-limited {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.status-badge-booked {
+  @apply bg-red-100 text-red-800;
+}
+
+.form-input {
+  @apply rounded-lg border-gray-300 shadow-sm
+  focus:ring-2 focus:ring-blue-500 focus:border-transparent
+  transition-all duration-200;
+}
+
+.primary-button {
+  @apply bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg
+  hover:bg-blue-700 transition-colors duration-200
+  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.modal-backdrop {
+  @apply fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm
+  flex items-center justify-center z-50
+  transition-opacity duration-300;
+}
+
+.modal-content {
+  @apply bg-white rounded-xl shadow-xl p-6 max-w-sm w-full
+  transform transition-all duration-300;
+}
+
+.time-slot-header {
+  @apply bg-gradient-to-r from-blue-600 to-indigo-600
+    text-white p-4 rounded-t-xl relative
+    overflow-hidden;
+}
+
+.time-slot-header::before {
+  content: '';
+  @apply absolute inset-0 bg-white/10
+    transform -skew-y-6 scale-150;
+}
+
+.status-available {
+  @apply text-green-500 text-sm font-medium;
+}
+
+.status-booked {
+  @apply text-red-500 text-sm font-medium;
+}
+
+@media (min-width: 768px) {
+  .courts-grid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .courts-grid {
+    @apply grid-cols-3;
+  }
+}
+
+/* Add these new styles for the booking form modal */
+.booking-form-modal {
+  @apply fixed inset-0 bg-black bg-opacity-50 
+    flex items-center justify-center p-4 z-50
+    backdrop-filter backdrop-blur-sm;
+}
+
+.booking-form-content {
+  @apply bg-white rounded-xl p-8 max-w-md w-full
+    transform transition-all duration-300 ease-in-out
+    shadow-2xl;
+}
+
+.booking-form-header {
+  @apply flex justify-between items-center mb-6;
+}
+
+.booking-details {
+  @apply mb-6 p-4 bg-blue-50 rounded-lg
+    border border-blue-100;
+}
+
+.form-input-readonly {
+  @apply w-full px-4 py-3 rounded-lg 
+    border border-gray-300 bg-gray-50
+    focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.form-button-group {
+  @apply flex gap-4 pt-4;
+}
+
+.cancel-button {
+  @apply flex-1 px-4 py-3 text-gray-700 bg-gray-100 
+    rounded-lg hover:bg-gray-200 transition-colors
+    focus:outline-none focus:ring-2 focus:ring-gray-500;
+}
+
+.confirm-button {
+  @apply flex-1 px-4 py-3 bg-blue-600 text-white 
+    rounded-lg hover:bg-blue-700 transition-colors
+    focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-clip-text text-transparent
+    bg-gradient-to-r from-blue-600 to-indigo-600;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Glass morphism effects */
+.glass-card {
+  @apply bg-white/90 backdrop-blur-lg
+    border border-white/20
+    shadow-xl;
+}
+
+/* Enhanced form inputs */
+.form-input-enhanced {
+  @apply w-full px-4 py-3 rounded-lg
+    border border-gray-300 bg-gray-50/80
+    focus:ring-2 focus:ring-blue-500 focus:border-transparent
+    transition-all duration-200
+    backdrop-blur-sm;
+}
+
+/* Button animations */
+.animated-button {
+  @apply transform transition-all duration-300
+    hover:scale-105 active:scale-95
+    focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+/* Loading states */
+.loading-pulse {
+  @apply animate-pulse bg-gray-200
+    rounded-lg overflow-hidden;
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+  .court-card {
+    @apply p-4;
+  }
+  
+  .time-slot-header {
+    @apply p-3;
+  }
+  
+  .status-badge {
+    @apply text-xs px-3;
+  }
 }
 
