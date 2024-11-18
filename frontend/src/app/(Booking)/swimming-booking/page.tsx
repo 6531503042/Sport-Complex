@@ -289,7 +289,7 @@ function Swimming_Booking({ params }: UserDataParams) {
                   <div className="flex justify-center">
                     <button
                       type="submit"
-                      className="font-bold bg-[#5EB900] text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
+                      className="font-bold bg-[#4169E1] text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-[#000080]"
                     >
                       Booking
                     </button>

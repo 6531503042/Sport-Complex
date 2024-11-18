@@ -246,57 +246,105 @@ function Badminton_Booking({ params }: UserDataParams) {
                 contact support for more options.
               </p>
             </div>
-          ) : (
-            <>
+          ) : isMobileView ? (
+            // Mobile View: Show the form instead of the time slots
+            <div className="block sm:hidden ">
+              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
+                <form onSubmit={handleSubmit}>
+                  {/* Flex container for aligning back button and time at the top */}
+                  <div className="flex items-center justify-between my-3">
+                    <ArrowBackIosNewIcon
+                      className="border shadow-xl w-10 h-10 p-2 rounded-md cursor-pointer hover:bg-gray-200"
+                      onClick={handleBackToTimeSlots}
+                      style={{ fontSize: "2rem" }}
+                    />
+                    {selectedCard !== null && slot[selectedCard] && (
+                      <h2 className="text-xl font-semibold text-start">
+                        Court {""}{court[selectedCard].court_number}
+                      </h2>
+                    )}
+                  </div>
 
-              <div className="flex flex-row items-center">
-  {slot &&
-    slot.length > 0 &&
-    slot
-      .filter((_, index) => index % 4 === 1)
-      .map((lot) => {
-        return (
-          <div
-            key={lot._id}
-            className="border border-gray-200 rounded-lg p-6 shadow-md"
-          >
-            {/* Display the selected slot */}
-            <div className="text-lg font-semibold grid grid-rows-1 justify-between items-center">
-              <div>
-                {lot.start_time} - {lot.end_time}
-              </div>
-              <div className="grid grid-cols-2">
-                {/* Map through the courts for this particular slot */}
-                {court?.map((cot, courtIndex) => {
-                  const isCourtFull = cot.current_bookings = cot.max_bookings; // Check if this court is full
-                  return (
-                    <div
-                      key={cot._id}
-                      className={`border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
-                        ${
-                          isCourtFull
-                            ? "cursor-not-allowed bg-[#C1C7D4] text-white"
-                            : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
-                        }
-                        ${!isCourtFull ? "hover:bg-[#005400]" : ""}`}
-                      onClick={() => {
-                        if (!isCourtFull) {
-                          handleCardClick(lot, courtIndex);
-                        }
-                      }}
+                  <label className="block mb-4">
+                    <span className="block text-sm font-medium text-gray-700 py-2">
+                      Name
+                    </span>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      readOnly
+                      className="name-input-football mt-1 block w-full px-3 py-3"
+                    />
+                  </label>
+
+                  <label className="block mb-4">
+                    <span className="block text-sm font-medium text-gray-700 py-2">
+                      Lecturer / Staff / Student ID
+                    </span>
+                    <input
+                      type="text"
+                      name="id"
+                      value={formData.id}
+                      readOnly
+                      className="name-input-football mt-1 block w-full px-3 py-3"
+                    />
+                  </label>
+
+                  {/* Center the Booking button */}
+                  <div className="flex justify-center">
+                    <button
+                      type="submit"
+                      className="font-bold bg-[#5EB900] text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
                     >
-                      Court {cot.court_number}
-                    </div>
-                  );
-                })}
+                      Booking
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
-          </div>
-        );
-      })}
-</div>
-
-
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {slot &&
+                  slot.length > 0 &&
+                  slot
+                    .filter((_, index) => index % 4 === 1)
+                    .map((lot, lotIndex) => (
+                      <div
+                        key={lot._id}
+                        className="flex justify-center border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out"
+                      >
+                        {/* Display the selected slot */}
+                        <div className="text-lg font-semibold grid grid-rows-1 justify-between items-center">
+                          <div className="text-2xl flex justify-center">
+                            {lot.start_time} - {lot.end_time}
+                          </div>
+                          <br />
+                          <div className="grid grid-cols-2 gap-4">
+                            {/* Map through the courts for this particular slot */}
+                            {court?.map((cot, courtIndex) => (
+                              <div
+                                key={cot._id}
+                                className={`w-[100%] flex justify-center border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
+                    ${
+                      lot.current_bookings
+                        ? "cursor-not-allowed bg-[#C1C7D4] text-white"
+                        : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
+                    }
+                    ${!lot.current_bookings ? "hover:bg-[#005400]" : ""}`}
+                                onClick={() =>
+                                  handleCardClick(lotIndex, courtIndex)
+                                } // Handle court selection
+                              >
+                                court {cot.court_number}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+              </div>
 
               <div
   className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${

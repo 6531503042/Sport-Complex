@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import NavBar from "@/app/components/navbar/navbar"; // อัปเดต path ถ้าจำเป็น
-import Link from "next/link"; // นำเข้า Link
+import NavBar from "@/app/components/navbar/navbar";
+import Link from "next/link";
 import router from "next/router";
+import styles from "./PaymentUserPage.module.css"; 
 
 const PaymentUserPage: React.FC = () => {
   const [userName, setUserName] = useState<string | null>(null);
@@ -28,7 +29,6 @@ const PaymentUserPage: React.FC = () => {
       } finally {
         setLoading(false);
       }
-      
     };
 
     fetchPayments();
@@ -48,42 +48,37 @@ const PaymentUserPage: React.FC = () => {
     <div>
       <NavBar activePage="payment" />
       <div className="container mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Payment History for {userName} </h1>
+        <h1 className="text-2xl font-bold mb-6">Payment History for {userName}</h1>
         {loading ? (
           <p>Loading...</p>
         ) : error ? (
-          <p className="text-red-500">{error}</p>
+          <p className={styles.textRed500}>{error}</p>
         ) : payments.length > 0 ? (
-          <table className="table-auto w-full border-collapse border border-gray-300">
+          <table className={styles.tableAuto}>
             <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-4 py-2">Payment ID</th>
-                <th className="border border-gray-300 px-4 py-2">Amount</th>
-                <th className="border border-gray-300 px-4 py-2">Currency</th>
-                <th className="border border-gray-300 px-4 py-2">Payment Method</th>
-                <th className="border border-gray-300 px-4 py-2">Facility Name</th>
-                <th className="border border-gray-300 px-4 py-2">Status</th>
-                <th className="border border-gray-300 px-4 py-2">Date</th>
-                <th className="border border-gray-300 px-4 py-2">Action</th>
+              <tr>
+                <th>Payment ID</th>
+                <th>Amount</th>
+                <th>Currency</th>
+                <th>Payment Method</th>
+                <th>Facility Name</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {payments.map((payment) => (
                 <tr key={payment.payment_id}>
-                  <td className="border border-gray-300 px-4 py-2">{payment._id}</td>
-                  <td className="border border-gray-300 px-4 py-2">{payment.amount}</td>
-                  <td className="border border-gray-300 px-4 py-2">{payment.currency}</td>
-                  <td className="border border-gray-300 px-4 py-2">{payment.payment_method}</td>
-                  <td className="border border-gray-300 px-4 py-2">{payment.facility_name}</td>
-                  <td className="border border-gray-300 px-4 py-2">{payment.status}</td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {new Date(payment.created_at).toLocaleString()}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <Link
-                      href={`/payment/${payment._id}`} // ลิงก์ไปยังหน้ารายละเอียดของ payment โดยใช้ _id
-                      className="text-blue-500 hover:underline"
-                    >
+                  <td>{payment._id}</td>
+                  <td>{payment.amount}</td>
+                  <td>{payment.currency}</td>
+                  <td>{payment.payment_method}</td>
+                  <td>{payment.facility_name}</td>
+                  <td>{payment.status}</td>
+                  <td>{new Date(payment.created_at).toLocaleString()}</td>
+                  <td>
+                    <Link href={`/payment/${payment._id}`} className="text-blue-500 hover:underline">
                       View Payment
                     </Link>
                   </td>
