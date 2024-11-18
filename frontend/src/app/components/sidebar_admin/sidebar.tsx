@@ -29,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
 
   return (
     <div
-      className={`bg-red-900 text-white flex flex-col px-5 py-10 transition-all duration-500 ${
+      className={`bg-red-900 text-white h-full flex flex-col px-5 py-10 transition-all duration-500 ${
         isCollapsed ? "w-28" : "md:w-72"
       }`}
     >
