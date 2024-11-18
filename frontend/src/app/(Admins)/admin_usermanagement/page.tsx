@@ -154,7 +154,6 @@ const UserManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const router = useRouter();
-
   const theme = useTheme();
 
   // Animation variants
@@ -168,7 +167,6 @@ const UserManagementPage = () => {
     }
   };
 
-<<<<<<< HEAD
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
@@ -176,69 +174,6 @@ const UserManagementPage = () => {
       opacity: 1
     }
   };
-=======
-  return (
-    <div className="w-screen h-screen flex relative">
-      <Sidebar activePage="admin_usermanagement"/>
-      <div className="bg-white text-black w-full p-10 flex flex-col overflow-y-auto">
-        <div className="inline-flex justify-between w-full items-end">
-          <div className="text-lg font-medium">User Management</div>
-          <img src={Logo.src} alt="Logo" className="w-7 h-min" />
-        </div>
-        <br />
-        <div className="bg-zinc-500 h-[1px] rounded-lg"></div>
-        <br />
-        <div className="w-full flex justify-center">
-          <div className="w-2/3 gap-10 inline-flex flex-row justify-center">
-            <button className="inline-flex flex-row items-center text-white text-lg bg-red-600 p-2 justify-center rounded-md hover:bg-red-700 hover:drop-shadow-2xl drop-shadow-sm transition-all duration-200">
-              <p>EDIT</p>
-              <AddIcon />
-            </button>
-            <button
-              className="inline-flex flex-row items-center text-white text-lg bg-green-500 p-2 justify-center rounded-md hover:bg-green-600 hover:drop-shadow-2xl drop-shadow-sm transition-all duration-200"
-              onClick={() => setIsModalOpen(true)} 
-            >
-              <p>NEW</p>
-              <AddIcon />
-            </button>
-          </div>
-        </div>
-        <br />
-        <div className="w-full flex justify-center">
-          <div className="w-5/6 flex rounded-md justify-between border p-5">
-            <ul className="inline-flex flex-row w-full text-base font-medium items-center text-center">
-              <li className="w-1/5">ID</li>
-              <li className="w-1/5">Name</li>
-              <li className="w-1/5">Email</li>
-              <li className="w-1/5">Password</li>
-              <li className="w-1/5">Role</li>
-            </ul>
-          </div>
-        </div>
-        <br />
-        <div className="w-full flex justify-center">
-        <div className="w-full flex justify-center">
-  <div className="w-5/6 flex flex-col rounded-md border p-5">
-    {isLoading ? (
-      <p>Loading users...</p>
-    ) : users.length === 0 ? (
-      <p className="text-red-600">No users found.</p>
-    ) : (
-      <ul className="flex flex-col w-full text-base font-medium items-center text-center">
-        {users.map((user) => (
-          <li key={String(user._id)} className="flex flex-row w-full justify-between">
-            <span className="w-1/5">{user._id}</span>
-            <span className="w-1/5">{user.name}</span>
-            <span className="w-1/5">{user.email}</span>
-            <span className="w-1/5">********</span>
-            <span className="w-1/5">{user.role}</span>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-</div>
->>>>>>> bcfa478ac8b6508d73b9d33cbaa72dc20d79e3e0
 
   const fetchUsers = async () => {
     try {
@@ -295,14 +230,11 @@ const UserManagementPage = () => {
       }
 
       try {
-        // Parse stored user data
         const userData = JSON.parse(storedUser);
         if (!userData) {
           router.push('/login');
           return;
         }
-
-        // If we have both token and user data, initialize the page
         await fetchUsers();
       } catch (error) {
         console.error('Error initializing page:', error);
@@ -393,11 +325,6 @@ const UserManagementPage = () => {
     }
   };
 
-  const filteredUsers = users?.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
-
   // Show loading state while initializing
   if (isInitializing) {
     return (
@@ -410,8 +337,13 @@ const UserManagementPage = () => {
   // Only show the main content if we have the auth token
   const token = localStorage.getItem('access_token');
   if (!token) {
-    return null; // Return null instead of redirecting
+    return null;
   }
+
+  const filteredUsers = users?.filter(user => 
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   return (
     <div className="w-screen h-screen flex flex-row bg-gradient-to-br from-gray-50 to-gray-100">
