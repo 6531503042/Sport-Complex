@@ -27,7 +27,7 @@ type (
 		FindOneUserProfileRefresh (pctx context.Context, userId string) (*user.User, error)
 		UpdateOneUser (pctx context.Context, userId string, updateFields bson.M) error
 		DeleteOneUser (pctx context.Context, userId string) error
-		FindManyUser (pctx context.Context) ([]user.UserProfileBson, error)
+		FindManyUser (pctx context.Context) ([]user.User, error)
 
 		//Kafka
 		GetOffset(pctx context.Context) (int64, error)
@@ -256,33 +256,53 @@ func (r *UserRepository) FindOneUserProfile(pctx context.Context, userId string)
 	db := r.userDbConn(ctx)
 	col := db.Collection("users")
 
-	// First, find the user document
-	var userDoc user.User
-	err := col.FindOne(ctx, bson.M{"_id": utils.ConvertToObjectId(userId)}).Decode(&userDoc)
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"_id": utils.ConvertToObjectId(userId),
+			},
+		},
+		{
+			"$project": bson.M{
+				"_id":        1,
+				"email":      1,
+				"name":       1,
+				"created_at": 1,
+				"updated_at": 1,
+				"user_roles": 1,
+				"role_code": bson.M{
+					"$ifNull": []interface{}{
+						bson.M{"$arrayElemAt": []interface{}{"$user_roles.role_code", 0}},
+						0,
+					},
+				},
+				"role_title": bson.M{
+					"$ifNull": []interface{}{
+						bson.M{"$arrayElemAt": []interface{}{"$user_roles.role_title", 0}},
+						"user",
+					},
+				},
+			},
+		},
+	}
+
+	var result user.UserProfileBson
+	cursor, err := col.Aggregate(ctx, pipeline)
 	if err != nil {
-		log.Printf("Error: FindOneUserProfile find user: %s", err.Error())
-		return nil, errors.New("error: user profile not found")
+		log.Printf("Error: FindOneUserProfile: %s", err.Error())
+		return nil, fmt.Errorf("error: failed to fetch user profile: %w", err)
 	}
+	defer cursor.Close(ctx)
 
-	// Find the highest role code
-	highestRoleCode := 0
-	for _, role := range userDoc.UserRoles {
-		if role.RoleCode > highestRoleCode {
-			highestRoleCode = role.RoleCode
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			log.Printf("Error: FindOneUserProfile decode: %s", err.Error())
+			return nil, fmt.Errorf("error: failed to decode user profile: %w", err)
 		}
+		return &result, nil
 	}
 
-	// Create the profile response
-	result := &user.UserProfileBson{
-		Id:        userDoc.Id,
-		Email:     userDoc.Email,
-		Name:      userDoc.Name,
-		RoleCode:  highestRoleCode,  // Set the highest role code
-		CreatedAt: userDoc.CreatedAt,
-		UpdatedAt: userDoc.UpdatedAt,
-	}
-
-	return result, nil
+	return nil, fmt.Errorf("error: user not found")
 }
 
 func (r *UserRepository) FindOneUserProfileRefresh(pctx context.Context, userId string) (*user.User, error) {
@@ -330,14 +350,28 @@ func (r *UserRepository) FindOneUserProfileRefresh(pctx context.Context, userId 
 	return userWithHighestRole, nil
 }
 
-func (r *UserRepository) FindManyUser(pctx context.Context) ([]user.UserProfileBson, error) {
+func (r *UserRepository) FindManyUser(pctx context.Context) ([]user.User, error) {
 	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
 	defer cancel()
 
 	db := r.userDbConn(ctx)
 	col := db.Collection("users")
 
-	cursor, err := col.Find(ctx, bson.M{})
+	// Create a pipeline to get all fields including user_roles
+	pipeline := []bson.M{
+		{
+			"$project": bson.M{
+				"_id":        1,
+				"email":      1,
+				"name":       1,
+				"created_at": 1,
+				"updated_at": 1,
+				"user_roles": 1,
+			},
+		},
+	}
+
+	cursor, err := col.Aggregate(ctx, pipeline)
 	if err != nil {
 		log.Printf("Error: FindManyUser: %s", err.Error())
 		return nil, fmt.Errorf("error: failed to fetch users: %w", err)
@@ -350,29 +384,12 @@ func (r *UserRepository) FindManyUser(pctx context.Context) ([]user.UserProfileB
 		return nil, fmt.Errorf("error: failed to decode users: %w", err)
 	}
 
-	// Convert User documents to UserProfileBson with correct role codes
-	var profiles []user.UserProfileBson
+	// Debug log
 	for _, u := range users {
-		// Find highest role code
-		highestRoleCode := 0
-		for _, role := range u.UserRoles {
-			if role.RoleCode > highestRoleCode {
-				highestRoleCode = role.RoleCode
-			}
-		}
-
-		profile := user.UserProfileBson{
-			Id:        u.Id,
-			Email:     u.Email,
-			Name:      u.Name,
-			RoleCode:  highestRoleCode,  // Set the highest role code
-			CreatedAt: u.CreatedAt,
-			UpdatedAt: u.UpdatedAt,
-		}
-		profiles = append(profiles, profile)
+		log.Printf("User %s has roles: %+v", u.Email, u.UserRoles)
 	}
 
-	return profiles, nil
+	return users, nil
 }
 
 func (r *UserRepository) GetUserAnalytics(pctx context.Context, period string, startDate, endDate time.Time) (*user.UserAnalytics, error) {
