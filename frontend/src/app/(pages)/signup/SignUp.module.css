@@ -1,3 +1,7 @@
+/* SignUp.module.css */
+
+/* Existing styles */
+
 .container {
   display: flex;
   height: 100vh;
@@ -125,6 +129,25 @@
   text-align: center;
 }
 
+.successCard {
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #e0ffe0;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.successHeader {
+  color: #2e7d32;
+  margin-bottom: 1rem;
+}
+
+.successText {
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
   .container {
@@ -167,7 +190,6 @@
   }
 }
 
-/* Styles for larger screens */
 @media (min-width: 1920px) {
   .container {
     padding: 3rem;

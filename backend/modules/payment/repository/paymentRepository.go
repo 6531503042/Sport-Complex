@@ -17,7 +17,7 @@ type PaymentRepositoryService interface {
 	InsertPayment(ctx context.Context, payment *payment.PaymentEntity) (*payment.PaymentEntity, error)
 	UpdatePayment(ctx context.Context, payment *payment.PaymentEntity) (*payment.PaymentEntity, error)
 	FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error)
-	FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentSlip, error)
+	FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentEntity, error)
 	FindSlipByUserId(ctx context.Context, userId string) ([]payment.PaymentSlip, error)
 	SaveSlip(ctx context.Context, slip payment.PaymentSlip) error
 	UpdateSlipStatus(ctx context.Context, slipId string, newStatus string) error
@@ -98,7 +98,7 @@ func (r *paymentRepository) UpdatePayment(ctx context.Context, payment *payment.
 }
 
 // FindPaymentsByUser retrieves all payments made by a specific user
-func (r *paymentRepository) FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentSlip, error) {
+func (r *paymentRepository) FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentEntity, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
@@ -112,7 +112,7 @@ func (r *paymentRepository) FindPaymentsByUser(ctx context.Context, userId strin
 	}
 	defer cursor.Close(ctx)
 
-	var result []payment.PaymentSlip
+	var result []payment.PaymentEntity
 	if err = cursor.All(ctx, &result); err != nil {
 		log.Printf("Error: FindPaymentsByUser failed: %s", err.Error())
 		return nil, errors.New("error: FindPaymentsByUser failed")
