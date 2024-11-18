@@ -25,7 +25,7 @@ type (
 		FindOneUserCredential (pctx context.Context, email string) (*user.User, error)
 		FindOneUserProfile (pctx context.Context, userId string) (*user.UserProfileBson, error)
 		FindOneUserProfileRefresh (pctx context.Context, userId string) (*user.User, error)
-		UpdateOneUser (pctx context.Context, userId string, updateFields bson.M) error
+		UpdateOneUser (pctx context.Context, userId string, updateFields map[string]interface{}) error
 		DeleteOneUser (pctx context.Context, userId string) error
 		FindManyUser (pctx context.Context) ([]user.User, error)
 
@@ -137,29 +137,31 @@ func (r *UserRepository) InsertOneUser(pctx context.Context, req *user.User) (pr
 	return userId, nil
 }
 
-func (r *UserRepository) UpdateOneUser (pctx context.Context, userId string, updateFields bson.M) error {
-	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
-	defer cancel()
-
+func (r *UserRepository) UpdateOneUser(ctx context.Context, userId string, updateFields map[string]interface{}) error {
 	db := r.userDbConn(ctx)
 	col := db.Collection("users")
 
-	updateResult, err := col.UpdateOne(
+	// Convert updateFields to bson.M
+	bsonUpdate := bson.M{}
+	for k, v := range updateFields {
+		bsonUpdate[k] = v
+	}
+
+	update := bson.M{"$set": bsonUpdate}
+
+	result, err := col.UpdateOne(
 		ctx,
 		bson.M{"_id": utils.ConvertToObjectId(userId)},
-		bson.M{"$set": updateFields},
+		update,
 	)
+
 	if err != nil {
-		log.Printf("Error: UpdateOneUser: %s", err.Error())
-		return errors.New("error: update one user failed")
+		log.Printf("Error updating user: %v", err)
+		return fmt.Errorf("failed to update user: %w", err)
 	}
 
-	if updateResult.MatchedCount == 0 {
-		return errors.New("error: user not found")
-	}
-
-	if updateResult.ModifiedCount == 0 {
-		return errors.New("error: nothing to update")
+	if result.MatchedCount == 0 {
+		return errors.New("user not found")
 	}
 
 	return nil
