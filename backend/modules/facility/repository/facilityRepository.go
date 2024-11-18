@@ -545,43 +545,39 @@ func (r *facilitiyReposiory) FindBadmintonSlot(ctx context.Context) ([]facility.
     ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
     defer cancel()
 
-    // Connect to the badminton facility collection
     db := r.courtDbConn(ctx)
     col := db.Collection("slots")
 
-    // Find all slots with all fields included
-    cursor, err := col.Find(ctx, bson.M{}, options.Find().SetProjection(bson.M{
-        "_id":              1,
-        "start_time":       1,
-        "end_time":         1,
-        "court_id":         1,
-        "status":           1,
-        "max_bookings":     1,  // Added this field
-        "current_bookings": 1,  // Added this field
-        "created_at":       1,
-        "updated_at":       1,
-    }))
+    // Find all slots
+    cursor, err := col.Find(ctx, bson.M{})
     if err != nil {
         log.Printf("Error: Find Badminton Slot: %s", err.Error())
         return nil, fmt.Errorf("error: find badminton slot failed: %w", err)
     }
     defer cursor.Close(ctx)
 
-    var result []facility.BadmintonSlot
-    if err = cursor.All(ctx, &result); err != nil {
-        log.Printf("Error: Find Badminton Slot - failed to decode cursor: %s", err.Error())
-        return nil, fmt.Errorf("error: find badminton slot failed: %w", err)
+    var slots []facility.BadmintonSlot
+    if err = cursor.All(ctx, &slots); err != nil {
+        log.Printf("Error decoding slots: %s", err.Error())
+        return nil, fmt.Errorf("error decoding slots: %w", err)
     }
 
-    // Log the results for debugging
-    for _, slot := range result {
-        log.Printf("Slot %s: current_bookings=%d, max_bookings=%d", 
+    // Set default max_bookings to 1 if it's 0
+    for i := range slots {
+        if slots[i].MaxBookings == 0 {
+            slots[i].MaxBookings = 1 // Set default max bookings to 1
+        }
+    }
+
+    // Log for debugging
+    for _, slot := range slots {
+        log.Printf("Slot %s: max_bookings=%d, current_bookings=%d", 
             slot.Id.Hex(), 
-            slot.CurrentBookings, 
-            slot.MaxBookings)
+            slot.MaxBookings,
+            slot.CurrentBookings)
     }
 
-    return result, nil
+    return slots, nil
 }
 
 func (r *facilitiyReposiory) DeleteBadmintonSlot(ctx context.Context, slotId string) error {
