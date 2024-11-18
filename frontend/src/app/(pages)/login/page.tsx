@@ -84,7 +84,7 @@ const LoginPage = () => {
           <div className={styles.checkboxContainer}>
             <div className={styles.checkboxWrapper}>
             </div>
-            <Link href="#" className={styles.link}>Forgot password</Link>
+            <Link href="https://www.facebook.com/mfusportcomplex" className={styles.link}>Forgot password</Link>
           </div>
           <Button type="submit" className={styles.button} color="primary">
             Sign in
