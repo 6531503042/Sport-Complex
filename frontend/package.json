@@ -16,7 +16,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mui/icons-material": "^6.1.7",
-    "@mui/material": "^6.1.5",
+    "@mui/material": "^6.1.7",
     "@nextui-org/react": "^2.4.8",
     "@radix-ui/react-progress": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
@@ -33,6 +33,7 @@
     "next": "^15.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.27.0",
     "react-toastify": "^10.0.6",
     "swiper": "^11.1.12"
