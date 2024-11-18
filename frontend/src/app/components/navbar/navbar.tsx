@@ -20,6 +20,7 @@ type NavBarProps = {
 
 const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   const [userName, setUserName] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null); // Add state for userId
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -28,6 +29,9 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
     if (userData) {
       const user = JSON.parse(userData);
       setUserName(user.name);
+      setUserId(user.id);
+      const id = user.id?.replace("user:", "") || ""; 
+      setUserId(id);  
     } else {
       router.replace("/login");
     }
@@ -57,11 +61,11 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   };
 
   const handleLinkClick = async (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    event.preventDefault(); 
-    setLoading(true); 
+    event.preventDefault();
+    setLoading(true);
 
     const timeoutId = setTimeout(() => {
-      router.push(href); 
+      router.push(href);
     }, 1000);
 
     return () => clearTimeout(timeoutId);
@@ -69,7 +73,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 
   return (
     <>
-      {loading && <LoadingScreen />} {/* Show loading screen while waiting */}
+      {loading && <LoadingScreen />}
       <div className={`${getBackgroundColor()} justify-center flex flex-col`}>
         <header>
           <div className="NavBar_container flex flex-row items-center justify-between bg-white px-20 py-5">
@@ -143,7 +147,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
               page: "contact",
             },
             {
-              href: "/payment",
+              href: `/payment/user/${userId || ""}`, // Use dynamic userId
               label: "Payment",
               icon: <PaymentIcon style={{ fontSize: "1.3rem" }} />,
               page: "payment",
@@ -154,7 +158,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
                 href={href}
                 prefetch={true}
                 className="flex items-center gap-2.5 py-4 px-3 border border-transparent hover:border hover:shadow-md rounded-lg transition-all duration-300"
-                onClick={(e) => handleLinkClick(e, href)} // Trigger loading on link click
+                onClick={(e) => handleLinkClick(e, href)}
               >
                 {icon}
                 <p>{label}</p>
@@ -168,3 +172,4 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
 };
 
 export default NavBar;
+
