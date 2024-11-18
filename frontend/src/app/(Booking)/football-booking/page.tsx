@@ -186,7 +186,6 @@ function Football_Booking({ params }: UserDataParams) {
   // Retrieve refresh token and set it in state
   const storedRefreshToken = localStorage.getItem('refresh_token');
   setStoredRefreshToken(storedRefreshToken);
-  console.log('Stored Refresh Token:', storedRefreshToken); // Use it as needed
 
   // Fetch slot data on initial render and set up the interval for updating
   getSlot();

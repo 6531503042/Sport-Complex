@@ -66,7 +66,6 @@ function Badminton_Booking({ params }: UserDataParams) {
       }
     }
   };
-  
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -92,7 +91,7 @@ function Badminton_Booking({ params }: UserDataParams) {
         slot_id: null,
         status: 1,
         slot_type: "badminton",
-        badminton_slot_id:  slot[selectedCard]._id,
+        badminton_slot_id: slot[selectedCard]._id,
       };
 
       const response = await fetch(
@@ -260,7 +259,8 @@ function Badminton_Booking({ params }: UserDataParams) {
                     />
                     {selectedCard !== null && slot[selectedCard] && (
                       <h2 className="text-xl font-semibold text-start">
-                        Court {""}{court[selectedCard].court_number}
+                        Court {""}
+                        {court[selectedCard].court_number}
                       </h2>
                     )}
                   </div>
@@ -309,93 +309,121 @@ function Badminton_Booking({ params }: UserDataParams) {
                 {slot &&
                   slot.length > 0 &&
                   slot
-                    .filter((_, index) => index % 4 === 1)
-                    .map((lot, lotIndex) => (
-                      <div
-                        key={lot._id}
-                        className="flex justify-center border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out"
-                      >
-                        {/* Display the selected slot */}
-                        <div className="text-lg font-semibold grid grid-rows-1 justify-between items-center">
-                          <div className="text-2xl flex justify-center">
-                            {lot.start_time} - {lot.end_time}
-                          </div>
-                          <br />
-                          <div className="grid grid-cols-2 gap-4">
-                            {/* Map through the courts for this particular slot */}
-                            {court?.map((cot, courtIndex) => (
+                    .reduce((groups, current, index) => {
+                      const groupIndex = Math.floor(index / 4); // Determine the group index
+                      if (!groups[groupIndex]) groups[groupIndex] = []; // Create a new group if it doesn't exist
+                      groups[groupIndex].push(current); // Add the current slot to the appropriate group
+                      return groups;
+                    }, [])
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    .map((group: any[], groupIndex: number, lot:any) => {
+                      const isSlotFull = lot.current_bookings >= lot.max_bookings;
+                      return (
+                        <div
+                          key={`group-${groupIndex}`}
+                          className="flex flex-col gap-4 border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out"
+                        >
+                          {/* Group Header: Display the slot time for the entire group */}
+                          <h2 className="text-xl font-bold mb-4 text-center">
+                            <div className="text-2xl flex justify-center">
+                              {group[0]?.start_time} - {group[0]?.end_time}
+                            </div>
+                          </h2>
+
+                          {/* Map through the slots within the group */}
+                          {group.map((lot, slotIndex) => {
+                            // Calculate repeating court numbers (1-4)
+                            const courtNumber = (slotIndex % 4) + 1;
+
+                            return (
                               <div
-                                key={cot._id}
-                                className={`w-[100%] flex justify-center border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
-                    ${
-                      lot.current_bookings
-                        ? "cursor-not-allowed bg-[#C1C7D4] text-white"
-                        : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
-                    }
-                    ${!lot.current_bookings ? "hover:bg-[#005400]" : ""}`}
-                                onClick={() =>
-                                  handleCardClick(lotIndex, courtIndex)
-                                } // Handle court selection
+                                key={lot._id}
+                                className="flex justify-center border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out"
                               >
-                                court {cot.court_number}
+                                {/* Display the selected slot */}
+                                <div className="text-lg font-semibold grid grid-rows-1 justify-between items-center">
+                                  {/* Court Number for this slot */}
+                                  <div className={`border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
+      ${
+        isSlotFull
+          ? "cursor-not-allowed bg-[#C1C7D4] text-white"
+          : "cursor-pointer bg-[#4169E1] text-white border-blue-300 hover:scale-105 hover:shadow-lg"
+      }
+      ${!isSlotFull ? "hover:bg-[#000080]" : ""}
+    `}
+                      onClick={() => {
+                        if (!isSlotFull) {
+                          handleCardClick(lot,slotIndex);
+                        }
+                      }}
+                    >
+                                    <div className="flex justify-center"> Court {courtNumber} {/* Repeat 1-4 */}
+                                    {lot._id}</div>
+                                   
+                                  </div>
+                                </div>
                               </div>
-                            ))}
-                          </div>
+                            );
+                          })}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
               </div>
 
               <div
-  className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
-    selectedCard !== null && !slot[selectedCard]?.current_bookings
-      ? "translate-y-0 opacity-100"
-      : "translate-y-5 opacity-0"
-  }`}
->
-  {selectedCard !== null && slot[selectedCard] && (
-    <>
-      {/* Display slot time and court number */}
-      <h2 className="text-xl font-bold mb-4">
-        {/* Booking for {slot[selectedCard].start_time} - {slot[selectedCard].end_time}{" "} */}
-        <span className="font-semibold">
-          Court {court[selectedCard]?.court_number}</span>
-      </h2>
-      {/* Booking Form */}
-      <form onSubmit={handleSubmit}>
-        <label className="block mb-4">
-          <span className="block text-sm font-medium text-gray-700 py-2">Name</span>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            readOnly
-            className="name-input-football mt-1 block w-full px-3 py-3"
-          />
-        </label>
-        <label className="block mb-4">
-          <span className="block text-sm font-medium text-gray-700 py-2">Lecturer / Staff / Student ID</span>
-          <input
-            type="text"
-            name="id"
-            value={formData.id}
-            readOnly
-            className="name-input-football mt-1 block w-full px-3 py-3"
-          />
-        </label>
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className="font-semibold bg-[#5EB900] text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
-          >
-            Booking
-          </button>
-        </div>
-      </form>
-    </>
-  )}
-</div>
-
+                className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
+                  selectedCard !== null && !slot[selectedCard]?.current_bookings
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-5 opacity-0"
+                }`}
+              >
+                {selectedCard !== null && slot[selectedCard] && (
+                  <>
+                    {/* Display slot time and court number */}
+                    <h2 className="text-xl font-bold mb-4">
+                      {/* Booking for {slot[selectedCard].start_time} - {slot[selectedCard].end_time}{" "} */}
+                      <span className="font-semibold">
+                        Court {court[selectedCard]?.court_number}
+                      </span>
+                    </h2>
+                    {/* Booking Form */}
+                    <form onSubmit={handleSubmit}>
+                      <label className="block mb-4">
+                        <span className="block text-sm font-medium text-gray-700 py-2">
+                          Name
+                        </span>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          readOnly
+                          className="name-input-football mt-1 block w-full px-3 py-3"
+                        />
+                      </label>
+                      <label className="block mb-4">
+                        <span className="block text-sm font-medium text-gray-700 py-2">
+                          Lecturer / Staff / Student ID
+                        </span>
+                        <input
+                          type="text"
+                          name="id"
+                          value={formData.id}
+                          readOnly
+                          className="name-input-football mt-1 block w-full px-3 py-3"
+                        />
+                      </label>
+                      <div className="flex justify-center">
+                        <button
+                          type="submit"
+                          className="font-semibold bg-[#5EB900] text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
+                        >
+                          Booking
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
+              </div>
             </>
           )}
         </div>
