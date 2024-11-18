@@ -1,53 +1,263 @@
-.name-input-football{
-    border: 1px solid rgba(182, 173, 173, 0.644);
-    border-radius: 16px;
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-    transition: border-color 0.2s ease;
+/* Base styles */
+.football-booking-container {
+  @apply min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-white 
+    py-8 px-4 overflow-hidden;
 }
 
-.name-input-football:focus {
-    border-color: #22c55e; 
-    outline: none;
+/* Header styles */
+.header-icon {
+  @apply inline-block p-4 rounded-full bg-gradient-to-br from-green-100 to-emerald-200 
+    mb-6 transform hover:scale-110 transition-all duration-300
+    shadow-lg hover:shadow-xl;
 }
 
+.header-title {
+  @apply text-5xl font-bold mb-4 bg-gradient-to-r from-green-600 to-emerald-600 
+    inline-block text-transparent bg-clip-text
+    animate-gradient tracking-tight;
+}
 
+.header-subtitle {
+  @apply text-gray-600 text-xl max-w-2xl mx-auto leading-relaxed
+    animate-fadeIn;
+}
 
-.slot-unavailable-card {
-    background-color: #fef2f2; /* Light red background for caution */
-    border: 1px solid #fca5a5; /* Light red border */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    border-radius: 1rem;
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 2rem;
-    transition: transform 0.2s ease-in-out;
+/* Legend styles */
+.legend-container {
+  @apply flex justify-center gap-8 mb-10 p-4 bg-white/50 rounded-xl
+    backdrop-blur-sm shadow-lg mx-auto max-w-3xl;
+}
+
+.legend-item {
+  @apply flex items-center gap-3 px-4 py-2 rounded-lg
+    transition-all duration-300 hover:transform hover:scale-105;
+}
+
+.legend-dot {
+  @apply w-4 h-4 rounded-full shadow-inner;
+}
+
+.legend-dot-available {
+  @apply bg-gradient-to-r from-green-400 to-emerald-400
+    animate-pulse shadow-green-200;
+}
+
+.legend-dot-limited {
+  @apply bg-gradient-to-r from-yellow-400 to-amber-400
+    shadow-yellow-200;
+}
+
+.legend-dot-booked {
+  @apply bg-gradient-to-r from-red-400 to-rose-400
+    shadow-red-200;
+}
+
+/* Slot card styles */
+.slot-card {
+  @apply relative rounded-xl overflow-hidden transition-all duration-500
+    backdrop-filter backdrop-blur-sm bg-white/90
+    border border-gray-100 shadow-xl hover:shadow-2xl
+    transform hover:-translate-y-1;
+}
+
+.slot-card-header {
+  @apply bg-gradient-to-r from-green-600 to-emerald-600 
+    text-white p-6 relative overflow-hidden;
+}
+
+.slot-card-header::before {
+  content: '';
+  @apply absolute inset-0 bg-white/10
+    transform -skew-y-6 scale-150;
+}
+
+.slot-card-content {
+  @apply p-6 space-y-4;
+}
+
+.slot-status {
+  @apply flex items-center justify-between;
+}
+
+.slot-capacity {
+  @apply flex items-center gap-2 text-gray-600 font-medium;
+}
+
+.status-badge {
+  @apply px-4 py-2 rounded-full text-sm font-semibold
+    shadow-lg transition-all duration-300
+    transform hover:scale-105;
+}
+
+.status-badge-available {
+  @apply bg-gradient-to-r from-green-100 to-emerald-100
+    text-green-800 border border-green-200;
+}
+
+.status-badge-limited {
+  @apply bg-gradient-to-r from-yellow-100 to-amber-100
+    text-yellow-800 border border-yellow-200;
+}
+
+.status-badge-booked {
+  @apply bg-gradient-to-r from-red-100 to-rose-100
+    text-red-800 border border-red-200;
+}
+
+/* Booking form modal */
+.booking-modal {
+  @apply fixed inset-0 bg-black/60 backdrop-blur-sm
+    flex items-center justify-center p-4 z-50
+    animate-fadeIn;
+}
+
+.booking-form {
+  @apply bg-white rounded-2xl p-8 max-w-md w-full
+    transform transition-all duration-500
+    shadow-2xl animate-slideUp;
+}
+
+.form-header {
+  @apply flex justify-between items-center mb-8;
+}
+
+.form-title {
+  @apply text-2xl font-bold text-gray-900
+    bg-gradient-to-r from-green-600 to-emerald-600
+    inline-block text-transparent bg-clip-text;
+}
+
+.time-badge {
+  @apply mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50
+    rounded-lg border border-green-100
+    flex items-center gap-3 animate-pulse;
+}
+
+.form-input {
+  @apply w-full px-4 py-3 rounded-lg
+    border border-gray-300 bg-gray-50/80
+    focus:ring-2 focus:ring-green-500 focus:border-transparent
+    transition-all duration-200;
+}
+
+.form-button-group {
+  @apply flex gap-4 pt-6;
+}
+
+.button-cancel {
+  @apply flex-1 px-4 py-3 rounded-lg
+    bg-gray-100 text-gray-700
+    hover:bg-gray-200 transition-colors
+    transform hover:scale-105 active:scale-95;
+}
+
+.button-confirm {
+  @apply flex-1 px-4 py-3 rounded-lg
+    bg-gradient-to-r from-green-600 to-emerald-600
+    text-white font-semibold
+    hover:from-green-700 hover:to-emerald-700
+    transform hover:scale-105 active:scale-95
+    shadow-lg hover:shadow-xl;
+}
+
+/* Success/Error modals */
+.result-modal {
+  @apply fixed inset-0 bg-black/60 backdrop-blur-sm
+    flex items-center justify-center p-4 z-50;
+}
+
+.result-content {
+  @apply bg-white rounded-2xl p-8 max-w-sm w-full
+    transform transition-all duration-500
+    shadow-2xl animate-bounceIn;
+}
+
+/* Animations */
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-gradient {
+  animation: gradient 6s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.5s ease-out;
+}
+
+.animate-bounceIn {
+  animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+  .header-title {
+    @apply text-4xl;
   }
   
-  .slot-unavailable-card:hover {
-    transform: scale(1.05);
+  .legend-container {
+    @apply flex-col gap-4;
   }
   
-  .slot-unavailable-icon {
-    font-size: 3rem;
-    color: #dc2626; /* Red for danger */
-    margin-bottom: 1rem;
-    animation: pulse 1.5s ease-in-out infinite; /* Gentle pulse animation */
+  .slot-card-header {
+    @apply p-4;
   }
   
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+  .slot-card-content {
+    @apply p-4;
   }
   
-  .slot-unavailable-card h2 {
-    color: #1f2937;
-    font-size: 1.75rem;
-    margin-bottom: 0.5rem;
+  .status-badge {
+    @apply text-xs px-3;
   }
-  
-  .slot-unavailable-card p {
-    color: #4b5563;
-    font-size: 1.125rem;
-    margin-top: 0.5rem;
-  }
-  
+}
+
+/* Glass morphism effects */
+.glass-card {
+  @apply bg-white/90 backdrop-blur-lg
+    border border-white/20
+    shadow-xl;
+}
+
+/* Loading states */
+.loading-pulse {
+  @apply animate-pulse bg-gray-200
+    rounded-lg overflow-hidden;
+}
+
+/* Hover effects */
+.hover-scale {
+  @apply transition-transform duration-300
+    hover:scale-105 active:scale-95;
+}
+
+/* Focus states */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2
+    focus:ring-green-500 focus:ring-offset-2;
+}
+
