@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -6,7 +6,7 @@ import { Button } from "../../../components/ui/button";
 import { Progress } from "../../../components/ui/progress";
 import { Card } from "../../../components/ui/card";
 import { useToast } from "../../../components/ui/use-toast";
-import { CreditCard, CheckCircle, Download } from "lucide-react";
+import { CheckCircle, Download } from "lucide-react";
 import saveAs from "file-saver";
 
 const Payment = () => {
@@ -28,7 +28,9 @@ const Payment = () => {
 
     const fetchPaymentData = async () => {
       try {
-        const response = await fetch(`http://localhost:1327/payment_v1/payments/${id}`);
+        const response = await fetch(
+          `http://localhost:1327/payment_v1/payments/${id}`
+        );
         if (!response.ok) {
           throw new Error(`Failed to fetch data: ${response.statusText}`); // Throw error if fetch fails
         }
@@ -83,8 +85,9 @@ const Payment = () => {
     setShowDialog(false);
   };
 
-  const handleCreditCardPayment = () => {
-    router.push("/credit-card-payment");
+
+  const handleGoHome = () => {
+    router.push("/");
   };
 
   const handleSaveQRCode = () => {
@@ -115,7 +118,9 @@ const Payment = () => {
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold text-gray-900">QR Payment</h1>
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-gray-700">{paymentData.facility_name}</h2>
+            <h2 className="text-lg font-semibold text-gray-700">
+              {paymentData.facility_name}
+            </h2>
             <p className="text-3xl font-bold text-primary">{`฿${paymentData.amount}.00`}</p>
           </div>
         </div>
@@ -156,11 +161,10 @@ const Payment = () => {
           </Button>
 
           <Button
-            onClick={handleCreditCardPayment}
-            className="w-full flex items-center justify-center gap-2 h-12"
+            onClick={handleGoHome}
+            className="w-full bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200 flex items-center justify-center gap-2 h-12"
           >
-            <CreditCard className="w-5 h-5" />
-            Pay with Credit Card Instead
+            Go to Home
           </Button>
         </div>
 
