@@ -1,18 +1,36 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const useAuthRedirect = () => {
+  const [loading, setLoading] = useState(true); // Track if loading is in progress
+  const [user, setUser] = useState<any | null>(null); // Store user data if authenticated
   const router = useRouter();
 
   useEffect(() => {
-    // Check if there is user data stored in localStorage
-    const userData = localStorage.getItem("user");
+    // Check authentication on component mount
+    const checkAuth = () => {
+      const userData = localStorage.getItem("user"); // Check if user data is in localStorage
 
-    // If there's no user data (i.e., not logged in), redirect to login page
-    if (!userData) {
+      if (userData) {
+        setUser(JSON.parse(userData)); // Set the user if authenticated
+      }
+
+      setLoading(false); // Stop loading once the check is complete
+    };
+
+    if (typeof window !== "undefined") {
+      checkAuth(); // Run the authentication check
+    }
+  }, []);
+
+  useEffect(() => {
+    // If loading is complete and the user is not authenticated, redirect to login
+    if (!loading && !user) {
       router.replace("/login");
     }
-  }, [router]);
+  }, [loading, user, router]);
+
+  return { loading, user }; // Return loading and user data
 };
 
 export default useAuthRedirect;
