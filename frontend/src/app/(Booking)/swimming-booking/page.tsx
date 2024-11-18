@@ -336,7 +336,7 @@ function Swimming_Booking({ params }: UserDataParams) {
                           {isSlotFull ? (
                             <ClearIcon
                               className="mx-2.5"
-                              style={{ fontSize: "2rem" }}
+                              style={{ fontSize: "2rem" , color:"red" }}
                             />
                           ) : (
                             <CheckIcon
