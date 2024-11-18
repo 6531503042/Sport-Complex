@@ -749,24 +749,26 @@ func (r *bookingRepository) countUserBadmintonBookings(ctx context.Context, user
 // }
 
 func (r *bookingRepository) updateBadmintonSlotBookings(ctx context.Context, slotId primitive.ObjectID, increment int) error {
-    log.Printf("Updating badminton slot %s bookings by %d", slotId.Hex(), increment)
-    
     db := r.facilityDbConn(ctx, "badminton")
     col := db.Collection("slots")
 
     // First get current slot state
-    var currentSlot facility.Slot
+    var currentSlot facility.BadmintonSlot
     err := col.FindOne(ctx, bson.M{"_id": slotId}).Decode(&currentSlot)
     if err != nil {
         return fmt.Errorf("failed to get current slot state: %w", err)
     }
 
-    log.Printf("Current bookings before update: %d", currentSlot.CurrentBookings)
+    // Check if the update would exceed max bookings
+    newBookingCount := currentSlot.CurrentBookings + increment
+    if newBookingCount > currentSlot.MaxBookings {
+        return errors.New("booking would exceed maximum allowed bookings")
+    }
 
     // Update the slot
     update := bson.M{
         "$set": bson.M{
-            "current_bookings": currentSlot.CurrentBookings + increment,
+            "current_bookings": newBookingCount,
             "updated_at": time.Now(),
         },
     }
@@ -780,14 +782,6 @@ func (r *bookingRepository) updateBadmintonSlotBookings(ctx context.Context, slo
         return errors.New("badminton slot not found")
     }
 
-    // Verify the update
-    var updatedSlot facility.Slot
-    err = col.FindOne(ctx, bson.M{"_id": slotId}).Decode(&updatedSlot)
-    if err != nil {
-        return fmt.Errorf("failed to verify update: %w", err)
-    }
-
-    log.Printf("Current bookings after update: %d", updatedSlot.CurrentBookings)
     return nil
 }
 
@@ -816,4 +810,23 @@ func (r *bookingRepository) getSlot(ctx context.Context, facilityName string, sl
     }
 
     return &slot, nil
+}
+
+// Add this function to check badminton slot availability
+func (r *bookingRepository) checkBadmintonSlotAvailability(ctx context.Context, slotId primitive.ObjectID) error {
+    db := r.facilityDbConn(ctx, "badminton")
+    col := db.Collection("slots")
+
+    var slot facility.BadmintonSlot
+    err := col.FindOne(ctx, bson.M{"_id": slotId}).Decode(&slot)
+    if err != nil {
+        return fmt.Errorf("failed to find badminton slot: %w", err)
+    }
+
+    // Check if the slot is already fully booked
+    if slot.CurrentBookings >= slot.MaxBookings {
+        return errors.New("slot is already fully booked")
+    }
+
+    return nil
 }
