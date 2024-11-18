@@ -72,16 +72,13 @@ const FacilitySlotManager: React.FC<FacilitySlotManagerProps> = ({ facilityName 
           throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
-        const result = await response.json();
-        console.log('Raw response data:', result);
+        const slots = await response.json();
+        console.log('Fetched slots:', slots);
         
-        const slotsData = result.data || result;
-        console.log('Slots data to be used:', slotsData);
-        
-        if (Array.isArray(slotsData)) {
-          setSlots(slotsData);
+        if (Array.isArray(slots)) {
+          setSlots(slots);
         } else {
-          console.warn('Data is not in expected format:', slotsData);
+          console.warn('Response is not an array:', slots);
           setSlots([]);
         }
       } catch (error: any) {

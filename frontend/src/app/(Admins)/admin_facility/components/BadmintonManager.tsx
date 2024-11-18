@@ -59,16 +59,13 @@ const BadmintonManager = () => {
         throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
       
-      const result = await response.json();
-      console.log('Raw courts data:', result);
+      const courts = await response.json();
+      console.log('Fetched courts:', courts);
       
-      const courtsData = result.data || result;
-      console.log('Courts data to be used:', courtsData);
-      
-      if (Array.isArray(courtsData)) {
-        setCourts(courtsData);
+      if (Array.isArray(courts)) {
+        setCourts(courts);
       } else {
-        console.warn('Courts data is not in expected format:', courtsData);
+        console.warn('Courts response is not an array:', courts);
         setCourts([]);
       }
     } catch (error: any) {
@@ -91,16 +88,13 @@ const BadmintonManager = () => {
         throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
       
-      const result = await response.json();
-      console.log('Raw slots data:', result);
+      const slots = await response.json();
+      console.log('Fetched slots:', slots);
       
-      const slotsData = result.data || result;
-      console.log('Slots data to be used:', slotsData);
-      
-      if (Array.isArray(slotsData)) {
-        setSlots(slotsData);
+      if (Array.isArray(slots)) {
+        setSlots(slots);
       } else {
-        console.warn('Slots data is not in expected format:', slotsData);
+        console.warn('Slots response is not an array:', slots);
         setSlots([]);
       }
     } catch (error: any) {

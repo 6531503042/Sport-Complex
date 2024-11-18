@@ -34,24 +34,22 @@ func (s *server) facilityService() {
 
 	// HTTP routes
 	facility := s.app.Group("/facility_v1")
-
-	// Regular facility routes
-	facility.GET("/facilities", fHttpHandler.FindManyFacility)
+	facility.GET("/facility/facilities", fHttpHandler.FindManyFacility)
 	facility.GET("/facility/:facility_id", fHttpHandler.FindOneFacility)
-	facility.POST("/facility", fHttpHandler.CreateFacility)
+	facility.POST("/facility/facility", fHttpHandler.CreateFacility)
 
-	// Slot Routes for each facility type
+	// Slot Routes
 	facilitySlot := facility.Group("/:facilityName/slot_v1")
 	facilitySlot.POST("/slots", fHttpHandler.InsertSlot)
-	facilitySlot.GET("/slots", fHttpHandler.FindAllSlots)
 	facilitySlot.GET("/slots/:slot_id", fHttpHandler.FindOneSlot)
+	facilitySlot.GET("/slots", fHttpHandler.FindAllSlots)
 
-	// Badminton specific routes
+	// Badminton Routes
 	badminton := facility.Group("/badminton_v1")
-	badminton.GET("/courts", fHttpHandler.FindCourt)
 	badminton.POST("/court", fHttpHandler.InsertBadCourt)
-	badminton.GET("/slots", fHttpHandler.FindBadmintonSlot)
 	badminton.POST("/slot", fHttpHandler.InsertBadmintonSlot)
+	badminton.GET("/slots", fHttpHandler.FindBadmintonSlot)
+	badminton.GET("/courts", fHttpHandler.FindCourt)
 
 	// Admin routes with analytics
 	adminFacility := s.app.Group("/admin/facility_v1", s.middleware.JwtAuthorizationMiddleware(s.cfg))
