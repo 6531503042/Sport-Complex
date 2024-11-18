@@ -49,3 +49,20 @@ The architecture should include the following components:
    ```bash
    git clone https://github.com/6531503042/Sport-Complex.git
    cd sport complex
+
+<h2>📃 Start App in Terminal</h2>
+Start
+
+```bash
+SEEZGO
+```
+Stop
+
+```bash
+SEEZSTOP
+```
+
+Check Status
+```bash
+SEEZSTATUS
+```
