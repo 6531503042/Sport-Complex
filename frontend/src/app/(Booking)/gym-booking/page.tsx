@@ -10,8 +10,13 @@ import GroupIcon from "@mui/icons-material/Group";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import Link from "next/link"
 import { useRouter } from 'next/navigation';
-
-
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PeopleIcon from '@mui/icons-material/People';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import WarningIcon from '@mui/icons-material/Warning';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Tooltip } from '@mui/material';
 
 interface UserData {
   id: string;
@@ -21,6 +26,31 @@ interface UserData {
 interface UserDataParams {
   params: UserData;
 }
+
+interface Slot {
+  _id: string;
+  start_time: string;
+  end_time: string;
+  current_bookings: number;
+  max_bookings: number;
+  status: string;
+}
+
+interface BookingFormProps {
+  formData: {
+    name: string;
+    id: string;
+    phone: string;
+  };
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onClose: () => void;
+  selectedTime?: string;
+}
+
+interface ModalProps {
+  onClose: () => void;
+}
+
 async function getAccessToken(refreshToken: string | null) {
   if (!refreshToken) return null;
 
@@ -45,6 +75,215 @@ async function getAccessToken(refreshToken: string | null) {
   }
 }
 
+// Helper functions
+const isSlotBooked = (slot: Slot): boolean => {
+  return slot.current_bookings >= slot.max_bookings;
+};
+
+const getStatusClasses = (slot: Slot): string => {
+  const isBooked = isSlotBooked(slot);
+  const remainingSpots = slot.max_bookings - slot.current_bookings;
+
+  if (isBooked) return 'bg-red-100 text-red-800';
+  if (remainingSpots <= 2) return 'bg-yellow-100 text-yellow-800';
+  return 'bg-green-100 text-green-800';
+};
+
+const getStatusText = (slot: Slot): string => {
+  const isBooked = isSlotBooked(slot);
+  const remainingSpots = slot.max_bookings - slot.current_bookings;
+
+  if (isBooked) return 'Fully Booked';
+  return `${remainingSpots} ${remainingSpots === 1 ? 'spot' : 'spots'} left`;
+};
+
+const BookingForm = ({ formData, handleSubmit, onClose, selectedTime }: BookingFormProps) => (
+  <motion.div 
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+  >
+    <motion.div 
+      initial={{ scale: 0.9, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      exit={{ scale: 0.9, y: 20 }}
+      className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+    >
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Complete Booking</h2>
+          <p className="text-sm text-gray-500">Fill in your details to confirm your slot</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+        >
+          ✕
+        </button>
+      </div>
+
+      {selectedTime && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 bg-purple-50 rounded-xl border border-purple-100"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <AccessTimeIcon className="text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm text-purple-600 font-medium">Selected Time</p>
+              <p className="text-lg font-semibold text-purple-900">{selectedTime}</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Name
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.name}
+                readOnly
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50
+                          focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                          transition-all duration-200"
+              />
+              <Tooltip title="Name cannot be changed" arrow>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <WarningIcon className="text-gray-400" />
+                </div>
+              </Tooltip>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ID Number
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.id}
+                readOnly
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50
+                          focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                          transition-all duration-200"
+              />
+              <Tooltip title="ID cannot be changed" arrow>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <WarningIcon className="text-gray-400" />
+                </div>
+              </Tooltip>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4 pt-6">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="button"
+            onClick={onClose}
+            className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl
+                     hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600
+                     text-white rounded-xl font-medium
+                     hover:from-purple-700 hover:to-indigo-700
+                     transition-colors shadow-lg hover:shadow-xl"
+          >
+            Confirm Booking
+          </motion.button>
+        </div>
+      </form>
+    </motion.div>
+  </motion.div>
+);
+
+// Success Modal Component
+const SuccessModal: React.FC<ModalProps> = ({ onClose }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+  >
+    <motion.div
+      initial={{ scale: 0.9, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      exit={{ scale: 0.9, y: 20 }}
+      className="bg-white rounded-xl p-6 max-w-sm w-full"
+    >
+      <div className="text-center">
+        <CheckIcon className="text-green-500 text-5xl mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Booking Successful!
+        </h2>
+        <p className="text-gray-600 mb-6">
+          Your slot has been successfully booked.
+        </p>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onClose}
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-lg font-semibold"
+        >
+          Done
+        </motion.button>
+      </div>
+    </motion.div>
+  </motion.div>
+);
+
+// Error Modal Component
+const ErrorModal: React.FC<ModalProps> = ({ onClose }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+  >
+    <motion.div
+      initial={{ scale: 0.9, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      exit={{ scale: 0.9, y: 20 }}
+      className="bg-white rounded-xl p-6 max-w-sm w-full"
+    >
+      <div className="text-center">
+        <ClearIcon className="text-red-500 text-5xl mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Booking Failed
+        </h2>
+        <p className="text-gray-600 mb-6">
+          Something went wrong. Please try again later.
+        </p>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onClose}
+          className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600"
+        >
+          Close
+        </motion.button>
+      </div>
+    </motion.div>
+  </motion.div>
+);
+
 function Gym_Booking({ params }: UserDataParams) {
   const router = useRouter();
   const { id } = params;
@@ -64,19 +303,19 @@ function Gym_Booking({ params }: UserDataParams) {
   const [isMobileView, setIsMobileView] = useState(false);
   const [isBookingFailed, setIsBookingFailed] = useState(false);
 
-  const handleCardClick = (lot: any) => {
-    // Allow booking if the slot is not fully booked
-    const isSlotFull = lot.current_bookings >= lot.max_bookings;
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [showBookingForm, setShowBookingForm] = useState(false);
+  const [handleCloseForm] = useState(() => () => {
+    setShowBookingForm(false);
+    setSelectedCard(null);
+  });
 
-    // Check if the slot is full
-    if (!isSlotFull) {
-      const index = slot.findIndex((s) => s._id === lot._id); // Get the index of the clicked lot
+  const handleCardClick = (slot: Slot) => {
+    if (!isSlotBooked(slot)) {
+      const index = slots.findIndex(s => s._id === slot._id);
       if (index !== -1) {
-        setSelectedCard(index === selectedCard ? null : index); // Toggle selected card
-
-        if (window.innerWidth < 640) {
-          setIsMobileView(true); // Switch to form view in mobile
-        }
+        setSelectedCard(index);
+        setShowBookingForm(true);
       }
     }
   };
@@ -85,82 +324,78 @@ function Gym_Booking({ params }: UserDataParams) {
     e.preventDefault();
 
     try {
-        if (selectedCard === null || !slot || !slot[selectedCard]) {
-            console.error("No slot selected");
-            return;
-        }
+      if (selectedCard === null || !slots[selectedCard]) {
+        console.error("No slot selected");
+        return;
+      }
 
-        let accessToken = localStorage.getItem("access_token");
+      let accessToken = localStorage.getItem("access_token");
+      if (!accessToken) {
+        accessToken = await getAccessToken(storedRefreshToken);
         if (!accessToken) {
-            accessToken = await getAccessToken(storedRefreshToken);
-            if (!accessToken) {
-                console.error("Failed to obtain access token");
-                setIsBookingFailed(true);
-                return;
-            }
+          console.error("Failed to obtain access token");
+          setIsBookingFailed(true);
+          return;
         }
+      }
 
-        const bookingData = {
-            user_id: formData.id,
-            slot_id: slot[selectedCard]._id,
-            status: 1,
-            slot_type: "normal",
-            badminton_slot_id: null,
-        };
+      const bookingData = {
+        user_id: formData.id,
+        slot_id: slots[selectedCard]._id,
+        status: 1,
+        slot_type: "normal",
+        badminton_slot_id: null,
+      };
 
-        const response = await fetch("http://localhost:1326/booking_v1/fitness/booking", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify(bookingData),
-        });
+      const response = await fetch("http://localhost:1326/booking_v1/fitness/booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(bookingData),
+      });
 
-        if (!response.ok) {
-            setIsBookingFailed(true);
-            return;
+      if (!response.ok) {
+        setIsBookingFailed(true);
+        return;
+      }
+
+      const result = await response.json();
+      
+      if (!result.payment_id) {
+        setIsBookingFailed(true);
+        return;
+      }
+
+      const paymentInfo = {
+        payment_id: result.payment_id,
+        booking_id: result.booking_id,
+        status: result.status
+      };
+      localStorage.setItem('currentPaymentInfo', JSON.stringify(paymentInfo));
+
+      setIsBookingSuccessful(true);
+      setSelectedCard(null);
+
+      setTimeout(() => {
+        if (result.payment_id) {
+          router.push(`/payment/${result.payment_id}`);
+        } else {
+          setIsBookingFailed(true);
         }
-
-        // Parse the complete response
-        const result = await response.json();
-        console.log("Complete booking response:", result);
-
-        // Store all payment-related information in localStorage
-        const paymentInfo = {
-            payment_id: result.payment_id,
-            booking_id: result.booking_id,
-            qr_code_url: result.qr_code_url,
-            status: result.status
-        };
-        localStorage.setItem('currentPaymentInfo', JSON.stringify(paymentInfo));
-
-        setIsBookingSuccessful(true);
-        setSelectedCard(null);
-
-        // Redirect to payment page after a short delay
-        setTimeout(() => {
-            if (result.payment_id) {
-                router.push(`/payment/${result.payment_id}`);
-            } else {
-                console.error("Payment ID is undefined, cannot redirect.");
-                setIsBookingFailed(true);
-            }
-        }, 1000);
+      }, 1000);
 
     } catch (error) {
-        console.error("Error submitting booking:", error);
-        setIsBookingFailed(true);
+      console.error("Error submitting booking:", error);
+      setIsBookingFailed(true);
     }
-};
-
+  };
 
   const handleBackToTimeSlots = () => {
     setIsMobileView(false);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [slot, setSlot] = useState<any[] | null>(null);
   const getSlot = async () => {
     try {
       const resSlot = await fetch(
@@ -177,10 +412,10 @@ function Gym_Booking({ params }: UserDataParams) {
         );
       }
       const slotData = await resSlot.json();
-      setSlot(Array.isArray(slotData) && slotData.length ? slotData : []);
+      setSlots(Array.isArray(slotData) && slotData.length ? slotData : []);
     } catch (error) {
       console.error("Error fetching slot data:", error);
-      setSlot([]);
+      setSlots([]);
     }
   };
 
@@ -213,244 +448,161 @@ function Gym_Booking({ params }: UserDataParams) {
   return (
     <>
       <NavBar activePage="gym" />
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-white py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          {/* Enhanced Header Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
+            <motion.div 
+              whileHover={{ scale: 1.1, rotate: 360 }}
+              transition={{ duration: 0.5 }}
+              className="inline-block p-4 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 mb-6"
+            >
+              <FitnessCenterIcon className="text-purple-600 text-4xl" />
+            </motion.div>
+            <h1 className="text-5xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 inline-block text-transparent bg-clip-text">
+              Fitness Center Booking
+            </h1>
+            <p className="text-gray-600 text-xl max-w-2xl mx-auto">
+              Reserve your spot for a great workout session
+            </p>
+          </motion.div>
 
-      <div className="flex flex-col items-center h-screen p-6">
-        <div className="w-full max-w-[1189px] bg-[#FEFFFE] border-gray border rounded-3xl drop-shadow-2xl p-5">
-          <h1 className="text-4xl font-bold my-10 text-black text-center">
-            Gym Booking
-          </h1>
-
-          {slot && slot.length === 0 ? (
-            <div className="slot-unavailable-card text-center p-8 rounded-lg shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105">
-              <ReportProblemIcon
-                className="slot-unavailable-icon text-red-500 mb-4"
-                style={{ fontSize: "3rem" }}
-              />
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                Slot Unavailable
-              </h2>
-              <p className="text-gray-600 text-lg">
-                All slots are currently booked. Please check back later or
-                contact support for more options.
-              </p>
+          {/* Time Slots Legend */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex justify-center gap-8 mb-10"
+          >
+            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-md">
+              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-gray-600">Available</span>
             </div>
-          ) : isMobileView ? (
-            // Mobile View: Show the form instead of the time slots
-            <div className="block sm:hidden ">
-              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
-                <form onSubmit={handleSubmit}>
-                  {/* Flex container for aligning back button and time at the top */}
-                  <div className="flex items-center justify-between my-3">
-                    <ArrowBackIosNewIcon
-                      className="border shadow-xl w-10 h-10 p-2 rounded-md cursor-pointer hover:bg-gray-200"
-                      onClick={handleBackToTimeSlots}
-                      style={{ fontSize: "2rem" }}
-                    />
-                    {selectedCard !== null && slot[selectedCard] && (
-                      <h2 className="text-xl font-semibold text-start">
-                        {slot[selectedCard].start_time} -{" "}
-                        {slot[selectedCard].end_time}
-                      </h2>
-                    )}
-                  </div>
-
-                  <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700 py-2">
-                      Name
-                    </span>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      readOnly
-                      className="name-input-football mt-1 block w-full px-3 py-3"
-                    />
-                  </label>
-
-                  <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700 py-2">
-                      Lecturer / Staff / Student ID
-                    </span>
-                    <input
-                      type="text"
-                      name="id"
-                      value={formData.id}
-                      readOnly
-                      className="name-input-football mt-1 block w-full px-3 py-3"
-                    />
-                  </label>
-
-                  {/* Center the Booking button */}
-                  <div className="flex justify-center">
-                    <button
-                      type="submit"
-                      className="font-bold bg-[#5EB900] text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
-                    >
-                      Booking
-                    </button>
-                  </div>
-                </form>
-              </div>
+            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-md">
+              <div className="w-3 h-3 bg-yellow-400 rounded-full" />
+              <span className="text-gray-600">Limited Spots</span>
             </div>
-          ) : (
-            // Normal screen view
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {slot?.map((lot) => {
-                  const isSlotFull = lot.current_bookings >= lot.max_bookings; // Check if the slot is fully booked
+            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-md">
+              <div className="w-3 h-3 bg-red-400 rounded-full" />
+              <span className="text-gray-600">Fully Booked</span>
+            </div>
+          </motion.div>
 
-                  return (
-                    <div
-                      key={lot._id}
-                      className={`border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
-      ${
-        isSlotFull
-          ? "cursor-not-allowed bg-[#C1C7D4] text-white"
-          : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
-      }
-      ${!isSlotFull ? "hover:bg-[#005400]" : ""}
-    `}
-                      onClick={() => {
-                        if (!isSlotFull) {
-                          handleCardClick(lot);
-                        }
-                      }}
-                    >
-                      <div className="text-lg font-semibold grid grid-cols-2 justify-between items-center">
-                        <div>
-                          {lot.start_time} - {lot.end_time}
-                          <div className="mt-2 text-sm text-white">
-                            <GroupIcon
-                              className="mr-2.5"
-                              style={{ fontSize: "1.3rem" }}
-                            />
-                            {lot.current_bookings} / {lot.max_bookings}
-                          </div>
-                        </div>
-                        <div className="ml-auto">
-                          {isSlotFull ? (
-                            <ClearIcon
-                              className="mx-2.5"
-                              style={{ fontSize: "2rem" , color:"red" }}
-                            />
-                          ) : (
-                            <CheckIcon
-                              className="mx-2.5"
-                              style={{ fontSize: "2rem" }}
-                            />
-                          )}
-                        </div>
-                      </div>
+          {/* Slots Grid */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {slots?.map((slot, index) => (
+              <motion.div
+                key={slot._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={`
+                  relative rounded-xl overflow-hidden transition-all duration-300
+                  ${isSlotBooked(slot) 
+                    ? 'bg-gray-50 cursor-not-allowed' 
+                    : 'bg-white hover:bg-purple-50 cursor-pointer transform hover:scale-105'
+                  }
+                  shadow-lg hover:shadow-xl
+                `}
+                onClick={() => !isSlotBooked(slot) && handleCardClick(slot)}
+              >
+                {/* Time Header */}
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6">
+                  <div className="flex items-center justify-center gap-3">
+                    <AccessTimeIcon className="text-purple-200" />
+                    <h3 className="text-xl font-semibold">
+                      {slot.start_time} - {slot.end_time}
+                    </h3>
+                  </div>
+                </div>
 
-                      {/* Display Current and Maximum Bookings */}
+                {/* Slot Details */}
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <PeopleIcon className="text-gray-400" />
+                      <span className="text-gray-600 font-medium">
+                        {slot.current_bookings} / {slot.max_bookings}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      className={`
+                        px-4 py-2 rounded-full text-sm font-medium
+                        ${getStatusClasses(slot)}
+                      `}
+                    >
+                      {getStatusText(slot)}
+                    </motion.div>
+                  </div>
 
-              <div
-                className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
-                  selectedCard !== null
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-5 opacity-0"
-                }`}
-              >
-                {selectedCard !== null && ( // Always show the form if a card is selected
-                  <>
-                    <h2 className="text-xl font-bold mb-4">
-                      Booking for {slot[selectedCard].start_time} -{" "}
-                      {slot[selectedCard].end_time}
-                    </h2>
-                    <form onSubmit={handleSubmit}>
-                      <label className="block mb-4">
-                        <span className="block text-sm font-medium text-gray-700 py-2">
-                          Name
-                        </span>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name} // Display the name from localStorage
-                          readOnly
-                          className="name-input-gym mt-1 block w-full px-3 py-3"
-                        />
-                      </label>
+                  {!isSlotBooked(slot) && (
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      className="absolute top-2 right-2"
+                    >
+                      <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-200" />
+                    </motion.div>
+                  )}
+                </div>
 
-                      <label className="block mb-4">
-                        <span className="block text-sm font-medium text-gray-700 py-2">
-                          Lecturer / Staff / Student ID
-                        </span>
-                        <input
-                          type="text"
-                          name="id"
-                          value={formData.id} // Display the id from localStorage
-                          readOnly
-                          className="name-input-gym mt-1 block w-full px-3 py-3"
-                        />
-                      </label>
-                      {/* Center the button */}
-                      <div className="flex justify-center">
-                        <button
-                          type="submit"
-                          className="font-semibold bg-[#5EB900] text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
-                        >
-                          Booking
-                        </button>
-                      </div>
-                    </form>
-                  </>
+                {isSlotBooked(slot) && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="absolute inset-0 bg-gray-100/50 backdrop-blur-[1px] 
+                             flex items-center justify-center"
+                  >
+                    <motion.span
+                      animate={{ rotate: [0, -12, 0] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      className="text-red-600 font-bold text-xl border-2 border-red-600 
+                               px-6 py-3 rounded-lg bg-white/90 shadow-xl"
+                    >
+                      BOOKED
+                    </motion.span>
+                  </motion.div>
                 )}
-              </div>
-            </>
-          )}
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Modals */}
+          <AnimatePresence>
+            {showBookingForm && selectedCard !== null && slots[selectedCard] && (
+              <BookingForm 
+                formData={formData}
+                handleSubmit={handleSubmit}
+                onClose={handleCloseForm}
+                selectedTime={`${slots[selectedCard].start_time} - ${slots[selectedCard].end_time}`}
+              />
+            )}
+
+            {isBookingSuccessful && (
+              <SuccessModal onClose={() => {
+                setIsBookingSuccessful(false);
+                setShowBookingForm(false);
+              }} />
+            )}
+
+            {isBookingFailed && (
+              <ErrorModal onClose={() => {
+                setIsBookingFailed(false);
+                setShowBookingForm(false);
+              }} />
+            )}
+          </AnimatePresence>
         </div>
-        {isBookingSuccessful && (
-          <div className="fixed inset-0 w-screen h-screen flex items-center justify-center z-50 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 ease-in-out">
-            <div className="relative bg-white w-full max-w-sm mx-auto p-8 rounded-lg shadow-xl transform transition-all duration-500 ease-in-out scale-100">
-              {/* Success Popup Content */}
-              <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
-                Booking Successful!
-              </h2>
-              <p className="text-gray-600 mb-6 text-center">
-                You have successfully booked the slot.
-              </p>
-
-              {/* Close Button */}
-              <Link href={`/payment/${id}`}>
-                <button
-                  className="w-full bg-gradient-to-r from-[#000080] via-[#2A52BE] to-[#4169E1] text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
-                  onClick={() => {
-                    setIsBookingSuccessful(false);
-                    setIsMobileView(false);
-                  }}
-                >
-                  Close
-                </button>
-              </Link>
-            </div>
-          </div>
-        )}
-        {isBookingFailed && (
-          <div className="fixed inset-0 w-screen h-screen flex items-center justify-center z-50 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 ease-in-out">
-            <div className="relative bg-white w-full max-w-sm mx-auto p-8 rounded-lg shadow-xl transform transition-all duration-500 ease-in-out scale-100">
-              {/* Failure Popup Content */}
-              <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
-                Booking Failed
-              </h2>
-              <p className="text-gray-600 mb-6 text-center">
-                An error occurred while processing your booking. Please try
-                again later.
-              </p>
-
-              {/* Close Button */}
-              <button
-                className="w-full bg-gradient-to-r from-red-600 via-red-500 to-red-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
-                onClick={() => setIsBookingFailed(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
