@@ -78,7 +78,7 @@ const Report: React.FC = () => {
             >
               <p className="p-5 text-sm md:text-2xl text-gray-700 inline-flex flex-row items-center">
                 <FontAwesomeIcon
-                  className="text-red-500 me-2"
+                  className="text-red-600 me-2"
                   icon={faClockFour}
                 />
                 {item.title}
