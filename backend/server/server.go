@@ -55,14 +55,21 @@ func (s *server) httpListening() {
 	}
 }
 
-func (s *server) gracefulShutdown(pctx context.Context, quit <-chan os.Signal) {
+func (s *server) gracefulShutdown(ctx context.Context, quit <-chan os.Signal) {
 	log.Printf("Start service: %s", s.cfg.App.Name)
 
 	<-quit
 	log.Printf("Shutting down service: %s", s.cfg.App.Name)
 
-	ctx, cancel := context.WithTimeout(pctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
+
+	// Add CORS middleware
+	s.app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3000"},  // Your frontend URL
+		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 
 	if err := s.app.Shutdown(ctx); err != nil {
 		log.Fatalf("Error: %v", err)
@@ -93,10 +100,22 @@ func Start(pctx context.Context, cfg *config.Config, db *mongo.Client) {
 
 	// CORS setup
 	s.app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://localhost:3000"}, // Frontend origin
-		AllowMethods:     []string{echo.GET, echo.POST, echo.HEAD, echo.PUT, echo.DELETE, echo.PATCH, echo.OPTIONS},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		AllowCredentials: true, // Enable credentials handling (e.g., cookies)
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+			http.MethodOptions,
+		},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+		},
+		AllowCredentials: true,
+		MaxAge: 300,
 	}))
 
 	// Body Limit
