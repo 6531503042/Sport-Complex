@@ -201,26 +201,19 @@ func (u *facilityUsecase) InsertBadmintonSlot(ctx context.Context, slot *facilit
 }
 
 func (u *facilityUsecase) FindBadmintonSlot(ctx context.Context) ([]facility.BadmintonSlot, error) {
-	// Fetch slots from repository
-	results, err := u.facilityRepository.FindBadmintonSlot(ctx)
+	slots, err := u.facilityRepository.FindBadmintonSlot(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var badmintonSlots []facility.BadmintonSlot
-	for _, result := range results {
-		badmintonSlots = append(badmintonSlots, facility.BadmintonSlot{
-			Id:        result.Id,
-			StartTime: result.StartTime,
-			EndTime:   result.EndTime,
-			Status:    result.Status,
-			CourtId:   result.CourtId,
-			CreatedAt: result.CreatedAt,
-			UpdatedAt: result.UpdatedAt,
-		})
+	// Ensure each slot has proper max_bookings value
+	for i := range slots {
+		if slots[i].MaxBookings == 0 {
+			slots[i].MaxBookings = 1 // Set default max bookings to 1
+		}
 	}
 
-	return badmintonSlots, nil
+	return slots, nil
 }
 
 // UpdateSlot updates a slot's details
