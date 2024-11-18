@@ -507,34 +507,22 @@ func (r *facilitiyReposiory) InsertBadmintonSlot(ctx context.Context, req *facil
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	// Connect to the badminton facility database
 	db := r.courtDbConn(ctx)
-	col := db.Collection("slots") // Change this to the appropriate slots collection
+	col := db.Collection("slots")
 
-	// Create the slot entry
-	slot := &facility.BadmintonSlot{
-		StartTime: req.StartTime,
-		EndTime:   req.EndTime,
-		CourtId: req.CourtId,
-		// Courts:    req.Courts,
-		Status:    0,          // Initial status (e.g., available)
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+	// Set default values for new fields
+	if req.MaxBookings == 0 {
+		req.MaxBookings = 1 // Default max bookings for badminton is 1
 	}
+	req.CurrentBookings = 0 // Initialize current bookings to 0
 
-	// Insert the slot into the collection
-	result, err := col.InsertOne(ctx, slot)
+	result, err := col.InsertOne(ctx, req)
 	if err != nil {
 		log.Printf("Error: InsertBadmintonSlot: %s", err.Error())
 		return primitive.NilObjectID, fmt.Errorf("error: insert badminton slot failed: %w", err)
 	}
 
-	slotID, ok := result.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return primitive.NilObjectID, fmt.Errorf("error: insert badminton slot failed")
-	}
-
-	return slotID, nil
+	return result.InsertedID.(primitive.ObjectID), nil
 }
 
 func (r *facilitiyReposiory) UpdateBadmintonSlot(ctx context.Context, req *facility.BadmintonSlot) error {
@@ -606,6 +594,30 @@ func (r *facilitiyReposiory) DeleteBadmintonSlot(ctx context.Context, slotId str
 
     if result.DeletedCount == 0 {
         return fmt.Errorf("error: badminton slot %s not found", slotId)
+    }
+
+    return nil
+}
+
+// Add a new method to update badminton slot bookings
+func (r *facilitiyReposiory) UpdateBadmintonSlotBookings(ctx context.Context, slotId primitive.ObjectID, increment int) error {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
+
+    db := r.courtDbConn(ctx)
+    col := db.Collection("slots")
+
+    update := bson.M{
+        "$inc": bson.M{"current_bookings": increment},
+    }
+
+    result, err := col.UpdateOne(ctx, bson.M{"_id": slotId}, update)
+    if err != nil {
+        return fmt.Errorf("failed to update badminton slot bookings: %w", err)
+    }
+
+    if result.MatchedCount == 0 {
+        return errors.New("badminton slot not found")
     }
 
     return nil
