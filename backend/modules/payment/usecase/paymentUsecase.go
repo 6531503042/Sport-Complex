@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"log"
 	"main/config"
 	"main/modules/payment"
 	"main/modules/payment/repository"
@@ -18,6 +19,7 @@ type PaymentUsecaseService interface {
 	CreatePayment(ctx context.Context, userId, bookingId, paymentMethod, facilityName string, amount float64) (*payment.PaymentResponse, error)
 	UpdatePayment(ctx context.Context, paymentId, status string) (*payment.PaymentEntity, error)
 	FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error)
+	FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentEntity, error)
 	SaveSlip(ctx context.Context, slip payment.PaymentSlip) error
 	FindSlipByUserId(ctx context.Context, userId string) ([]payment.PaymentSlip, error)
 	UpdateSlipStatus(ctx context.Context, slipId string, newStatus string) error
@@ -113,6 +115,18 @@ func (u *paymentUsecase) UpdatePayment(ctx context.Context, paymentId, status st
 func (u *paymentUsecase) FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error) {
 	return u.paymentRepository.FindPayment(ctx, paymentId)
 }
+
+func (u *paymentUsecase) FindPaymentsByUser(ctx context.Context, userId string) ([]payment.PaymentEntity, error) {
+	// Call the repository to retrieve payments
+	payments, err := u.paymentRepository.FindPaymentsByUser(ctx, userId)
+	if err != nil {
+		log.Printf("Error: FindPaymentsByUser failed: %s", err.Error())
+		return nil, fmt.Errorf("failed to find payments by user ID: %w", err)
+	}
+
+	return payments, nil
+}
+
 
 func (u *paymentUsecase) SaveSlip(ctx context.Context, slip payment.PaymentSlip) error {
 	err := u.paymentRepository.SaveSlip(ctx, slip)

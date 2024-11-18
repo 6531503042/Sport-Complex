@@ -15,6 +15,7 @@ import (
 type PaymentHttpHandlerService interface {
 	CreatePayment(c echo.Context) error
 	FindPayment(c echo.Context) error
+	FindPaymentsByUser(c echo.Context) error
 	HandlePaymentSuccess(c echo.Context) error
 	SaveSlip(c echo.Context) error
 	UpdateSlipStatus(c echo.Context) error
@@ -67,6 +68,23 @@ func (h *paymentHttpHandler) FindPayment(c echo.Context) error {
 	}
 	return response.SuccessResponse(c, http.StatusOK, payment)
 }
+
+func (h *paymentHttpHandler) FindPaymentsByUser(c echo.Context) error {
+	userId := c.Param("userId") // Get the user ID from the URL parameter
+
+	if userId == "" {
+		return response.ErrResponse(c, http.StatusBadRequest, "User ID is required")
+	}
+
+	// Call the usecase to retrieve payments
+	payments, err := h.paymentUsecase.FindPaymentsByUser(c.Request().Context(), userId)
+	if err != nil {
+		return response.ErrResponse(c, http.StatusInternalServerError, "Failed to retrieve payments: "+err.Error())
+	}
+
+	return response.SuccessResponse(c, http.StatusOK, payments)
+}
+
 
 // HandlePaymentSuccess handles payment success callback
 func (h *paymentHttpHandler) HandlePaymentSuccess(c echo.Context) error {

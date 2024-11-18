@@ -32,6 +32,7 @@ func (s *server) paymentService() {
 	payment := s.app.Group("/payment_v1")
 	payment.POST("/payments", paymentHttpHandler.CreatePayment)            // Create a payment
 	payment.GET("/payments/:id", paymentHttpHandler.FindPayment)          // Get payment by ID
+	payment.GET("/payments/user/:userId", paymentHttpHandler.FindPaymentsByUser)
 	payment.POST("/payments/slips", paymentHttpHandler.SaveSlip)          // Save payment slip
 	payment.PUT("/payments/slips/:slipId", paymentHttpHandler.UpdateSlipStatus) // Update payment slip status
 	payment.GET("/payments/slips/pending", paymentHttpHandler.GetPendingSlips)  // Get pending payment slips
