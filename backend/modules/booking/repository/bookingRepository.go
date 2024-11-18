@@ -23,7 +23,7 @@ type (
 		UpdateBooking (ctx context.Context, booking *booking.Booking) (*booking.Booking, error)
 		FindBooking(ctx context.Context, bookingId string) (*booking.Booking, error)
 		FindOneUserBooking (ctx context.Context, userId string) ([]booking.Booking, error)
-
+        updateBadmintonSlotBookings(ctx context.Context, slotId primitive.ObjectID, increment int) error
 		InsertBooking(pctx context.Context, facilityName string, req *booking.Booking) (*booking.Booking, error)
 		
 
@@ -706,3 +706,23 @@ func (r *bookingRepository) countUserBadmintonBookings(ctx context.Context, user
 
 //     return nil
 // }
+
+func (r *bookingRepository) updateBadmintonSlotBookings(ctx context.Context, slotId primitive.ObjectID, increment int) error {
+    db := r.facilityDbConn(ctx, "badminton")
+    col := db.Collection("slots")
+
+    update := bson.M{
+        "$inc": bson.M{"current_bookings": increment},
+    }
+
+    result, err := col.UpdateOne(ctx, bson.M{"_id": slotId}, update)
+    if err != nil {
+        return fmt.Errorf("failed to update badminton slot bookings: %w", err)
+    }
+
+    if result.MatchedCount == 0 {
+        return errors.New("badminton slot not found")
+    }
+
+    return nil
+}
