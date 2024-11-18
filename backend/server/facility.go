@@ -2,18 +2,25 @@ package server
 
 import (
 	"log"
-	"main/modules/facility/handler"
+	analyticsHandler "main/modules/analytics/handler"
+	analyticsRepo "main/modules/analytics/repository"
+	analyticsUsecase "main/modules/analytics/usecase"
+	facilityHandler "main/modules/facility/handler"
 	facilityPb "main/modules/facility/proto"
-	"main/modules/facility/repository"
-	"main/modules/facility/usecase"
+	facilityRepo "main/modules/facility/repository"
+	facilityUsecase "main/modules/facility/usecase"
 	"main/pkg/grpc"
 )
 
 func (s *server) facilityService() {
-	repo := repository.NewFacilityRepository(s.db)
-	facilityUsecase := usecase.NewFacilityUsecase(repo)
-	httpHandler := handler.NewFacilityHttpHandler(s.cfg, facilityUsecase)
-	grpcHandler := handler.NewFacilityGrpcHandler(facilityUsecase)
+	repo := facilityRepo.NewFacilityRepository(s.db)
+	fUsecase := facilityUsecase.NewFacilityUsecase(repo)
+	aRepo := analyticsRepo.NewAnalyticsRepository(s.db)
+	aUsecase := analyticsUsecase.NewAnalyticsUsecase(aRepo)
+	
+	fHttpHandler := facilityHandler.NewFacilityHttpHandler(s.cfg, fUsecase)
+	aHttpHandler := analyticsHandler.NewAnalyticsHttpHandler(s.cfg, aUsecase)
+	grpcHandler := facilityHandler.NewFacilityGrpcHandler(fUsecase)
 
 	// Start gRPC server
 	go func() {
@@ -27,20 +34,32 @@ func (s *server) facilityService() {
 
 	// HTTP routes
 	facility := s.app.Group("/facility_v1")
-	facility.GET("/facility/facilities", httpHandler.FindManyFacility)
-	facility.GET("/facility/:facility_id", httpHandler.FindOneFacility)
-	facility.POST("/facility/facility", httpHandler.CreateFacility)
+	facility.GET("/facility/facilities", fHttpHandler.FindManyFacility)
+	facility.GET("/facility/:facility_id", fHttpHandler.FindOneFacility)
+	facility.POST("/facility/facility", fHttpHandler.CreateFacility)
 
 	// Slot Routes
 	facilitySlot := facility.Group("/:facilityName/slot_v1")
-	facilitySlot.POST("/slots", httpHandler.InsertSlot)
-	facilitySlot.GET("/slots/:slot_id", httpHandler.FindOneSlot)
-	facilitySlot.GET("/slots", httpHandler.FindAllSlots)
+	facilitySlot.POST("/slots", fHttpHandler.InsertSlot)
+	facilitySlot.GET("/slots/:slot_id", fHttpHandler.FindOneSlot)
+	facilitySlot.GET("/slots", fHttpHandler.FindAllSlots)
 
 	// Badminton Routes
 	badminton := facility.Group("/badminton_v1")
-	badminton.POST("/court", httpHandler.InsertBadCourt)
-	badminton.POST("/slot", httpHandler.InsertBadmintonSlot)
-	badminton.GET("/slots", httpHandler.FindBadmintonSlot)
-	badminton.GET("/courts", httpHandler.FindCourt)
+	badminton.POST("/court", fHttpHandler.InsertBadCourt)
+	badminton.POST("/slot", fHttpHandler.InsertBadmintonSlot)
+	badminton.GET("/slots", fHttpHandler.FindBadmintonSlot)
+	badminton.GET("/courts", fHttpHandler.FindCourt)
+
+	// Admin routes with analytics
+	adminFacility := s.app.Group("/admin/facility_v1", s.middleware.JwtAuthorizationMiddleware(s.cfg))
+	
+	// Analytics routes
+	adminFacility.GET("/analytics/dashboard", aHttpHandler.GetDashboardMetrics)
+	adminFacility.GET("/analytics/users", aHttpHandler.GetUserAnalytics)
+	
+	// Facility management routes
+	adminFacility.GET("/facilities", fHttpHandler.FindManyFacility)
+	adminFacility.GET("/facility/:facility_id", fHttpHandler.FindOneFacility)
+	adminFacility.POST("/facility", fHttpHandler.CreateFacility)
 }
