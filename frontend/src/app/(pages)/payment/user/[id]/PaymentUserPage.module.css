@@ -1,60 +1,85 @@
+/* Table Styles */
 .tableAuto {
   width: 100%;
-  border-collapse: separate; /* Changed from collapse to separate */
-  border-spacing: 0; /* Ensures the border radius is visible */
-  border-radius: 8px; /* Rounded corners for the entire table */
-  overflow: hidden; /* Ensures the border radius is applied correctly */
+  border-collapse: collapse; /* Simplified the collapse */
+  border-radius: 12px; /* Larger rounded corners for a modern look */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  overflow: hidden;
 }
 
 .tableAuto thead {
-  background-color: #333;
-  color: #fff;
-  border-top-left-radius: 8px; /* Rounded corners for the top-left */
-  border-top-right-radius: 8px; /* Rounded corners for the top-right */
+  background: linear-gradient(90deg, #e66465, #9198e5); /* Gradient for header */
+  color: white;
+  text-transform: uppercase; /* Uppercase for headers */
 }
 
 .tableAuto th,
 .tableAuto td {
-  border: none; /* Remove borders */
   padding: 1rem;
   text-align: left;
+  font-size: 0.9rem; /* Smaller font size for a clean look */
 }
 
 .tableAuto th {
-  background-color: #444;
-  font-weight: bold;
+  font-weight: 600;
+  letter-spacing: 0.5px; /* Slight letter spacing for better readability */
+}
+
+.tableAuto tbody {
+  background-color: #f9fafb; /* Light background for the body */
 }
 
 .tableAuto tbody tr {
-  background-color: #222;
-  color: #fff;
-}
-
-.tableAuto tbody tr:nth-child(even) {
-  background-color: #2a2a2a;
+  background-color: #ffffff; /* White background for rows */
+  transition: all 0.3s ease; /* Smooth transition for hover effect */
 }
 
 .tableAuto tbody tr:hover {
-  background-color: #555;
+  background-color: #e2e8f0; /* Hover effect with a soft gray */
+  transform: scale(1.02); /* Slight scaling effect */
+}
+
+.tableAuto tbody tr:nth-child(even) {
+  background-color: #f4f7fa; /* Lighter row for even numbers */
 }
 
 .tableAuto tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 8px; /* Rounded corners for the bottom-left */
+  border-bottom-left-radius: 12px; /* Rounded bottom-left */
 }
 
 .tableAuto tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 8px; /* Rounded corners for the bottom-right */
+  border-bottom-right-radius: 12px; /* Rounded bottom-right */
 }
 
+/* Link Styles */
 .tableAuto a {
-  color: #4a90e2;
+  color: #3b82f6; /* Modern link color */
   text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .tableAuto a:hover {
+  color: #2563eb; /* Darker blue on hover */
   text-decoration: underline;
 }
 
+/* Error Message Style */
 .textRed500 {
-  color: #f56565;
+  color: #e53e3e; /* Modern red for errors */
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tableAuto th, .tableAuto td {
+    padding: 0.8rem;
+  }
+  
+  .tableAuto {
+    font-size: 0.85rem; /* Smaller font for mobile */
+  }
 }
