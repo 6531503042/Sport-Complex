@@ -6,31 +6,30 @@ import (
 	"main/config"
 	"main/modules/payment"
 	"main/modules/payment/repository"
-	"main/pkg/utils"
+
 	"net/url"
+	"time"
 
 	"github.com/Frontware/promptpay"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type (
-	PaymentUsecaseService interface {
-		CreatePayment(ctx context.Context, userId string, bookingId string, PaymentMethod string , facilityName string, amount float64) (*payment.PaymentResponse, error)
-		UpdatePayment(ctx context.Context, paymentId string, status string) (*payment.PaymentEntity, error)
-		FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error)
-		SaveSlip(ctx context.Context, slip payment.PaymentSlip) error
-		FindSlipByUserId(ctx context.Context, userId string) ([]payment.PaymentSlip, error)
-		UpdateSlipStatus(ctx context.Context, slipId string, newStatus string) error
-		GetPendingSlips(ctx context.Context) ([]payment.PaymentSlip, error)
-	}
+type PaymentUsecaseService interface {
+	CreatePayment(ctx context.Context, userId, bookingId, paymentMethod, facilityName string, amount float64) (*payment.PaymentResponse, error)
+	UpdatePayment(ctx context.Context, paymentId, status string) (*payment.PaymentEntity, error)
+	FindPayment(ctx context.Context, paymentId string) (*payment.PaymentEntity, error)
+	SaveSlip(ctx context.Context, slip payment.PaymentSlip) error
+	FindSlipByUserId(ctx context.Context, userId string) ([]payment.PaymentSlip, error)
+	UpdateSlipStatus(ctx context.Context, slipId string, newStatus string) error
+	GetPendingSlips(ctx context.Context) ([]payment.PaymentSlip, error)
+}
 
-	paymentUsecase struct {
-		cfg               *config.Config
-		paymentRepository repository.PaymentRepositoryService
-	}
-)
+type paymentUsecase struct {
+	cfg               *config.Config
+	paymentRepository repository.PaymentRepositoryService
+}
 
-// NewPaymentUsecase returns a new instance of PaymentUsecaseService using the given payment repository.
+// NewPaymentUsecase creates and returns a new payment usecase instance.
 func NewPaymentUsecase(cfg *config.Config, paymentRepository repository.PaymentRepositoryService) PaymentUsecaseService {
 	return &paymentUsecase{
 		cfg:               cfg,
@@ -38,46 +37,43 @@ func NewPaymentUsecase(cfg *config.Config, paymentRepository repository.PaymentR
 	}
 }
 
-func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, bookingId string, PaymentMethod string ,facilityName string, amount float64) (*payment.PaymentResponse, error) {
+func (u *paymentUsecase) CreatePayment(ctx context.Context, userId, bookingId, paymentMethod, facilityName string, amount float64) (*payment.PaymentResponse, error) {
 	paymentDoc := &payment.PaymentEntity{
 		Id:            primitive.NewObjectID(),
 		UserID:        userId,
 		BookingID:     bookingId,
 		Amount:        amount,
 		Currency:      "THB",
-		PaymentMethod: "PromptPay",
+		PaymentMethod: paymentMethod,
 		FacilityName:  facilityName,
 		Status:        payment.Pending,
-		CreatedAt:     utils.LocalTime(),
-		UpdatedAt:     utils.LocalTime(),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
-	// Define the PromptPay ID
-	PromptPayID := "1579901028845" // Replace with the actual ID
-
-	// Create a new PromptPay instance with the phone number
+	// Generate QR code (PromptPay logic)
 	promptPay := &promptpay.PromptPay{
-		PromptPayID: PromptPayID,
+		PromptPayID: "1579901028845", // Replace with actual PromptPay ID
 		Amount:      amount,
 		OneTime:     true,
 	}
 
-	// Generate the QR code data
 	qrCodeData, err := promptPay.Gen()
 	if err != nil {
 		return nil, fmt.Errorf("error generating QR code: %w", err)
 	}
 
-	// Create URL for the QR code
+	// Create the QR code URL
 	qrCodeURL := fmt.Sprintf("https://api.qrserver.com/v1/create-qr-code/?data=%s&size=300x300", url.QueryEscape(qrCodeData))
 	paymentDoc.QRCodeURL = qrCodeURL
 
-	// Insert the payment via repository
+	// Save payment in the repository
 	paymentResult, err := u.paymentRepository.InsertPayment(ctx, paymentDoc)
 	if err != nil {
 		return nil, fmt.Errorf("error creating payment: %w", err)
 	}
 
+	// Convert the entity to response
 	response := &payment.PaymentResponse{
 		Id:           paymentResult.Id.Hex(),
 		PaymentID:    paymentResult.Id.Hex(),
@@ -96,18 +92,19 @@ func (u *paymentUsecase) CreatePayment(ctx context.Context, userId string, booki
 	return response, nil
 }
 
-func (u *paymentUsecase) UpdatePayment(ctx context.Context, paymentId string, status string) (*payment.PaymentEntity, error) {
+func (u *paymentUsecase) UpdatePayment(ctx context.Context, paymentId, status string) (*payment.PaymentEntity, error) {
 	paymentEntity, err := u.paymentRepository.FindPayment(ctx, paymentId)
 	if err != nil {
-		return nil, fmt.Errorf("error: failed to find payment: %w", err)
+		return nil, fmt.Errorf("failed to find payment: %w", err)
 	}
 
 	paymentEntity.Status = payment.PaymentStatus(status)
-	paymentEntity.UpdatedAt = utils.LocalTime()
+	paymentEntity.UpdatedAt = time.Now()
 
+	// Update the payment status
 	updatedPayment, err := u.paymentRepository.UpdatePayment(ctx, paymentEntity)
 	if err != nil {
-		return nil, fmt.Errorf("error: failed to update payment: %w", err)
+		return nil, fmt.Errorf("failed to update payment: %w", err)
 	}
 
 	return updatedPayment, nil
