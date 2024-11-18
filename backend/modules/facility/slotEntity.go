@@ -29,9 +29,10 @@ type (
 		Id              primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 		StartTime       string             `bson:"start_time" json:"start_time"`
 		EndTime         string             `bson:"end_time" json:"end_time"`
-		CourtId   primitive.ObjectID `bson:"court_id" json:"court_id"`
-		// Courts          []BadmintonCourt   `bson:"courts" json:"courts"`
+		CourtId         primitive.ObjectID `bson:"court_id" json:"court_id"`
 		Status          int                `bson:"status" json:"status"`
+		MaxBookings     int                `bson:"max_bookings" json:"max_bookings"`
+		CurrentBookings int                `bson:"current_bookings" json:"current_bookings"`
 		CreatedAt       time.Time          `bson:"created_at" json:"created_at"`
 		UpdatedAt       time.Time          `bson:"updated_at" json:"updated_at"`
 	}
