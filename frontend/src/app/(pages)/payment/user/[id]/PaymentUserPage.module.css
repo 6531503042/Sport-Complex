@@ -1,44 +1,47 @@
 .tableAuto {
-    width: 100%;
-    border-collapse: collapse;
-    border: 1px solid #ccc;
-  }
-  
-  .tableAuto thead {
-    background-color: #f9f9f9;
-  }
-  
-  .tableAuto th,
-  .tableAuto td {
-    border: 1px solid #ccc;
-    padding: 0.75rem;
-    text-align: left;
-  }
-  
-  .tableAuto th {
-    background-color: #f3f3f3;
-    font-weight: bold;
-    color: #333;
-  }
-  
-  .tableAuto tr:nth-child(even) {
-    background-color: #f7f7f7;
-  }
-  
-  .tableAuto tbody tr:hover {
-    background-color: #e2e8f0;
-  }
-  
-  .tableAuto a {
-    color: #95ccff;
-    text-decoration: none;
-  }
-  
-  .tableAuto a:hover {
-    text-decoration: underline;
-  }
-  
-  .textRed500 {
-    color: #f56565;
-  }
-  
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableAuto thead {
+  background-color: #333;
+  color: #fff;
+}
+
+.tableAuto th,
+.tableAuto td {
+  border: none; /* Remove borders */
+  padding: 1rem;
+  text-align: left;
+}
+
+.tableAuto th {
+  background-color: #444;
+  font-weight: bold;
+}
+
+.tableAuto tbody tr {
+  background-color: #222;
+  color: #fff;
+}
+
+.tableAuto tbody tr:nth-child(even) {
+  background-color: #2a2a2a;
+}
+
+.tableAuto tbody tr:hover {
+  background-color: #555;
+}
+
+.tableAuto a {
+  color: #4a90e2;
+  text-decoration: none;
+}
+
+.tableAuto a:hover {
+  text-decoration: underline;
+}
+
+.textRed500 {
+  color: #f56565;
+}
