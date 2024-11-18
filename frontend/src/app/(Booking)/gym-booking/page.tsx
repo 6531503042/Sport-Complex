@@ -391,7 +391,7 @@ function Gym_Booking({ params }: UserDataParams) {
                       <div className="flex justify-center">
                         <button
                           type="submit"
-                          className="font-semibold bg-green-500 text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-green-600"
+                          className="font-semibold bg-[#5EB900] text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
                         >
                           Booking
                         </button>
