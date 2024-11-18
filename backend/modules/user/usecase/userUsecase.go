@@ -22,7 +22,7 @@ type (
         FindOneUserCredential(pctx context.Context, password, email string) (*userPb.UserProfile, error)
 		FindOneUserProfileToRefresh(pctx context.Context, userId string) (*userPb.UserProfile, error)
         UpdateOneUser(ctx context.Context, userId string, updateFields map[string]interface{}) error
-        FindManyUser(pctx context.Context) ([]user.UserProfile, error)
+        FindManyUser(pctx context.Context) ([]user.User, error)
         DeleteUser(ctx context.Context, userId string) error
         GetUserAnalytics(pctx context.Context, query *user.AnalyticsQuery) (*user.UserAnalytics, error)
 	}
@@ -175,24 +175,14 @@ func (u *userUsecase) FindOneUserProfileToRefresh(pctx context.Context, userId s
     }, nil
 }
 
-func (u *userUsecase) FindManyUser(pctx context.Context) ([]user.UserProfile, error) {
-    results, err := u.userRepository.FindManyUser(pctx)
+func (u *userUsecase) FindManyUser(pctx context.Context) ([]user.User, error) {
+    users, err := u.userRepository.FindManyUser(pctx)
     if err != nil {
         return nil, err
     }
 
-    var userProfiles []user.UserProfile
-    for _, result := range results {
-        userProfiles = append(userProfiles, user.UserProfile{
-            Id:        result.Id.Hex(),
-            Email:     result.Email,
-            Name:      result.Name,
-            CreatedAt: result.CreatedAt,
-            UpdatedAt: result.UpdatedAt,
-        })
-    }
-
-    return userProfiles, nil
+    // No transformation needed, return the raw user data
+    return users, nil
 }
 
 func (u *userUsecase) GetUserAnalytics(pctx context.Context, query *user.AnalyticsQuery) (*user.UserAnalytics, error) {
