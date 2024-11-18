@@ -92,8 +92,26 @@ func (u *userUsecase) UpdateOneUser(ctx context.Context, userId string, updateFi
         return err
     }
 
-    // Update the user information
-    updateFields["updated_at"] = utils.LocalTime().Format(time.RFC3339)
+    // If role_title is being updated, set the corresponding role_code
+    if roleTitle, ok := updateFields["role_title"].(string); ok {
+        roleCode := 0
+        if roleTitle == "admin" {
+            roleCode = 1
+        }
+        
+        // Update user_roles array
+        updateFields["user_roles"] = []user.UserRole{
+            {
+                RoleTitle: roleTitle,
+                RoleCode:  roleCode,
+            },
+        }
+        
+        // Remove the individual role_title field as we're using user_roles array
+        delete(updateFields, "role_title")
+    }
+
+    updateFields["updated_at"] = utils.LocalTime()
     return u.userRepository.UpdateOneUser(ctx, userId, updateFields)
 }
 
