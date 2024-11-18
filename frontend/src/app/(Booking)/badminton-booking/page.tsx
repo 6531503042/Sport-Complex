@@ -8,6 +8,9 @@ import ClearIcon from "@mui/icons-material/Clear";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import { useRouter } from "next/navigation";
+import SportsTennisIcon from '@mui/icons-material/SportsTennis';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 
 interface UserData {
   id: string;
@@ -17,6 +20,21 @@ interface UserData {
 interface UserDataParams {
   params: UserData;
 }
+
+interface Slot {
+  _id: string;
+  start_time: string;
+  end_time: string;
+  current_bookings: number;
+  max_bookings: number;
+  status: string;
+}
+
+interface Court {
+  _id: string;
+  court_number: number;
+}
+
 async function getAccessToken(refreshToken: string | null) {
   if (!refreshToken) return null;
 
@@ -41,6 +59,83 @@ async function getAccessToken(refreshToken: string | null) {
   }
 }
 
+// Add new interface for BookingFormProps
+interface BookingFormProps {
+  formData: {
+    name: string;
+    id: string;
+    phone: string;
+  };
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onClose: () => void;
+  selectedTime?: string;
+  selectedCourt?: number;
+}
+
+const BookingForm = ({ formData, handleSubmit, onClose, selectedTime, selectedCourt }: BookingFormProps) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-xl p-8 max-w-md w-full transform transition-all duration-300 ease-in-out">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Complete Booking</h2>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          ✕
+        </button>
+      </div>
+
+      {selectedTime && selectedCourt && (
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+          <p className="text-blue-800 font-medium">
+            Court {selectedCourt} • {selectedTime}
+          </p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Name
+          </label>
+          <input
+            type="text"
+            value={formData.name}
+            readOnly
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            ID Number
+          </label>
+          <input
+            type="text"
+            value={formData.id}
+            readOnly
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50"
+          />
+        </div>
+        <div className="flex gap-4 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Confirm Booking
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+);
+
 function Badminton_Booking({ params }: UserDataParams) {
   const { id } = params;
   const [storedRefreshToken, setStoredRefreshToken] = useState<string | null>(
@@ -56,14 +151,14 @@ function Badminton_Booking({ params }: UserDataParams) {
   const [isBookingSuccessful, setIsBookingSuccessful] = useState(false);
   const [isBookingFailed, setIsBookingFailed] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false); // New state for mobile view
+  const [slot, setSlot] = useState<Slot[]>([]);
+  const [court, setCourt] = useState<Court[]>([]);
+  const [showBookingForm, setShowBookingForm] = useState(false);
 
-  const handleCardClick = (lotIndex: number, courtIndex: number) => {
-    if (!slot[lotIndex]?.current_bookings) {
-      setSelectedCard(courtIndex === selectedCard ? null : courtIndex);
-
-      if (window.innerWidth < 640) {
-        setIsMobileView(true); // Switch to form view in mobile
-      }
+  const handleCardClick = (slot: Slot, slotIndex: number) => {
+    if (!isSlotBooked(slot)) {
+      setSelectedCard(slotIndex);
+      setShowBookingForm(true);
     }
   };
 
@@ -146,8 +241,6 @@ function Badminton_Booking({ params }: UserDataParams) {
     setIsMobileView(false);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [slot, setSlot] = useState<any[] | null>(null);
   const getSlot = async () => {
     try {
       const resSlot = await fetch(
@@ -166,34 +259,39 @@ function Badminton_Booking({ params }: UserDataParams) {
 
       const slotData = await resSlot.json();
       setSlot(Array.isArray(slotData) && slotData.length ? slotData : []);
+      console.log("Fetched slots:", slotData); // Debug log
     } catch (error) {
-      setSlot([]); // Set to empty array if there's an error fetching
+      console.error("Error fetching slots:", error);
+      setSlot([]); 
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [court, setCourt] = useState<any[] | null>(null);
-  const getCourt = async () => {
-    try {
-      const resSlot = await fetch(
-        "http://localhost:1335/facility_v1/badminton_v1/courts ",
-        {
-          method: "GET",
-          cache: "no-store",
-        }
-      );
+  // Helper function to check if a slot is fully booked
+  const isSlotBooked = (slot: Slot): boolean => {
+    return slot.current_bookings >= slot.max_bookings;
+  };
 
-      if (!resSlot.ok) {
-        throw new Error(
-          `Failed to fetch: ${resSlot.statusText} (Status: ${resSlot.status})`
-        );
-      }
+  // Helper function to get booking status text and style
+  const getBookingStatus = (slot: Slot) => {
+    const isBooked = isSlotBooked(slot);
+    const remainingSpots = slot.max_bookings - slot.current_bookings;
 
-      const slotData = await resSlot.json();
-      setCourt(Array.isArray(slotData) && slotData.length ? slotData : []);
-    } catch (error) {
-      setCourt([]); // Set to empty array if there's an error fetching
-    }
+    return {
+      text: isBooked 
+        ? "Fully Booked" 
+        : `${remainingSpots} ${remainingSpots === 1 ? 'spot' : 'spots'} left`,
+      className: isBooked
+        ? 'bg-red-100 text-red-800'
+        : remainingSpots <= 2
+        ? 'bg-yellow-100 text-yellow-800'
+        : 'bg-green-100 text-green-800'
+    };
+  };
+
+  // Add close handler
+  const handleCloseForm = () => {
+    setShowBookingForm(false);
+    setSelectedCard(null);
   };
 
   useEffect(() => {
@@ -214,7 +312,6 @@ function Badminton_Booking({ params }: UserDataParams) {
     setStoredRefreshToken(storedRefreshToken);
     // Fetch slot data on initial render and set up the interval for updating
     getSlot();
-    getCourt();
     const intervalId = setInterval(getSlot, 10000);
 
     return () => {
@@ -225,257 +322,240 @@ function Badminton_Booking({ params }: UserDataParams) {
   return (
     <>
       <NavBar activePage="badminton" />
-      <div className="flex flex-col items-center h-screen p-6">
-        <div className="w-full max-w-[1189px] bg-[#FEFFFE] border-gray border rounded-3xl drop-shadow-2xl p-5">
-          <h1 className="text-4xl font-bold my-10 text-black text-center">
-            Badminton Booking
-          </h1>
-
-          {slot && slot.length === 0 ? (
-            <div className="slot-unavailable-card text-center p-8 rounded-lg shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105">
-              <ReportProblemIcon
-                className="slot-unavailable-icon text-red-500 mb-4"
-                style={{ fontSize: "3rem" }}
-              />
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                Slot Unavailable
-              </h2>
-              <p className="text-gray-600 text-lg">
-                All slots are currently booked. Please check back later or
-                contact support for more options.
-              </p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-white py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          {/* Enhanced Header Section */}
+          <div className="text-center mb-12">
+            <div className="inline-block p-3 rounded-full bg-blue-100 mb-4">
+              <SportsTennisIcon className="text-blue-600 text-4xl" />
             </div>
-          ) : isMobileView ? (
-            // Mobile View: Show the form instead of the time slots
-            <div className="block sm:hidden ">
-              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md">
-                <form onSubmit={handleSubmit}>
-                  {/* Flex container for aligning back button and time at the top */}
-                  <div className="flex items-center justify-between my-3">
-                    <ArrowBackIosNewIcon
-                      className="border shadow-xl w-10 h-10 p-2 rounded-md cursor-pointer hover:bg-gray-200"
+            <h1 className="text-4xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-blue-600 to-indigo-600 inline-block text-transparent bg-clip-text">
+              Badminton Court Booking
+            </h1>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Reserve your preferred court and time slot for an amazing badminton experience
+            </p>
+          </div>
+
+          {/* Time Slots Legend */}
+          <div className="flex justify-center gap-6 mb-8">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-sm text-gray-600">Available</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-yellow-400 rounded-full" />
+              <span className="text-sm text-gray-600">Limited Spots</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-400 rounded-full" />
+              <span className="text-sm text-gray-600">Fully Booked</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 backdrop-blur-lg bg-opacity-90">
+            {/* Show unavailable message if no slots */}
+            {slot && slot.length === 0 ? (
+              <div className="slot-unavailable-card">
+                <ReportProblemIcon className="slot-unavailable-icon" />
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                  No Available Slots
+                </h2>
+                <p className="text-gray-600">
+                  All courts are currently booked. Please check back later.
+                </p>
+              </div>
+            ) : isMobileView ? (
+              // Mobile booking form
+              <div className="block sm:hidden">
+                <div className="bg-white rounded-xl shadow-md p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <button
                       onClick={handleBackToTimeSlots}
-                      style={{ fontSize: "2rem" }}
-                    />
+                      className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <ArrowBackIosNewIcon className="w-5 h-5 mr-2" />
+                      <span>Back to Courts</span>
+                    </button>
                     {selectedCard !== null && slot[selectedCard] && (
-                      <h2 className="text-xl font-semibold text-start">
-                        Court {""}
-                        {court[selectedCard].court_number}
-                      </h2>
+                      <div className="text-lg font-semibold text-blue-600">
+                        Court {court[selectedCard].court_number}
+                      </div>
                     )}
                   </div>
-
-                  <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700 py-2">
-                      Name
-                    </span>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      readOnly
-                      className="name-input-football mt-1 block w-full px-3 py-3"
-                    />
-                  </label>
-
-                  <label className="block mb-4">
-                    <span className="block text-sm font-medium text-gray-700 py-2">
-                      Lecturer / Staff / Student ID
-                    </span>
-                    <input
-                      type="text"
-                      name="id"
-                      value={formData.id}
-                      readOnly
-                      className="name-input-football mt-1 block w-full px-3 py-3"
-                    />
-                  </label>
-
-                  {/* Center the Booking button */}
-                  <div className="flex justify-center">
-                    <button
-                      type="submit"
-                      className="font-bold bg-[#5EB900] text-white px-5 py-2.5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
-                    >
-                      Booking
-                    </button>
-                  </div>
-                </form>
+                  <BookingForm 
+                    formData={formData}
+                    handleSubmit={handleSubmit}
+                  />
+                </div>
               </div>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {slot &&
-                  slot.length > 0 &&
-                  slot
-                    .reduce((groups, current, index) => {
-                      const groupIndex = Math.floor(index / 4); // Determine the group index
-                      if (!groups[groupIndex]) groups[groupIndex] = []; // Create a new group if it doesn't exist
-                      groups[groupIndex].push(current); // Add the current slot to the appropriate group
-                      return groups;
-                    }, [])
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    .map((group: any[], groupIndex: number, lot:any) => {
-                      const isSlotFull = lot.current_bookings >= lot.max_bookings;
-                      return (
+            ) : (
+              // Desktop view with courts grid
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {slot &&
+                    slot.length > 0 &&
+                    slot
+                      .reduce((groups: Slot[][], current: Slot, index: number) => {
+                        const groupIndex = Math.floor(index / 4);
+                        if (!groups[groupIndex]) groups[groupIndex] = [];
+                        groups[groupIndex].push(current);
+                        return groups;
+                      }, [])
+                      .map((group: Slot[], groupIndex: number) => (
                         <div
                           key={`group-${groupIndex}`}
-                          className="flex flex-col gap-4 border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out"
+                          className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100"
                         >
-                          {/* Group Header: Display the slot time for the entire group */}
-                          <h2 className="text-xl font-bold mb-4 text-center">
-                            <div className="text-2xl flex justify-center">
-                              {group[0]?.start_time} - {group[0]?.end_time}
+                          {/* Enhanced Time slot header */}
+                          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4">
+                            <div className="flex items-center justify-center gap-2 mb-1">
+                              <AccessTimeIcon className="text-blue-200" />
+                              <h3 className="text-xl font-semibold">
+                                {group[0]?.start_time} - {group[0]?.end_time}
+                              </h3>
                             </div>
-                          </h2>
+                            <p className="text-blue-100 text-sm text-center">
+                              {4 - group.filter(s => isSlotBooked(s)).length} courts available
+                            </p>
+                          </div>
 
-                          {/* Map through the slots within the group */}
-                          {group.map((lot, slotIndex) => {
-                            // Calculate repeating court numbers (1-4)
-                            const courtNumber = (slotIndex % 4) + 1;
+                          {/* Enhanced Courts grid */}
+                          <div className="grid grid-cols-2 gap-4 p-4">
+                            {group.map((slot: Slot, slotIndex: number) => {
+                              const courtNumber = (slotIndex % 4) + 1;
+                              const bookingStatus = getBookingStatus(slot);
+                              const isBooked = isSlotBooked(slot);
 
-                            return (
-                              <div
-                                key={lot._id}
-                                className="flex justify-center border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out"
-                              >
-                                {/* Display the selected slot */}
-                                <div className="text-lg font-semibold grid grid-rows-1 justify-between items-center">
-                                  {/* Court Number for this slot */}
-                                  <div className={`border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
-      ${
-        isSlotFull
-          ? "cursor-not-allowed bg-[#C1C7D4] text-white"
-          : "cursor-pointer bg-[#4169E1] text-white border-blue-300 hover:scale-105 hover:shadow-lg"
-      }
-      ${!isSlotFull ? "hover:bg-[#000080]" : ""}
-    `}
-                      onClick={() => {
-                        if (!isSlotFull) {
-                          handleCardClick(lot,slotIndex);
-                        }
-                      }}
-                    >
-                                    <div className="flex justify-center"> Court {courtNumber} {/* Repeat 1-4 */}
-                                    {lot._id}</div>
-                                   
+                              return (
+                                <button
+                                  key={slot._id}
+                                  onClick={() => !isBooked && handleCardClick(slot, slotIndex)}
+                                  className={`
+                                    relative p-6 rounded-xl text-center transition-all duration-300
+                                    ${isBooked 
+                                      ? 'bg-gray-50 cursor-not-allowed' 
+                                      : 'court-card-available hover:transform hover:scale-105'
+                                    }
+                                    ${selectedCard === slotIndex ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'}
+                                  `}
+                                  disabled={isBooked}
+                                >
+                                  <div className="space-y-3">
+                                    <div className="flex items-center justify-center gap-2">
+                                      <EventAvailableIcon className={`
+                                        ${isBooked ? 'text-gray-400' : 'text-blue-500'}
+                                      `} />
+                                      <span className="font-bold text-lg text-gray-900">
+                                        Court {courtNumber}
+                                      </span>
+                                    </div>
+
+                                    <div className={`
+                                      inline-flex px-3 py-1 rounded-full text-sm font-medium
+                                      ${bookingStatus.className}
+                                      transition-all duration-300
+                                    `}>
+                                      {bookingStatus.text}
+                                    </div>
+
+                                    {!isBooked && (
+                                      <div className="absolute top-2 right-2">
+                                        <div className="status-dot-available" />
+                                      </div>
+                                    )}
                                   </div>
-                                </div>
-                              </div>
-                            );
-                          })}
+
+                                  {isBooked && (
+                                    <div className="booked-overlay">
+                                      <span className="booked-stamp">
+                                        BOOKED
+                                      </span>
+                                    </div>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      );
-                    })}
+                      ))}
+                </div>
               </div>
-
-              <div
-                className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
-                  selectedCard !== null && !slot[selectedCard]?.current_bookings
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-5 opacity-0"
-                }`}
-              >
-                {selectedCard !== null && slot[selectedCard] && (
-                  <>
-                    {/* Display slot time and court number */}
-                    <h2 className="text-xl font-bold mb-4">
-                      {/* Booking for {slot[selectedCard].start_time} - {slot[selectedCard].end_time}{" "} */}
-                      <span className="font-semibold">
-                        Court {court[selectedCard]?.court_number}
-                      </span>
-                    </h2>
-                    {/* Booking Form */}
-                    <form onSubmit={handleSubmit}>
-                      <label className="block mb-4">
-                        <span className="block text-sm font-medium text-gray-700 py-2">
-                          Name
-                        </span>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          readOnly
-                          className="name-input-football mt-1 block w-full px-3 py-3"
-                        />
-                      </label>
-                      <label className="block mb-4">
-                        <span className="block text-sm font-medium text-gray-700 py-2">
-                          Lecturer / Staff / Student ID
-                        </span>
-                        <input
-                          type="text"
-                          name="id"
-                          value={formData.id}
-                          readOnly
-                          className="name-input-football mt-1 block w-full px-3 py-3"
-                        />
-                      </label>
-                      <div className="flex justify-center">
-                        <button
-                          type="submit"
-                          className="font-semibold bg-[#5EB900] text-white px-6 py-3 my-5 rounded-md drop-shadow-2xl hover:bg-[#005400]"
-                        >
-                          Booking
-                        </button>
-                      </div>
-                    </form>
-                  </>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-        {isBookingSuccessful && (
-          <div className="fixed inset-0 w-screen h-screen flex items-center justify-center z-50 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 ease-in-out">
-            <div className="relative bg-white w-full max-w-sm mx-auto p-8 rounded-lg shadow-xl transform transition-all duration-500 ease-in-out scale-100">
-              {/* Popup Content */}
-              <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
-                Booking Successful!
-              </h2>
-              <p className="text-gray-600 mb-6 text-center">
-                You have successfully booked the slot.
-              </p>
-
-              {/* Close Button */}
-              <button
-                className="w-full bg-gradient-to-r from-green-500 to-green-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
-                onClick={() => {
-                  setIsBookingSuccessful(false); // Close the popup
-                  setIsMobileView(false); // Return to the time slots view
-                }}
-              >
-                Close
-              </button>
-            </div>
+            )}
           </div>
+        </div>
+
+        {/* Enhanced Modals */}
+        {showBookingForm && selectedCard !== null && slot[selectedCard] && (
+          <BookingForm 
+            formData={formData}
+            handleSubmit={handleSubmit}
+            onClose={handleCloseForm}
+            selectedTime={`${slot[selectedCard].start_time} - ${slot[selectedCard].end_time}`}
+            selectedCourt={(selectedCard % 4) + 1}
+          />
+        )}
+
+        {/* Success/Error Modals */}
+        {isBookingSuccessful && (
+          <SuccessModal onClose={() => {
+            setIsBookingSuccessful(false);
+            setShowBookingForm(false);
+          }} />
         )}
         {isBookingFailed && (
-          <div className="fixed inset-0 w-screen h-screen flex items-center justify-center z-50 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 ease-in-out">
-            <div className="relative bg-white w-full max-w-sm mx-auto p-8 rounded-lg shadow-xl transform transition-all duration-500 ease-in-out scale-100">
-              {/* Failure Popup Content */}
-              <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
-                Booking Failed
-              </h2>
-              <p className="text-gray-600 mb-6 text-center">
-                An error occurred while processing your booking. Please try
-                again later.
-              </p>
-
-              {/* Close Button */}
-              <button
-                className="w-full bg-gradient-to-r from-red-600 via-red-500 to-red-400 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition duration-200 ease-in-out transform hover:scale-105"
-                onClick={() => setIsBookingFailed(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
+          <ErrorModal onClose={() => {
+            setIsBookingFailed(false);
+            setShowBookingForm(false);
+          }} />
         )}
       </div>
     </>
   );
 }
+
+const SuccessModal = ({ onClose }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-xl p-6 max-w-sm w-full">
+      <div className="text-center">
+        <CheckIcon className="text-green-500 text-5xl mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Booking Successful!
+        </h2>
+        <p className="text-gray-600 mb-6">
+          Your court has been successfully booked.
+        </p>
+        <button
+          onClick={onClose}
+          className="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors"
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const ErrorModal = ({ onClose }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-xl p-6 max-w-sm w-full">
+      <div className="text-center">
+        <ClearIcon className="text-red-500 text-5xl mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Booking Failed
+        </h2>
+        <p className="text-gray-600 mb-6">
+          Something went wrong. Please try again later.
+        </p>
+        <button
+          onClick={onClose}
+          className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 export default Badminton_Booking;
