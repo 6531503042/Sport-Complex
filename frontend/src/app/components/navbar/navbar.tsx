@@ -34,7 +34,7 @@ const NavBar: React.FC<NavBarProps> = ({ activePage }) => {
   }, [router]);
 
   const truncateUserName = (name: string) => {
-    return name.length > 10 ? name.slice(0, 10) + "..." : name;
+    return name.length > 9 ? name.slice(0, 9) + "" : name;
   };
 
   const handleLogout = () => {
