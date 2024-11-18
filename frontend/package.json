@@ -15,7 +15,7 @@
     "@fortawesome/free-brands-svg-icons": "^6.6.0",
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
-    "@mui/icons-material": "^6.1.5",
+    "@mui/icons-material": "^6.1.7",
     "@mui/material": "^6.1.5",
     "@nextui-org/react": "^2.4.8",
     "@radix-ui/react-progress": "^1.1.0",
