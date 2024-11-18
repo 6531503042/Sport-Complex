@@ -3,20 +3,17 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/sidebar_admin/sidebar";
 import Logo from "../../assets/Logo.png";
-import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { IUser } from "../../models/user";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from "../../context/AuthContext";
-import { CircularProgress, Fade } from "@mui/material";
+import { CircularProgress } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { useRouter } from 'next/navigation';
 import { motion } from "framer-motion";
 import { Tooltip } from "@mui/material";
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { useTheme } from '@mui/material/styles';
 
 interface UserData {
   name: string;
@@ -144,7 +141,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit, user, 
 const API_BASE_URL = 'http://localhost:1325/user_v1';
 
 const UserManagementPage = () => {
-  const { user: authUser, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [users, setUsers] = useState<IUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -153,8 +150,6 @@ const UserManagementPage = () => {
   const [selectedUser, setSelectedUser] = useState<IUser | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const router = useRouter();
-  const theme = useTheme();
 
   // Animation variants
   const containerVariants = {
@@ -179,36 +174,53 @@ const UserManagementPage = () => {
     try {
       setIsLoading(true);
       const accessToken = localStorage.getItem('access_token');
+      
       if (!accessToken) {
         toast.error('Authentication required');
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/admin/users`, {
+      // Debug log
+      console.log('Making request with token:', accessToken);
+
+      const response = await fetch('http://localhost:1325/user_v1/admin/users', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Include credentials if needed
       });
 
+      // Debug response
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
+        if (response.status === 403) {
+          toast.error('Access denied. Admin privileges required.');
+          return;
+        }
         if (response.status === 401) {
           toast.error('Session expired. Please login again.');
-          logout();
           return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      if (data.data) {
-        setUsers(data.data);
-      } else if (Array.isArray(data)) {
-        setUsers(data);
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
+
+      // Handle the response based on your API structure
+      if (responseData.data) {
+        setUsers(responseData.data);
+      } else if (Array.isArray(responseData)) {
+        setUsers(responseData);
       } else {
+        console.error('Unexpected data format:', responseData);
+        toast.error('Invalid data format received');
         setUsers([]);
       }
+
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to fetch users');
@@ -220,31 +232,8 @@ const UserManagementPage = () => {
   };
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      const storedUser = localStorage.getItem('user');
-
-      if (!token || !storedUser) {
-        router.push('/login');
-        return;
-      }
-
-      try {
-        const userData = JSON.parse(storedUser);
-        if (!userData) {
-          router.push('/login');
-          return;
-        }
-        await fetchUsers();
-      } catch (error) {
-        console.error('Error initializing page:', error);
-      } finally {
-        setIsInitializing(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
+    fetchUsers();
+  }, []); // Empty dependency array to run once on mount
 
   const handleAddUser = async (userData: UserData) => {
     try {
@@ -341,8 +330,8 @@ const UserManagementPage = () => {
   }
 
   const filteredUsers = users?.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   return (
@@ -441,43 +430,27 @@ const UserManagementPage = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-4">
-                        <div className="flex justify-center items-center space-x-3">
-                          <CircularProgress size={24} />
-                          <span className="text-gray-500 animate-pulse">Loading users...</span>
-                        </div>
+                      <td colSpan={4} className="px-6 py-4 text-center">
+                        <CircularProgress size={24} />
                       </td>
                     </tr>
                   ) : filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-8">
-                        <div className="text-center text-gray-500">
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                          >
-                            <p className="text-lg font-semibold">No users found</p>
-                            <p className="text-sm mt-1">Try adjusting your search or add a new user</p>
-                          </motion.div>
-                        </div>
+                      <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                        No users found
                       </td>
                     </tr>
                   ) : (
-                    filteredUsers.map((user, index) => (
-                      <motion.tr 
-                        key={user._id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="hover:bg-gray-50 transition-all duration-150"
-                      >
+                    filteredUsers.map((user) => (
+                      <tr key={user._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold mr-3">
                               {user.name.charAt(0).toUpperCase()}
                             </div>
-                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {user.name}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -485,11 +458,11 @@ const UserManagementPage = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${user.user_roles?.[0]?.role_code === 1 
+                            ${user.user_roles[0]?.role_code === 1 
                               ? 'bg-purple-100 text-purple-800' 
                               : 'bg-green-100 text-green-800'}`}
                           >
-                            {user.user_roles?.[0]?.role_title || 'User'}
+                            {user.user_roles[0]?.role_title || 'User'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -520,7 +493,7 @@ const UserManagementPage = () => {
                             </Tooltip>
                           </div>
                         </td>
-                      </motion.tr>
+                      </tr>
                     ))
                   )}
                 </tbody>
