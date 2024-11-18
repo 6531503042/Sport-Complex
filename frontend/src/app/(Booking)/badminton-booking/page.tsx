@@ -248,45 +248,55 @@ function Badminton_Booking({ params }: UserDataParams) {
             </div>
           ) : (
             <>
+
               <div className="flex flex-row items-center">
-                {slot &&
-                  slot.length > 0 &&
-                  slot
-                    .filter((_, index) => index % 4 === 1)
-                    .map((lot, lotIndex) => (
-                      <div
-                        key={lot._id}
-                        className="border border-gray-200 rounded-lg p-6 shadow-md"
-                      >
-                        {/* Display the selected slot */}
-                        <div className="text-lg font-semibold grid grid-rows-1 justify-between items-center">
-                          <div>
-                            {lot.start_time} - {lot.end_time}
-                          </div>
-                          <div className="grid grid-cols-2">
-                            {/* Map through the courts for this particular slot */}
-                            {court?.map((cot, courtIndex) => (
-                              <div
-                                key={cot._id}
-                                className={`border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
-                    ${
-                      lot.current_bookings
-                        ? "cursor-not-allowed bg-[#C1C7D4] text-white"
-                        : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
-                    }
-                    ${!lot.current_bookings ? "hover:bg-[#005400]" : ""}`}
-                                onClick={() =>
-                                  handleCardClick(lotIndex, courtIndex)
-                                } // Handle court selection
-                              >
-                                court {cot.court_number}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+  {slot &&
+    slot.length > 0 &&
+    slot
+      .filter((_, index) => index % 4 === 1)
+      .map((lot) => {
+        return (
+          <div
+            key={lot._id}
+            className="border border-gray-200 rounded-lg p-6 shadow-md"
+          >
+            {/* Display the selected slot */}
+            <div className="text-lg font-semibold grid grid-rows-1 justify-between items-center">
+              <div>
+                {lot.start_time} - {lot.end_time}
               </div>
+              <div className="grid grid-cols-2">
+                {/* Map through the courts for this particular slot */}
+                {court?.map((cot, courtIndex) => {
+                  const isCourtFull = cot.current_bookings = cot.max_bookings; // Check if this court is full
+                  return (
+                    <div
+                      key={cot._id}
+                      className={`border border-gray-200 rounded-lg p-6 shadow-md transition-transform duration-300 ease-in-out
+                        ${
+                          isCourtFull
+                            ? "cursor-not-allowed bg-[#C1C7D4] text-white"
+                            : "cursor-pointer bg-[#5EB900] text-white border-green-300 hover:scale-105 hover:shadow-lg"
+                        }
+                        ${!isCourtFull ? "hover:bg-[#005400]" : ""}`}
+                      onClick={() => {
+                        if (!isCourtFull) {
+                          handleCardClick(lot, courtIndex);
+                        }
+                      }}
+                    >
+                      Court {cot.court_number}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+</div>
+
+
 
               <div
   className={`hidden sm:block transition-all duration-300 ease-in-out mt-6 p-4 bg-white border border-gray-200 rounded-lg shadow-md transform ${
