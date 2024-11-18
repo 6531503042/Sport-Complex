@@ -7,10 +7,17 @@ import NewsReport from "../../components/section/new_report/report";
 import Footer from "../../components/section/footer/footer";
 import "../../css/banner.css";
 import useAuthRedirect from "../../components/hooks/useAuthRedirect";
+import LoadingScreen from "../../components/loading_screen/loading"; // Import LoadingScreen component
 
 const Homepage: React.FC = () => {
-  useAuthRedirect();
+  const { loading, user } = useAuthRedirect(); // Get loading and user state from useAuthRedirect
 
+  // While loading (checking auth), show the loading screen
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  // After loading, display the homepage if user is authenticated
   return (
     <div>
       <NavBar />
