@@ -1,18 +1,17 @@
 "use client";
 
-import { Checkbox } from "@nextui-org/react";
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input, Button, Link } from '@nextui-org/react';
 import Image from 'next/image';
 import styles from './Login.module.css';
-import { useAuth } from '../../context/AuthContext'; 
+import { useAuth } from '../../context/AuthContext';
 
 const LoginPage = () => {
   const router = useRouter();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const { setUser } = useAuth(); 
+  const { setUser } = useAuth();
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -38,9 +37,14 @@ const LoginPage = () => {
         localStorage.setItem('user', JSON.stringify(data));
         localStorage.setItem('access_token', data.credential.access_token);
         localStorage.setItem('refresh_token', data.credential.refresh_token);
-        setUser(data); 
+        setUser(data);
         setShowError(false);
-        router.push('/homepage'); 
+
+        if (data.credential.role_code === 0) {
+          router.push('/homepage'); 
+        } else if (data.credential.role_code === 1) {
+          router.push('/admin_dashboard'); 
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
