@@ -76,7 +76,7 @@ func (h *userHttpHandler) FindOneUserProfile(c echo.Context) error {
 	return response.SuccessResponse(c, http.StatusOK, res)
 }
 
-func (h *userHttpHandler) FindManyUser (c echo.Context) error {
+func (h *userHttpHandler) FindManyUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	users, err := h.userUsecase.FindManyUser(ctx)
@@ -84,6 +84,7 @@ func (h *userHttpHandler) FindManyUser (c echo.Context) error {
 		return response.ErrResponse(c, http.StatusBadRequest, err.Error())
 	}
 
+	// Return the raw users data without transformation
 	return response.SuccessResponse(c, http.StatusOK, users)
 }
 
