@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import LoadingScreen from "../loading_screen/loading";
 import IconSidebar from "../../assets/icon_sidebar_black.png";
 import "../sidebar/sidebar.css";
-import { Home, FitnessCenter, Pool, SportsSoccer, Email,Person2, SportsTennis, Payment, Close } from "@mui/icons-material";
+import { Home, FitnessCenter, Pool, SportsSoccer, Email, Person2, SportsTennis, Payment, Close } from "@mui/icons-material";
 
 type SidebarProps = {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -14,6 +14,7 @@ type SidebarProps = {
 
 const Sidebar: React.FC<SidebarProps> = ({ setLoading }) => {
   const [userName, setUserName] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<number | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
 
@@ -22,6 +23,8 @@ const Sidebar: React.FC<SidebarProps> = ({ setLoading }) => {
     if (userData) {
       const user = JSON.parse(userData);
       setUserName(user.name);
+      const roleCode = user.user_roles && user.user_roles.length > 0 ? user.user_roles[0]?.role_code : null;
+      setUserRole(roleCode);
     } else {
       router.replace("/login");
     }
@@ -39,10 +42,19 @@ const Sidebar: React.FC<SidebarProps> = ({ setLoading }) => {
   const handleLinkClick = async (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     event.preventDefault();
     setLoading(true);
-    await router.push(href);
-    setLoading(false); 
-  }; 
 
+    // Handle role-based routing
+    if (href === "/admin_dashboard" && userRole !== 1) {
+      alert("You do not have permission to access this page.");
+      setLoading(false);
+      return;
+    }
+
+    await router.push(href);
+    setLoading(false);
+  };
+
+  // Menu items, conditionally including admin dashboard
   const menuItems = [
     { href: "/homepage", icon: <Home className="text-orange-600 w-14" />, label: "Home Page" },
     { href: "/gym-booking", icon: <FitnessCenter className="text-orange-600 w-14" />, label: "Gym Booking" },
@@ -51,8 +63,17 @@ const Sidebar: React.FC<SidebarProps> = ({ setLoading }) => {
     { href: "/football-booking", icon: <SportsSoccer className="text-orange-600 w-14" />, label: "Football Booking" },
     { href: "/contact", icon: <Email className="text-orange-600 w-14" />, label: "Contact" },
     { href: "/payment", icon: <Payment className="text-orange-600 w-14" />, label: "Payment" },
-    { href: "/profile", icon: <Person2  className="text-orange-600 w-14" />, label: "Profile" },
+    { href: "/profile", icon: <Person2 className="text-orange-600 w-14" />, label: "Profile" },
   ];
+
+  // Add Admin Dashboard link if the role is "admin" (role_code = 1)
+  if (userRole === 1) {
+    menuItems.push({
+      href: "/admin_dashboard",
+      icon: <Person2 className="text-orange-600 w-14" />,
+      label: "Admin Dashboard",
+    });
+  }
 
   return (
     <>
