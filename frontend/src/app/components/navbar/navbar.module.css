@@ -1,0 +1,180 @@
+/* Navbar Container */
+.navbarContainer {
+  @apply relative z-50;
+}
+
+.navbarWrapper {
+  @apply bg-white border-b border-gray-100 shadow-sm transition-all duration-300;
+}
+
+.navbarWrapper.scrolled {
+  @apply shadow-md;
+}
+
+/* Header Section */
+.headerSection {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.headerContent {
+  @apply flex items-center justify-between h-20;
+}
+
+/* Logo Section */
+.logoSection {
+  @apply flex items-center gap-3.5 hover:opacity-80 transition-opacity;
+}
+
+.logoWrapper {
+  @apply relative w-8 h-8;
+}
+
+.logoDivider {
+  @apply border-l-2 pl-3 border-gray-200;
+}
+
+.logoText {
+  @apply flex flex-col;
+}
+
+.logoTitle {
+  @apply flex items-center font-bold text-xl tracking-tight;
+}
+
+.logoTitleMain {
+  @apply bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent;
+}
+
+.logoTitleSub {
+  @apply text-gray-400;
+}
+
+.logoSubtitle {
+  @apply text-gray-500 text-sm font-medium tracking-wide;
+}
+
+/* Search Section */
+.searchSection {
+  @apply flex-1 max-w-2xl mx-8;
+}
+
+/* User Section */
+.userSection {
+  @apply flex items-center gap-6;
+}
+
+.userButton {
+  @apply flex items-center gap-3 px-4 py-2 rounded-lg
+    text-gray-700 hover:bg-gray-50 transition-all duration-200;
+}
+
+.userName {
+  @apply font-medium text-gray-900;
+}
+
+.userDivider {
+  @apply text-gray-300;
+}
+
+/* Dropdown Menu */
+.dropdownMenu {
+  @apply absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-1 z-50
+    border border-gray-100 transform origin-top transition-all duration-200;
+}
+
+.dropdownItem {
+  @apply flex items-center gap-2 w-full px-4 py-2 text-sm
+    text-gray-700 hover:bg-gray-50 transition-colors;
+}
+
+.dropdownItemDanger {
+  @apply text-red-600 hover:bg-red-50;
+}
+
+/* Navigation Menu */
+.navigationMenu {
+  @apply bg-gradient-to-r from-red-800 to-red-900 py-4 shadow-lg;
+}
+
+.navigationContent {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.navigationList {
+  @apply flex justify-center space-x-2 md:space-x-8;
+}
+
+.navigationItem {
+  @apply relative;
+}
+
+.navigationLink {
+  @apply flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200
+    text-sm md:text-base font-medium;
+}
+
+.navigationLinkActive {
+  @apply bg-white text-red-900 shadow-lg scale-105;
+}
+
+.navigationLinkInactive {
+  @apply text-white/90 hover:bg-white/10 hover:text-white;
+}
+
+.navigationIcon {
+  @apply w-5 h-5;
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.2s ease-out;
+}
+
+/* Hover Effects */
+.navigationLink:hover .navigationIcon {
+  @apply transform scale-110 transition-transform duration-200;
+}
+
+/* Active Indicator */
+.activeIndicator {
+  @apply absolute bottom-0 left-0 right-0 h-0.5 bg-white
+    transform scale-x-0 transition-transform duration-200;
+}
+
+.navigationLinkActive .activeIndicator {
+  @apply scale-x-100;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .headerContent {
+    @apply h-16;
+  }
+
+  .logoWrapper {
+    @apply w-6 h-6;
+  }
+
+  .logoTitle {
+    @apply text-lg;
+  }
+
+  .logoSubtitle {
+    @apply text-xs;
+  }
+
+  .navigationLink {
+    @apply px-3 py-1.5;
+  }
+} 
