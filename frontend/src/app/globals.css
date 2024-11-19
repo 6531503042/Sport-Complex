@@ -4,88 +4,199 @@
 
 @import 'flowbite';
 
-* {
-    font-family: 'Arial', sans-serif;
-    box-sizing:border-box;
-    -webkit-box-sizing: border-box;
+:root {
+  /* Design Tokens */
+  --max-content-width: 2560px;
+  --min-content-width: 320px;
+  --navbar-height: 64px;
+  
+  /* Colors */
+  --primary: #EF4444;
+  --primary-dark: #DC2626;
+  --primary-light: #FEE2E2;
+  --secondary: #1F2937;
+  --accent: #F59E0B;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+  
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-full: 9999px;
 }
 
-html, body {
-    min-width: 500px;
-    max-width: 1920px;
-    margin-left: auto;
-    margin-right: auto;
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  @apply bg-gray-50;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  text-rendering: optimizeLegibility;
+}
+
+/* Typography */
+@layer base {
+  h1 {
+    @apply text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl;
   }
   
-
-@media (max-width: 1360px) {
-    .NavBar_res {
-        display: none;
-}
-    .NavBar_container {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-    }
-    .login_button {
-        display: none;
-
-    }
-    .name_user_and_sidebar {
-        display: flex;
-        justify-content: end;
-    }
+  h2 {
+    @apply text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl;
   }
-
-  @media (max-width: 860px) {
-    .banner_container {
-        height: 600px;
-
-    }
+  
+  h3 {
+    @apply text-2xl font-bold text-gray-900;
   }
-
-  @media (max-width: 560px) {
-    .banner_container {
-        height: 700px;
-
-    }
+  
+  p {
+    @apply text-gray-600 leading-relaxed;
   }
-
-@media (max-width: 1000px) {
-    
-    .NavBar_container {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-    }
 }
 
-@media (max-width: 1140px){
-    .searchbar_field {
-        display:none;
-    }
+/* Interactive Elements */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md
+    font-medium transition-all duration-200 focus:outline-none
+    focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply bg-red-600 text-white hover:bg-red-700 
+    focus:ring-red-500;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-700 hover:bg-gray-200 
+    focus:ring-gray-500;
+  }
+  
+  .input {
+    @apply block w-full px-4 py-2 rounded-md border-gray-300
+    focus:ring-red-500 focus:border-red-500 transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-sm hover:shadow-md
+    transition-shadow duration-200 overflow-hidden;
+  }
 }
 
-@media (max-width: 670px){
-    .name_user {
-        display: none;
-    }
+/* Animations */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-in-out;
+  }
+  
+  .animate-scale {
+    animation: scale 0.2s ease-in-out;
+  }
 }
 
-
-@keyframes colorWave {
-    0% {
-        background-position: 0% 50%;
-    }
-    100% {
-        background-position: 100% 50%;
-    }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.color-wave {
-    background: linear-gradient(270deg, #fffcfb, #ff6565); /* Only two colors */
-    background-size: 200% 200%; /* Adjusted for smoother oscillation */
-    animation: colorWave 5s ease-in-out infinite alternate; /* Continuous back and forth */
-    color: black;
-    border-radius: 0.375rem; /* Rounded corners for styling */
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
+
+@keyframes scale {
+  from { transform: scale(0.95); }
+  to { transform: scale(1); }
+}
+
+/* Hover Effects */
+.hover-lift {
+  @apply transition-transform duration-200 hover:-translate-y-1;
+}
+
+.hover-glow {
+  @apply transition-shadow duration-200 hover:shadow-lg;
+}
+
+.hover-bright {
+  @apply transition-all duration-200 hover:brightness-110;
+}
+
+/* Glass Effect */
+.glass {
+  @apply bg-white/80 backdrop-blur-md;
+}
+
+/* Loading States */
+.loading-skeleton {
+  @apply animate-pulse bg-gray-200 rounded;
+}
+
+/* Grid Layouts */
+.grid-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* Responsive Container */
+.responsive-container {
+  @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
+}
+
+/* Focus Styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+}
+
+/* Status Indicators */
+.status-dot {
+  @apply w-2 h-2 rounded-full;
+}
+
+.status-dot.active {
+  @apply bg-green-500;
+}
+
+.status-dot.inactive {
+  @apply bg-gray-400;
+}
+
+/* Keep your existing media queries... */
