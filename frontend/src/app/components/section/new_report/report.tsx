@@ -1,117 +1,203 @@
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  faCircleExclamation,
-  faClockFour,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+  Newspaper,
+  Calendar,
+  Tag,
+  ChevronRight,
+  Trophy,
+  Users,
+  Star,
+  TrendingUp,
+} from "lucide-react";
+import styles from './report.module.css';
 
 interface NewsItem {
+  id: string;
   date: string;
   title: string;
   description: string;
+  category: string;
+  image: string;
+  author: string;
+  readTime: string;
+  tags: string[];
 }
 
-// Function to format date with an offset in days
-const formatDate = (offset = 0) => {
-  const date = new Date();
-  date.setDate(date.getDate() + offset);
-  const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric' };
-  return date.toLocaleDateString('en-GB', options); // e.g., "12 Nov 2024"
-};
+const newsData: NewsItem[] = [
+  {
+    id: "1",
+    date: "2024-03-20",
+    title: "New Fitness Center Equipment Arrival",
+    description: "Experience our latest state-of-the-art gym equipment! We've added new treadmills, rowing machines, and a complete set of smart fitness equipment to enhance your workout experience.",
+    category: "Facility Update",
+    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48",
+    author: "Sport Complex Team",
+    readTime: "3 min read",
+    tags: ["Fitness", "Equipment", "Gym"]
+  },
+  {
+    id: "2",
+    date: "2024-03-18",
+    title: "Swimming Competition Championship",
+    description: "Join us for the annual MFU Swimming Championship! Open for all students and staff. Multiple categories available with exciting prizes to be won.",
+    category: "Events",
+    image: "https://images.unsplash.com/photo-1519315901367-f34ff9154487",
+    author: "Events Team",
+    readTime: "4 min read",
+    tags: ["Swimming", "Competition", "Championship"]
+  },
+  {
+    id: "3",
+    date: "2024-03-15",
+    title: "New Badminton Court Renovation",
+    description: "We're excited to announce the completion of our badminton court renovation. New flooring, improved lighting, and enhanced ventilation systems have been installed.",
+    category: "Facility Update",
+    image: "https://images.unsplash.com/photo-1613918108466-292b78a8ef95",
+    author: "Maintenance Team",
+    readTime: "2 min read",
+    tags: ["Badminton", "Renovation", "Facility"]
+  },
+  {
+    id: "4",
+    date: "2024-03-12",
+    title: "Football Tournament Registration Open",
+    description: "Register now for the upcoming inter-faculty football tournament. Form your team and compete for the championship title!",
+    category: "Events",
+    image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6",
+    author: "Sports Committee",
+    readTime: "5 min read",
+    tags: ["Football", "Tournament", "Registration"]
+  }
+];
 
 const Report: React.FC = () => {
-  const [selectedNews, setSelectedNews] = useState<NewsItem>({
-    date: formatDate(),
-    title: "Newest",
-    description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aut, aliquam tempore. Rerum unde perspiciatis libero reiciendis ipsa a debitis neque?",
-  });
-
+  const [selectedNews, setSelectedNews] = useState<NewsItem>(newsData[0]);
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
-  const newsItems: NewsItem[] = [
-    {
-      date: formatDate(0),
-      title: "Newest",
-      description:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aut, aliquam tempore. Rerum unde perspiciatis libero reiciendis ipsa a debitis neque?",
-    },
-    {
-      date: formatDate(1),
-      title: "Latest Update",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sint odit quasi molestias, officia at officiis vel saepe fugit soluta, facere quis repellat atque non ut tenetur eveniet nisi! Odit, odio?",
-    },
-    {
-      date: formatDate(2),
-      title: "Further News",
-      description:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ut voluptatibus placeat minus consequatur qui laudantium perspiciatis reiciendis accusantium adipisci quos!",
-    },
-    {
-      date: formatDate(3),
-      title: "More Updates",
-      description:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam eius eos aspernatur provident nisi quia.",
-    },
-  ];
-
-  const handleNewsClick = (item: NewsItem, index: number) => {
-    setSelectedNews(item);
+  const handleNewsClick = (news: NewsItem, index: number) => {
+    setSelectedNews(news);
     setActiveIndex(index);
   };
 
-  return (
-    <div className="container mx-auto mt-10 px-4">
-      <div className="flex flex-col lg:flex-row gap-10">
-        {/* Right section (list of news items) */}
-        <div className="lg:w-1/3 w-full border border-b-0 flex flex-col-reverse lg:flex-col">
-          {newsItems.map((item, index) => (
-            <div
-              key={index}
-              className={`cursor-pointer border-l-2 border-l-transparent hover:border-red-500 focus:bg-gray-200 transition-transform hover:shadow-lg ${
-                activeIndex === index
-                  ? "bg-white border-l-red-500 shadow-lg"
-                  : ""
-              }`}
-              onClick={() => handleNewsClick(item, index)}
-            >
-              <p className="p-5 text-sm md:text-2xl text-gray-700 inline-flex flex-row items-center">
-                <FontAwesomeIcon
-                  className="text-red-600 me-2"
-                  icon={faClockFour}
-                />
-                {item.title}
-              </p>
-              <hr />
-            </div>
-          ))}
-        </div>
+  const categoryIcons = {
+    "Facility Update": <Star className="w-5 h-5" />,
+    "Events": <Trophy className="w-5 h-5" />,
+    "Announcement": <Users className="w-5 h-5" />,
+    "Achievement": <TrendingUp className="w-5 h-5" />
+  };
 
-        {/* Left section (selected news content) */}
-        <div className="lg:w-2/3 w-full">
-          <h1 className="font-bold text-3xl mb-3">News</h1>
-          <hr className="mt-3 border-zinc-900 rounded-full" />
-          <div className="container_of_report_des">
-            <div className="flex flex-col">
-              <div className="ps-5 cursor-pointer border-l-2 border-l-transparent hover:border-l-red-700 hover:border-y-0 hover:border-l-2 hover:bg-gray-50 pb-2">
-                <div className="flex flex-row justify-between mb-1">
-                  <p className="pt-2 text-sm text-gray-500 ">{selectedNews.date}</p>
-                  <p className="bg-red-600 p-2 text-sm text-center rounded-b-lg text-white">
-                    <FontAwesomeIcon
-                      className="text-white me-1"
-                      icon={faCircleExclamation}
-                    />
-                    {selectedNews.title}
-                  </p>
-                </div>
-                <span>{selectedNews.description}</span>
-              </div>
+  return (
+    <div className={styles.reportContainer}>
+      <motion.div className={styles.reportWrapper}>
+        <div className={styles.reportGrid}>
+          {/* News List Section */}
+          <motion.div 
+            className={styles.newsList}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <h2 className={styles.newsListHeader}>Latest Updates</h2>
+            <div className="space-y-4">
+              {newsData.map((news, index) => (
+                <motion.div
+                  key={news.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`cursor-pointer rounded-xl p-4 transition-all duration-200 ${
+                    activeIndex === index 
+                      ? 'bg-red-50 border-l-4 border-red-500 shadow-md' 
+                      : 'hover:bg-gray-50 border-l-4 border-transparent'
+                  }`}
+                  onClick={() => handleNewsClick(news, index)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-white shadow-sm">
+                      {categoryIcons[news.category as keyof typeof categoryIcons]}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">{news.title}</h3>
+                      <div className="flex items-center gap-3 text-sm text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {new Date(news.date).toLocaleDateString()}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Tag className="w-4 h-4" />
+                          {news.category}
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className={`w-5 h-5 transition-colors ${
+                      activeIndex === index ? 'text-red-500' : 'text-gray-300'
+                    }`} />
+                  </div>
+                </motion.div>
+              ))}
             </div>
-            <hr />
-          </div>
+          </motion.div>
+
+          {/* Selected News Detail */}
+          <motion.div 
+            className={styles.newsDetail}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedNews.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden"
+              >
+                <div className="relative h-64 bg-gray-200">
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${selectedNews.image})` }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-sm">
+                        {selectedNews.category}
+                      </span>
+                      <span className="text-sm">{selectedNews.readTime}</span>
+                    </div>
+                    <h1 className="text-3xl font-bold">{selectedNews.title}</h1>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <div className="flex items-center gap-4 mb-6 text-sm text-gray-500">
+                    <span className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      {new Date(selectedNews.date).toLocaleDateString()}
+                    </span>
+                    <span>|</span>
+                    <span>{selectedNews.author}</span>
+                  </div>
+
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    {selectedNews.description}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {selectedNews.tags.map((tag) => (
+                      <span 
+                        key={tag}
+                        className="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
