@@ -29,8 +29,11 @@ func NewAnalyticsHttpHandler(cfg *config.Config, analyticsUsecase usecase.Analyt
 }
 
 func (h *analyticsHttpHandler) GetDashboardMetrics(c echo.Context) error {
-	facilityName := c.QueryParam("facility_name")
-	timeRange := c.QueryParam("time_range") // daily, weekly, monthly, yearly
+	facilityName := c.Param("facility_name")
+	timeRange := c.QueryParam("time_range")
+	if timeRange == "" {
+		timeRange = "weekly" // Default to weekly if not specified
+	}
 
 	metrics, err := h.analyticsUsecase.GetDashboardMetrics(c.Request().Context(), facilityName, timeRange)
 	if err != nil {
