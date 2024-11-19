@@ -83,3 +83,114 @@
     font-size: 0.85rem; /* Smaller font for mobile */
   }
 }
+
+.container {
+  @apply min-h-screen bg-gray-50;
+}
+
+.header {
+  @apply bg-white shadow-sm;
+}
+
+.headerContent {
+  @apply max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8;
+}
+
+.title {
+  @apply text-3xl font-bold text-gray-900;
+}
+
+.subtitle {
+  @apply mt-1 text-sm text-gray-500;
+}
+
+.content {
+  @apply max-w-7xl mx-auto py-6 sm:px-6 lg:px-8;
+}
+
+.card {
+  @apply bg-white overflow-hidden shadow rounded-lg;
+}
+
+.cardHeader {
+  @apply px-4 py-5 sm:px-6 border-b border-gray-200;
+}
+
+.cardContent {
+  @apply px-4 py-5 sm:p-6;
+}
+
+.table {
+  @apply min-w-full divide-y divide-gray-200;
+}
+
+.tableHeader {
+  @apply bg-gray-50;
+}
+
+.tableHeaderCell {
+  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+}
+
+.tableCell {
+  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-500;
+}
+
+.statusBadge {
+  @apply px-2 inline-flex text-xs leading-5 font-semibold rounded-full;
+}
+
+.statusPaid {
+  @apply bg-green-100 text-green-800;
+}
+
+.statusPending {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.statusFailed {
+  @apply bg-red-100 text-red-800;
+}
+
+.link {
+  @apply text-blue-600 hover:text-blue-900;
+}
+
+.loadingSpinner {
+  @apply animate-spin h-5 w-5 text-blue-500;
+}
+
+.errorMessage {
+  @apply text-red-600 bg-red-50 p-4 rounded-md;
+}
+
+.emptyState {
+  @apply text-center py-12;
+}
+
+.emptyStateIcon {
+  @apply mx-auto h-12 w-12 text-gray-400;
+}
+
+.emptyStateText {
+  @apply mt-2 text-sm text-gray-500;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.slideUp {
+  animation: slideUp 0.5s ease-out;
+}
