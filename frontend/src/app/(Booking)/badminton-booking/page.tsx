@@ -394,91 +394,89 @@ function Badminton_Booking({ params }: UserDataParams) {
               <div className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {slot &&
-                    slot.length > 0 &&
-                    slot
-                      .reduce((groups: Slot[][], current: Slot, index: number) => {
-                        const groupIndex = Math.floor(index / 4);
-                        if (!groups[groupIndex]) groups[groupIndex] = [];
-                        groups[groupIndex].push(current);
-                        return groups;
-                      }, [])
-                      .map((group: Slot[], groupIndex: number) => (
-                        <div
-                          key={`group-${groupIndex}`}
-                          className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100"
-                        >
-                          {/* Enhanced Time slot header */}
-                          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4">
-                            <div className="flex items-center justify-center gap-2 mb-1">
-                              <AccessTimeIcon className="text-blue-200" />
-                              <h3 className="text-xl font-semibold">
-                                {group[0]?.start_time} - {group[0]?.end_time}
-                              </h3>
-                            </div>
-                            <p className="text-blue-100 text-sm text-center">
-                              {4 - group.filter(s => isSlotBooked(s)).length} courts available
-                            </p>
-                          </div>
+  slot.length > 0 &&
+  slot
+    .reduce((groups: Slot[][], current: Slot, index: number) => {
+      const groupIndex = Math.floor(index / 4); // Group slots by 4
+      if (!groups[groupIndex]) groups[groupIndex] = [];
+      groups[groupIndex].push(current);
+      return groups;
+    }, [])
+    .map((group: Slot[], groupIndex: number) => (
+      <div
+        key={`group-${groupIndex}`}
+        className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100"
+      >
+        {/* Group Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <AccessTimeIcon className="text-blue-200" />
+            <h3 className="text-xl font-semibold">
+              {group[0]?.start_time} - {group[0]?.end_time}
+            </h3>
+          </div>
+          <p className="text-blue-100 text-sm text-center">
+            {4 - group.filter(s => isSlotBooked(s)).length} courts available
+          </p>
+        </div>
 
-                          {/* Enhanced Courts grid */}
-                          <div className="grid grid-cols-2 gap-4 p-4">
-                            {group.map((slot: Slot, slotIndex: number) => {
-                              const courtNumber = (slotIndex % 4) + 1;
-                              const bookingStatus = getBookingStatus(slot);
-                              const isBooked = isSlotBooked(slot);
+        {/* Courts Grid */}
+        <div className="grid grid-cols-2 gap-4 p-4">
+  {group.map((slot: Slot, relativeIndex: number) => {
+    const absoluteIndex = groupIndex * 4 + relativeIndex; // Absolute index across all groups
+    const courtNumber = (absoluteIndex % 4) + 1; // Court number starts from 1 and repeats every 4 courts
+    const bookingStatus = getBookingStatus(slot);
+    const isBooked = isSlotBooked(slot);
 
-                              return (
-                                <button
-                                  key={slot._id}
-                                  onClick={() => !isBooked && handleCardClick(slot, slotIndex)}
-                                  className={`
-                                    relative p-6 rounded-xl text-center transition-all duration-300
-                                    ${isBooked 
-                                      ? 'bg-gray-50 cursor-not-allowed' 
-                                      : 'court-card-available hover:transform hover:scale-105'
-                                    }
-                                    ${selectedCard === slotIndex ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'}
-                                  `}
-                                  disabled={isBooked}
-                                >
-                                  <div className="space-y-3">
-                                    <div className="h-[1rem] flex items-center justify-center gap-2">
-                                      <EventAvailableIcon className={`
-                                        ${isBooked ? 'text-gray-400' : 'text-blue-500'}
-                                      `} />
-                                      <span className="font-bold text-lg text-gray-900">
-                                        Court {courtNumber}
-                                      </span>
-                                    </div>
+    return (
+      <button
+        key={slot._id}
+        onClick={() => !isBooked && handleCardClick(slot, absoluteIndex)} // Use absolute index
+        className={`relative p-6 rounded-xl text-center transition-all duration-300
+          ${isBooked 
+            ? 'bg-gray-50 cursor-not-allowed' 
+            : 'court-card-available hover:transform hover:scale-105'
+          }
+          ${selectedCard === slot._id ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'}
+        `}
+        disabled={isBooked}
+      >
+        <div className="space-y-3">
+          <div className="h-[1rem] flex items-center justify-center gap-2">
+            <EventAvailableIcon
+              className={`${isBooked ? 'text-gray-400' : 'text-blue-500'}`}
+            />
+            <span className="font-bold text-lg text-gray-900">
+              Court {courtNumber} {/* This will now show 1 to 4 and repeat */}
+            </span>
+          </div>
 
-                                    <div className={`
-                                      inline-flex px-3 py-1 rounded-full text-sm font-medium
-                                      ${bookingStatus.className}
-                                      transition-all duration-300
-                                    `}>
-                                      {bookingStatus.text}
-                                    </div>
+          <div
+            className={`inline-flex px-3 py-1 rounded-full text-sm font-medium
+              ${bookingStatus.className}
+              transition-all duration-300`}
+          >
+            {bookingStatus.text}
+          </div>
 
-                                    {!isBooked && (
-                                      <div className="absolute top-2 right-2">
-                                        <div className="status-dot-available" />
-                                      </div>
-                                    )}
-                                  </div>
+          {!isBooked && (
+            <div className="absolute top-2 right-2">
+              <div className="status-dot-available" />
+            </div>
+          )}
+        </div>
 
-                                  {isBooked && (
-                                    <div className="booked-overlay">
-                                      <span className="booked-stamp">
-                                        Reserved
-                                      </span>
-                                    </div>
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
+        {isBooked && (
+          <div className="booked-overlay">
+            <span className="booked-stamp">Reserved</span>
+          </div>
+        )}
+      </button>
+    );
+  })}
+</div>
+      </div>
+    ))}
                 </div>
               </div>
             )}
