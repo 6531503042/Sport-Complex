@@ -9,12 +9,12 @@ import {
   Receipt, 
   CreditCard, 
   Calendar, 
-  Building, 
   CheckCircle,
   XCircle,
   Loader2
 } from "lucide-react";
 import styles from "./PaymentUserPage.module.css";
+import promptpayImage from "@/assets/promptpay.png";
 
 interface Payment {
   _id: string;
@@ -86,6 +86,21 @@ const PaymentUserPage: React.FC = () => {
         return null;
     }
   };
+  const getFacilityEmoji = (facilityName: string) => {
+    switch (facilityName.toLowerCase()) {
+      case 'fitness':
+        return '🏋️‍♂️';
+      case 'football':
+        return '⚽️';
+      case 'swimming':
+        return '🏊‍♂️';
+      case 'badminton':
+        return '🏸';
+      default:
+        return '🏢'; // อีโมจิเริ่มต้น (ใช้ Building)
+    }
+  };
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -165,7 +180,7 @@ const PaymentUserPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <Building className="w-5 h-5 text-gray-400" />
+                        {getFacilityEmoji(payment.facility_name)}
                           <span className="text-sm text-gray-600">{payment.facility_name}</span>
                         </div>
                       </td>
@@ -218,3 +233,4 @@ const PaymentUserPage: React.FC = () => {
 };
 
 export default PaymentUserPage;
+
