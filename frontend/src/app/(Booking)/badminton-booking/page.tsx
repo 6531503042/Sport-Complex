@@ -11,6 +11,8 @@ import { useRouter } from "next/navigation";
 import SportsTennisIcon from '@mui/icons-material/SportsTennis';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import WarningIcon from '@mui/icons-material/Warning';
+import { Tooltip } from '@mui/material';
 
 interface UserData {
   id: string;
@@ -87,7 +89,7 @@ const BookingForm = ({ formData, handleSubmit, onClose, selectedTime, selectedCo
 
       {selectedTime && selectedCourt && (
         <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-          <p className="text-blue-800 font-medium">
+          <p className="text-blue-800 text-lg font-semibold">
             Court {selectedCourt} • {selectedTime}
           </p>
         </div>
@@ -98,23 +100,37 @@ const BookingForm = ({ formData, handleSubmit, onClose, selectedTime, selectedCo
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Name
           </label>
+          <div className="relative">
           <input
             type="text"
             value={formData.name}
             readOnly
             className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50"
           />
+          <Tooltip title="Name cannot be changed" arrow>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <WarningIcon className="text-gray-400" />
+                </div>
+              </Tooltip>
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             ID Number
           </label>
+          <div className="relative">
           <input
             type="text"
             value={formData.id}
             readOnly
             className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50"
           />
+          <Tooltip title="ID cannot be changed" arrow>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <WarningIcon className="text-gray-400" />
+                </div>
+              </Tooltip>
+          </div>
         </div>
         <div className="flex gap-4 pt-4">
           <button
@@ -337,22 +353,6 @@ function Badminton_Booking({ params }: UserDataParams) {
             </p>
           </div>
 
-          {/* Time Slots Legend */}
-          <div className="flex justify-center gap-6 mb-8">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-sm text-gray-600">Available</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-yellow-400 rounded-full" />
-              <span className="text-sm text-gray-600">Limited Spots</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-400 rounded-full" />
-              <span className="text-sm text-gray-600">Fully Booked</span>
-            </div>
-          </div>
-
           <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 backdrop-blur-lg bg-opacity-90">
             {/* Show unavailable message if no slots */}
             {slot && slot.length === 0 ? (
@@ -442,7 +442,7 @@ function Badminton_Booking({ params }: UserDataParams) {
                                   disabled={isBooked}
                                 >
                                   <div className="space-y-3">
-                                    <div className="flex items-center justify-center gap-2">
+                                    <div className="h-[1rem] flex items-center justify-center gap-2">
                                       <EventAvailableIcon className={`
                                         ${isBooked ? 'text-gray-400' : 'text-blue-500'}
                                       `} />
@@ -469,7 +469,7 @@ function Badminton_Booking({ params }: UserDataParams) {
                                   {isBooked && (
                                     <div className="booked-overlay">
                                       <span className="booked-stamp">
-                                        BOOKED
+                                        Reserved
                                       </span>
                                     </div>
                                   )}
@@ -545,7 +545,7 @@ const ErrorModal = ({ onClose }) => (
           Booking Failed
         </h2>
         <p className="text-gray-600 mb-6">
-          Something went wrong. Please try again later.
+          Your booking rights maximum
         </p>
         <button
           onClick={onClose}
