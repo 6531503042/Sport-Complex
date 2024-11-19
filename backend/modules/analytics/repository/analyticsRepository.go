@@ -5,390 +5,1125 @@ import (
 	"fmt"
 	"log"
 	"main/modules/analytics"
+	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type (
-    AnalyticsRepositoryService interface {
-        GetDailyStats(ctx context.Context, facilityName string, date time.Time) (*analytics.FacilityUsageStats, error)
-        GetWeeklyStats(ctx context.Context, facilityName string, startDate time.Time) (*analytics.DashboardMetrics, error)
-        GetMonthlyStats(ctx context.Context, facilityName string, year int, month int) (*analytics.DashboardMetrics, error)
-        GetYearlyStats(ctx context.Context, facilityName string, year int) (*analytics.DashboardMetrics, error)
-        GetUserMetrics(ctx context.Context) (*analytics.UserMetrics, error)
-    }
-
-    analyticsRepository struct {
-        db *mongo.Client
-    }
-)
-
-func NewAnalyticsRepository(db *mongo.Client) AnalyticsRepositoryService {
-    return &analyticsRepository{db: db}
+type AnalyticsRepositoryService interface {
+	GetDashboardMetrics(ctx context.Context, query *analytics.AnalyticsQuery) (*analytics.DashboardMetrics, error)
+	GetUserMetrics(ctx context.Context, startDate, endDate time.Time) (*analytics.UserMetrics, error)
+	GetBookingMetrics(ctx context.Context, startDate, endDate time.Time) (*analytics.BookingMetrics, error)
+	GetRevenueMetrics(ctx context.Context, startDate, endDate time.Time) (*analytics.RevenueMetrics, error)
+	GetFacilityMetrics(ctx context.Context, startDate, endDate time.Time) (*analytics.FacilityMetrics, error)
+	GetTimeSeriesData(ctx context.Context, period string, startDate, endDate time.Time) (*analytics.TimeSeriesData, error)
+	GetDailyStats(ctx context.Context, facilityName string, date time.Time) (*analytics.FacilityUsageStats, error)
 }
 
-func (r *analyticsRepository) getRevenueStats(ctx context.Context, facilityName string, startDate, endDate time.Time) (float64, error) {
-    paymentDb := r.db.Database("payment_db")
-    
-    pipeline := []bson.M{
-        {
-            "$match": bson.M{
-                "facility_name": facilityName,
-                "status": "COMPLETED",
-                "created_at": bson.M{
-                    "$gte": startDate,
-                    "$lt":  endDate,
-                },
-            },
-        },
-        {
-            "$group": bson.M{
-                "_id": nil,
-                "total_revenue": bson.M{"$sum": "$amount"},
-            },
-        },
-    }
+type analyticsRepository struct {
+	db *mongo.Client
+}
 
-    cursor, err := paymentDb.Collection("payments").Aggregate(ctx, pipeline)
-    if err != nil {
-        return 0, fmt.Errorf("failed to aggregate revenue: %w", err)
-    }
-    defer cursor.Close(ctx)
+func NewAnalyticsRepository(db *mongo.Client) AnalyticsRepositoryService {
+	return &analyticsRepository{db: db}
+}
 
-    var results []bson.M
-    if err = cursor.All(ctx, &results); err != nil {
-        return 0, fmt.Errorf("failed to decode revenue results: %w", err)
-    }
+func (r *analyticsRepository) GetDashboardMetrics(ctx context.Context, query *analytics.AnalyticsQuery) (*analytics.DashboardMetrics, error) {
+	log.Printf("Getting dashboard metrics for facility: %s, period: %s", query.FacilityID, query.Period)
+	
+	startDate, err := time.Parse("2006-01-02", query.StartDate)
+	if err != nil {
+		log.Printf("Error parsing start date: %v", err)
+		return nil, fmt.Errorf("invalid start date: %w", err)
+	}
 
-    if len(results) > 0 {
-        if revenue, ok := results[0]["total_revenue"].(float64); ok {
-            return revenue, nil
-        }
-    }
+	endDate, err := time.Parse("2006-01-02", query.EndDate)
+	if err != nil {
+		return nil, fmt.Errorf("invalid end date: %w", err)
+	}
 
-    return 0, nil
+	if err := validateTimeRange(startDate, endDate); err != nil {
+		return nil, err
+	}
+
+	// Initialize metrics
+	metrics := &analytics.DashboardMetrics{}
+
+	// Get daily stats
+	dailyStats, err := r.getDailyStats(ctx, query.FacilityID, startDate, endDate)
+	if err != nil {
+		return nil, fmt.Errorf("error getting daily stats: %w", err)
+	}
+	metrics.DailyStats.TotalBookings = dailyStats
+	metrics.DailyStats.Revenue = r.getRevenueTimeSeries(ctx, startDate, endDate, "daily")
+	metrics.DailyStats.UtilizationRate = r.getUtilizationTimeSeries(ctx, startDate, endDate, "daily")
+
+	// Get weekly stats
+	weeklyStats, err := r.getWeeklyStats(ctx, query.FacilityID, startDate, endDate)
+	if err != nil {
+		return nil, fmt.Errorf("error getting weekly stats: %w", err)
+	}
+	metrics.WeeklyStats.BookingTrends = weeklyStats
+	metrics.WeeklyStats.RevenueByFacility = r.getRevenueByFacility(ctx, startDate, endDate)
+	metrics.WeeklyStats.PeakDays = r.getPeakDays(ctx, startDate, endDate)
+
+	// Get monthly stats
+	monthlyStats, err := r.getMonthlyStats(ctx, query.FacilityID, startDate, endDate)
+	if err != nil {
+		return nil, fmt.Errorf("error getting monthly stats: %w", err)
+	}
+	metrics.MonthlyStats.BookingGrowth = monthlyStats
+	metrics.MonthlyStats.RevenueGrowth = r.getRevenueGrowth(ctx, startDate, endDate)
+	metrics.MonthlyStats.FacilityComparison = r.getFacilityComparison(ctx, startDate, endDate)
+
+	// Get yearly stats
+	metrics.YearlyStats.AnnualRevenue = r.getAnnualRevenue(ctx, startDate, endDate)
+	metrics.YearlyStats.FacilityTrends = r.getFacilityTrends(ctx, startDate, endDate)
+	metrics.YearlyStats.SeasonalPatterns = r.getSeasonalPatterns(ctx, startDate, endDate)
+
+	return metrics, nil
+}
+
+// Helper methods for getting specific metrics
+func (r *analyticsRepository) getDailyStats(ctx context.Context, facilityID string, startDate, endDate time.Time) (analytics.TimeSeriesData, error) {
+	bookingDb := r.db.Database("booking_db")
+	bookingCol := bookingDb.Collection("booking_transaction")
+	paymentDb := r.db.Database("payment_db")
+	paymentCol := paymentDb.Collection("payments")
+
+	// Get daily bookings
+	bookingPipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+				"facility": facilityID,
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": bson.M{
+					"$dateToString": bson.M{
+						"format": "%Y-%m-%d",
+						"date":   "$created_at",
+					},
+				},
+				"total_bookings": bson.M{"$sum": 1},
+				"completed_bookings": bson.M{
+					"$sum": bson.M{
+						"$cond": bson.A{
+							bson.M{"$eq": bson.A{"$status", "completed"}},
+							1,
+							0,
+						},
+					},
+				},
+				"failed_bookings": bson.M{
+					"$sum": bson.M{
+						"$cond": bson.A{
+							bson.M{"$eq": bson.A{"$status", "failed"}},
+							1,
+							0,
+						},
+					},
+				},
+			},
+		},
+		{
+			"$sort": bson.M{"_id": 1},
+		},
+	}
+
+	// Get daily revenue
+	revenuePipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+				"facility_name": facilityID,
+				"status": "COMPLETED",
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": bson.M{
+					"$dateToString": bson.M{
+						"format": "%Y-%m-%d",
+						"date":   "$created_at",
+					},
+				},
+				"revenue": bson.M{"$sum": "$amount"},
+			},
+		},
+		{
+			"$sort": bson.M{"_id": 1},
+		},
+	}
+
+	// Execute booking pipeline
+	bookingCursor, err := bookingCol.Aggregate(ctx, bookingPipeline)
+	if err != nil {
+		return analytics.TimeSeriesData{}, fmt.Errorf("failed to aggregate bookings: %w", err)
+	}
+	defer bookingCursor.Close(ctx)
+
+	// Execute revenue pipeline
+	revenueCursor, err := paymentCol.Aggregate(ctx, revenuePipeline)
+	if err != nil {
+		return analytics.TimeSeriesData{}, fmt.Errorf("failed to aggregate revenue: %w", err)
+	}
+	defer revenueCursor.Close(ctx)
+
+	// Process results
+	dailyMetrics := make(map[string]map[string]float64)
+
+	// Process booking results
+	for bookingCursor.Next(ctx) {
+		var result struct {
+			Date              string `bson:"_id"`
+			TotalBookings     int    `bson:"total_bookings"`
+			CompletedBookings int    `bson:"completed_bookings"`
+		}
+		if err := bookingCursor.Decode(&result); err != nil {
+			return analytics.TimeSeriesData{}, fmt.Errorf("failed to decode booking result: %w", err)
+		}
+
+		if dailyMetrics[result.Date] == nil {
+			dailyMetrics[result.Date] = make(map[string]float64)
+		}
+		dailyMetrics[result.Date]["total_bookings"] = float64(result.TotalBookings)
+		dailyMetrics[result.Date]["completed_bookings"] = float64(result.CompletedBookings)
+		
+		// Calculate utilization rate
+		if result.TotalBookings > 0 {
+			utilizationRate := float64(result.CompletedBookings) / float64(result.TotalBookings) * 100
+			dailyMetrics[result.Date]["utilization_rate"] = utilizationRate
+		}
+	}
+
+	// Process revenue results
+	for revenueCursor.Next(ctx) {
+		var result struct {
+			Date    string  `bson:"_id"`
+			Revenue float64 `bson:"revenue"`
+		}
+		if err := revenueCursor.Decode(&result); err != nil {
+			return analytics.TimeSeriesData{}, fmt.Errorf("failed to decode revenue result: %w", err)
+		}
+
+		if dailyMetrics[result.Date] == nil {
+			dailyMetrics[result.Date] = make(map[string]float64)
+		}
+		dailyMetrics[result.Date]["revenue"] = result.Revenue
+	}
+
+	// Convert to TimeSeriesData
+	var daily []analytics.MetricPoint
+	for date, metrics := range dailyMetrics {
+		daily = append(daily, analytics.MetricPoint{
+			Date:    date,
+			Metrics: metrics,
+		})
+	}
+
+	// Sort daily metrics by date
+	sort.Slice(daily, func(i, j int) bool {
+		return daily[i].Date < daily[j].Date
+	})
+
+	return analytics.TimeSeriesData{
+		Daily:   daily,
+		Weekly:  aggregateToWeekly(daily),
+		Monthly: aggregateToMonthly(daily),
+		Yearly:  aggregateToYearly(daily),
+	}, nil
+}
+
+func (r *analyticsRepository) getRevenueTimeSeries(ctx context.Context, startDate, endDate time.Time, period string) analytics.TimeSeriesData {
+	// Implementation for revenue time series
+	return analytics.TimeSeriesData{}
+}
+
+func (r *analyticsRepository) getUtilizationTimeSeries(ctx context.Context, startDate, endDate time.Time, period string) analytics.TimeSeriesData {
+	// Implementation for utilization time series
+	return analytics.TimeSeriesData{}
+}
+
+func (r *analyticsRepository) getWeeklyStats(ctx context.Context, facilityID string, startDate, endDate time.Time) (analytics.TimeSeriesData, error) {
+	// Implementation for weekly stats
+	return analytics.TimeSeriesData{}, nil
+}
+
+func (r *analyticsRepository) getRevenueByFacility(ctx context.Context, startDate, endDate time.Time) map[string]float64 {
+	// Implementation for revenue by facility
+	return make(map[string]float64)
+}
+
+func (r *analyticsRepository) getPeakDays(ctx context.Context, startDate, endDate time.Time) map[string]int {
+	// Implementation for peak days
+	return make(map[string]int)
+}
+
+func (r *analyticsRepository) getMonthlyStats(ctx context.Context, facilityID string, startDate, endDate time.Time) (analytics.TimeSeriesData, error) {
+	// Implementation for monthly stats
+	return analytics.TimeSeriesData{}, nil
+}
+
+func (r *analyticsRepository) getRevenueGrowth(ctx context.Context, startDate, endDate time.Time) analytics.TimeSeriesData {
+	// Implementation for revenue growth
+	return analytics.TimeSeriesData{}
+}
+
+func (r *analyticsRepository) getFacilityComparison(ctx context.Context, startDate, endDate time.Time) []analytics.FacilityComparison {
+	// Implementation for facility comparison
+	return []analytics.FacilityComparison{}
+}
+
+func (r *analyticsRepository) getAnnualRevenue(ctx context.Context, startDate, endDate time.Time) analytics.TimeSeriesData {
+	// Implementation for annual revenue
+	return analytics.TimeSeriesData{}
+}
+
+func (r *analyticsRepository) getFacilityTrends(ctx context.Context, startDate, endDate time.Time) map[string]analytics.TimeSeriesData {
+	// Implementation for facility trends
+	return make(map[string]analytics.TimeSeriesData)
+}
+
+func (r *analyticsRepository) getSeasonalPatterns(ctx context.Context, startDate, endDate time.Time) map[string]float64 {
+	// Implementation for seasonal patterns
+	return make(map[string]float64)
+}
+
+func (r *analyticsRepository) GetUserMetrics(ctx context.Context, startDate, endDate time.Time) (*analytics.UserMetrics, error) {
+	userDb := r.db.Database("user_db")
+	userCol := userDb.Collection("users")
+
+	// Get total users
+	totalUsers, err := userCol.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get new users this month
+	firstDayOfMonth := time.Date(time.Now().Year(), time.Now().Month(), 1, 0, 0, 0, 0, time.UTC)
+	newUsers, err := userCol.CountDocuments(ctx, bson.M{
+		"created_at": bson.M{"$gte": firstDayOfMonth},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate growth rate
+	previousMonth := firstDayOfMonth.AddDate(0, -1, 0)
+	previousMonthUsers, err := userCol.CountDocuments(ctx, bson.M{
+		"created_at": bson.M{
+			"$gte": previousMonth,
+			"$lt":  firstDayOfMonth,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var growthRate float64
+	if previousMonthUsers > 0 {
+		growthRate = float64(newUsers-previousMonthUsers) / float64(previousMonthUsers) * 100
+	}
+
+	return &analytics.UserMetrics{
+		TotalUsers:        int(totalUsers),
+		UserGrowthRate:    growthRate,
+		NewUsersThisMonth: int(newUsers),
+		ActiveUsers:       int(totalUsers), // You might want to refine this based on your definition of active users
+		UserRetentionRate: 0,              // Calculate based on your retention logic
+	}, nil
+}
+
+func (r *analyticsRepository) GetBookingMetrics(ctx context.Context, startDate, endDate time.Time) (*analytics.BookingMetrics, error) {
+	bookingDb := r.db.Database("booking_db")
+	bookingCol := bookingDb.Collection("booking_transaction")
+
+	// Get total bookings
+	totalBookings, err := bookingCol.CountDocuments(ctx, bson.M{
+		"created_at": bson.M{
+			"$gte": startDate,
+			"$lte": endDate,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get bookings per facility
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": "$facility",
+				"count": bson.M{"$sum": 1},
+			},
+		},
+	}
+
+	cursor, err := bookingCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	bookingsPerFacility := make(map[string]int)
+	for cursor.Next(ctx) {
+		var result struct {
+			ID    string `bson:"_id"`
+			Count int    `bson:"count"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+		bookingsPerFacility[result.ID] = result.Count
+	}
+
+	// Calculate booking growth rate
+	previousPeriodStart := startDate.AddDate(0, -1, 0)
+	previousPeriodEnd := endDate.AddDate(0, -1, 0)
+	previousBookings, err := bookingCol.CountDocuments(ctx, bson.M{
+		"created_at": bson.M{
+			"$gte": previousPeriodStart,
+			"$lte": previousPeriodEnd,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var growthRate float64
+	if previousBookings > 0 {
+		growthRate = float64(totalBookings-previousBookings) / float64(previousBookings) * 100
+	}
+
+	return &analytics.BookingMetrics{
+		TotalBookings:       int(totalBookings),
+		BookingGrowthRate:   growthRate,
+		BookingsPerFacility: bookingsPerFacility,
+		// Add other metrics as needed
+	}, nil
+}
+
+func (r *analyticsRepository) GetRevenueMetrics(ctx context.Context, startDate, endDate time.Time) (*analytics.RevenueMetrics, error) {
+	paymentDb := r.db.Database("payment_db")
+	paymentCol := paymentDb.Collection("payments")
+
+	// Calculate total revenue
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+				"status": "COMPLETED",
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": nil,
+				"total_revenue": bson.M{"$sum": "$amount"},
+			},
+		},
+	}
+
+	cursor, err := paymentCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var result struct {
+		TotalRevenue float64 `bson:"total_revenue"`
+	}
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+	}
+
+	// Calculate revenue per facility
+	facilityPipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+				"status": "COMPLETED",
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": "$facility_name",
+				"revenue": bson.M{"$sum": "$amount"},
+			},
+		},
+	}
+
+	facilityCursor, err := paymentCol.Aggregate(ctx, facilityPipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer facilityCursor.Close(ctx)
+
+	revenuePerFacility := make(map[string]float64)
+	for facilityCursor.Next(ctx) {
+		var facilityResult struct {
+			ID      string  `bson:"_id"`
+			Revenue float64 `bson:"revenue"`
+		}
+		if err := facilityCursor.Decode(&facilityResult); err != nil {
+			return nil, err
+		}
+		revenuePerFacility[facilityResult.ID] = facilityResult.Revenue
+	}
+
+	return &analytics.RevenueMetrics{
+		TotalRevenue:       result.TotalRevenue,
+		RevenuePerFacility: revenuePerFacility,
+		// Add other metrics as needed
+	}, nil
+}
+
+func (r *analyticsRepository) GetFacilityMetrics(ctx context.Context, startDate, endDate time.Time) (*analytics.FacilityMetrics, error) {
+	bookingDb := r.db.Database("booking_db")
+	bookingCol := bookingDb.Collection("booking_transaction")
+
+	// Get total facilities
+	facilityDb := r.db.Database("facility_db")
+	facilityCol := facilityDb.Collection("facilities")
+	totalFacilities, err := facilityCol.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("error counting facilities: %w", err)
+	}
+
+	// Get facility utilization
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": "$facility",
+				"total_bookings": bson.M{"$sum": 1},
+				"completed_bookings": bson.M{
+					"$sum": bson.M{
+						"$cond": bson.A{
+							bson.M{"$eq": bson.A{"$status", "completed"}},
+							1,
+							0,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	cursor, err := bookingCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error aggregating facility metrics: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	facilityUtilization := make(map[string]float64)
+	var peakHours []analytics.PeakHourMetric
+	var popularFacilities []analytics.FacilityUsageMetric
+
+	for cursor.Next(ctx) {
+		var result struct {
+			ID                string `bson:"_id"`
+			TotalBookings    int    `bson:"total_bookings"`
+			CompletedBookings int    `bson:"completed_bookings"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("error decoding facility metrics: %w", err)
+		}
+
+		// Calculate utilization rate
+		utilization := float64(result.CompletedBookings) / float64(result.TotalBookings)
+		facilityUtilization[result.ID] = utilization
+
+		popularFacilities = append(popularFacilities, analytics.FacilityUsageMetric{
+			FacilityName: result.ID,
+			UsageRate:    utilization,
+		})
+	}
+
+	// Get peak hours (example implementation)
+	peakHours = []analytics.PeakHourMetric{
+		{Hour: 9, Utilization: 0.8},
+		{Hour: 17, Utilization: 0.9},
+	}
+
+	return &analytics.FacilityMetrics{
+		TotalFacilities:     int(totalFacilities),
+		FacilityUtilization: facilityUtilization,
+		PeakHours:          peakHours,
+		PopularFacilities:  popularFacilities,
+	}, nil
+}
+
+func (r *analyticsRepository) GetTimeSeriesData(ctx context.Context, period string, startDate, endDate time.Time) (*analytics.TimeSeriesData, error) {
+	bookingDb := r.db.Database("booking_db")
+	bookingCol := bookingDb.Collection("booking_transaction")
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": bson.M{
+					"$dateToString": bson.M{
+						"format": "%Y-%m-%d",
+						"date": "$created_at",
+					},
+				},
+				"bookings": bson.M{"$sum": 1},
+				"revenue": bson.M{"$sum": "$amount"},
+			},
+		},
+		{
+			"$sort": bson.M{"_id": 1},
+		},
+	}
+
+	cursor, err := bookingCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error aggregating time series data: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var daily []analytics.MetricPoint
+	for cursor.Next(ctx) {
+		var result struct {
+			Date     string  `bson:"_id"`
+			Bookings int     `bson:"bookings"`
+			Revenue  float64 `bson:"revenue"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("error decoding time series data: %w", err)
+		}
+
+		daily = append(daily, analytics.MetricPoint{
+			Date: result.Date,
+			Metrics: map[string]float64{
+				"bookings": float64(result.Bookings),
+				"revenue":  result.Revenue,
+			},
+		})
+	}
+
+	return &analytics.TimeSeriesData{
+		Daily:   daily,
+		Weekly:  aggregateToWeekly(daily),
+		Monthly: aggregateToMonthly(daily),
+		Yearly:  aggregateToYearly(daily),
+	}, nil
 }
 
 func (r *analyticsRepository) GetDailyStats(ctx context.Context, facilityName string, date time.Time) (*analytics.FacilityUsageStats, error) {
-    startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
-    endOfDay := startOfDay.Add(24 * time.Hour)
+	bookingDb := r.db.Database("booking_db")
+	bookingCol := bookingDb.Collection("booking_transaction")
 
-    bookingDb := r.db.Database("booking_db")
+	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	endOfDay := startOfDay.Add(24 * time.Hour)
 
-    // Updated booking pipeline to get real booking data
-    bookingPipeline := []bson.M{
-        {
-            "$match": bson.M{
-                "$or": []bson.M{
-                    {"facility": facilityName},
-                    {"facility_name": facilityName},
-                },
-                "created_at": bson.M{
-                    "$gte": startOfDay,
-                    "$lt":  endOfDay,
-                },
-            },
-        },
-        {
-            "$group": bson.M{
-                "_id": nil,
-                "total_bookings": bson.M{"$sum": 1},
-                "completed_bookings": bson.M{
-                    "$sum": bson.M{
-                        "$cond": []interface{}{
-                            bson.M{"$eq": []interface{}{"$status", "PAID"}},
-                            1,
-                            0,
-                        },
-                    },
-                },
-                "failed_bookings": bson.M{
-                    "$sum": bson.M{
-                        "$cond": []interface{}{
-                            bson.M{"$eq": []interface{}{"$status", "FAILED"}},
-                            1,
-                            0,
-                        },
-                    },
-                },
-            },
-        },
-    }
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startOfDay,
+					"$lt":  endOfDay,
+				},
+				"facility": facilityName,
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": nil,
+				"total_bookings": bson.M{"$sum": 1},
+				"completed_bookings": bson.M{
+					"$sum": bson.M{
+						"$cond": bson.A{
+							bson.M{"$eq": bson.A{"$status", "completed"}},
+							1,
+							0,
+						},
+					},
+				},
+				"failed_bookings": bson.M{
+					"$sum": bson.M{
+						"$cond": bson.A{
+							bson.M{"$eq": bson.A{"$status", "failed"}},
+							1,
+							0,
+						},
+					},
+				},
+			},
+		},
+	}
 
-    // Execute booking pipeline
-    cursor, err := bookingDb.Collection("booking_transaction").Aggregate(ctx, bookingPipeline)
-    if err != nil {
-        return nil, fmt.Errorf("failed to aggregate bookings: %w", err)
-    }
-    defer cursor.Close(ctx)
+	var result struct {
+		TotalBookings     int `bson:"total_bookings"`
+		CompletedBookings int     `bson:"completed_bookings"`
+		FailedBookings    int     `bson:"failed_bookings"`
+	}
 
-    var results []bson.M
-    if err = cursor.All(ctx, &results); err != nil {
-        return nil, fmt.Errorf("failed to decode results: %w", err)
-    }
+	cursor, err := bookingCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
 
-    // Also check historical data
-    historyCursor, err := bookingDb.Collection("histories_transaction").Aggregate(ctx, bookingPipeline)
-    if err == nil {
-        defer historyCursor.Close(ctx)
-        var historyResults []bson.M
-        if err = historyCursor.All(ctx, &historyResults); err == nil && len(historyResults) > 0 {
-            // Merge history results with current results
-            if len(results) == 0 {
-                results = historyResults
-            } else {
-                results[0]["total_bookings"] = results[0]["total_bookings"].(int32) + historyResults[0]["total_bookings"].(int32)
-                results[0]["completed_bookings"] = results[0]["completed_bookings"].(int32) + historyResults[0]["completed_bookings"].(int32)
-                results[0]["failed_bookings"] = results[0]["failed_bookings"].(int32) + historyResults[0]["failed_bookings"].(int32)
-            }
-        }
-    }
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+	}
 
-    // Get revenue from payments
-    revenue, err := r.getRevenueStats(ctx, facilityName, startOfDay, endOfDay)
-    if err != nil {
-        log.Printf("Error getting revenue stats: %v", err)
-    }
+	// Calculate utilization rate (example calculation)
+	utilizationRate := float64(result.CompletedBookings) / 100.0 // Adjust based on your capacity definition
 
-    // Initialize stats with default values
-    stats := &analytics.FacilityUsageStats{
-        FacilityName:      facilityName,
-        Date:             date,
-        TotalBookings:    0,
-        CompletedBookings: 0,
-        FailedBookings:   0, // Changed from CanceledBookings to FailedBookings
-        Revenue:         revenue,
-        UtilizationRate:  0,
-        PeakHours:       make([]int, 24),
-    }
-
-    // Process results
-    if len(results) > 0 {
-        if total, ok := results[0]["total_bookings"].(int32); ok {
-            stats.TotalBookings = int(total)
-        }
-        if completed, ok := results[0]["completed_bookings"].(int32); ok {
-            stats.CompletedBookings = int(completed)
-        }
-        if failed, ok := results[0]["failed_bookings"].(int32); ok {
-            stats.FailedBookings = int(failed) // Changed from CanceledBookings to FailedBookings
-        }
-    }
-
-    // Calculate utilization from slots
-    facilityDb := r.db.Database(fmt.Sprintf("%s_facility", facilityName))
-    var slots []bson.M
-    slotsCursor, err := facilityDb.Collection("slots").Find(ctx, bson.M{})
-    if err == nil {
-        defer slotsCursor.Close(ctx)
-        if err = slotsCursor.All(ctx, &slots); err == nil {
-            totalCapacity := 0
-            usedCapacity := 0
-            for _, slot := range slots {
-                if maxBookings, ok := slot["max_bookings"].(int32); ok {
-                    totalCapacity += int(maxBookings)
-                }
-                if currentBookings, ok := slot["current_bookings"].(int32); ok {
-                    usedCapacity += int(currentBookings)
-                }
-                // Track peak hours
-                if startTime, ok := slot["start_time"].(string); ok {
-                    if t, err := time.Parse("15:04", startTime); err == nil {
-                        if currentBookings, ok := slot["current_bookings"].(int32); ok {
-                            stats.PeakHours[t.Hour()] += int(currentBookings)
-                        }
-                    }
-                }
-            }
-            if totalCapacity > 0 {
-                stats.UtilizationRate = float64(usedCapacity) / float64(totalCapacity) * 100
-            }
-        }
-    }
-
-    return stats, nil
+	return &analytics.FacilityUsageStats{
+		FacilityName:      facilityName,
+		Date:             date,
+		TotalBookings:    result.TotalBookings,
+		CompletedBookings: result.CompletedBookings,
+		FailedBookings:   result.FailedBookings,
+		UtilizationRate:  utilizationRate,
+	}, nil
 }
 
-func (r *analyticsRepository) GetWeeklyStats(ctx context.Context, facilityName string, startDate time.Time) (*analytics.DashboardMetrics, error) {
-    metrics := &analytics.DashboardMetrics{
-        WeeklyStats: struct {
-            BookingTrends    analytics.TimeSeriesData `json:"booking_trends"`
-            RevenueByFacility map[string]float64 `json:"revenue_by_facility"`
-            PeakDays         map[string]int    `json:"peak_days"`
-        }{
-            BookingTrends: analytics.TimeSeriesData{
-                Labels: make([]string, 0),
-                Values: make([]float64, 0),
-            },
-            RevenueByFacility: make(map[string]float64),
-            PeakDays:         make(map[string]int),
-        },
-    }
-    
-    // Get data for each day of the week
-    for i := 0; i < 7; i++ {
-        date := startDate.AddDate(0, 0, i)
-        dailyStats, err := r.GetDailyStats(ctx, facilityName, date)
-        if err != nil {
-            continue
-        }
+func aggregateToWeekly(daily []analytics.MetricPoint) []analytics.MetricPoint {
+	weeklyData := make(map[string]map[string]float64)
+	for _, point := range daily {
+		date, _ := time.Parse("2006-01-02", point.Date)
+		year, week := date.ISOWeek()
+		weekKey := fmt.Sprintf("%d-W%02d", year, week)
+		
+		if weeklyData[weekKey] == nil {
+			weeklyData[weekKey] = make(map[string]float64)
+		}
+		for metric, value := range point.Metrics {
+			weeklyData[weekKey][metric] += value
+		}
+	}
 
-        // Add to weekly trends
-        metrics.WeeklyStats.BookingTrends.Labels = append(
-            metrics.WeeklyStats.BookingTrends.Labels,
-            date.Format("Mon"),
-        )
-        metrics.WeeklyStats.BookingTrends.Values = append(
-            metrics.WeeklyStats.BookingTrends.Values,
-            float64(dailyStats.TotalBookings),
-        )
-
-        // Track peak days
-        metrics.WeeklyStats.PeakDays[date.Format("Monday")] = dailyStats.TotalBookings
-        
-        // Add revenue
-        metrics.WeeklyStats.RevenueByFacility[facilityName] += dailyStats.Revenue
-    }
-
-    return metrics, nil
+	var result []analytics.MetricPoint
+	for date, metrics := range weeklyData {
+		result = append(result, analytics.MetricPoint{Date: date, Metrics: metrics})
+	}
+	return result
 }
 
-func (r *analyticsRepository) GetMonthlyStats(ctx context.Context, facilityName string, year int, month int) (*analytics.DashboardMetrics, error) {
-    startOfMonth := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
-    endOfMonth := startOfMonth.AddDate(0, 1, 0)
+func aggregateToMonthly(daily []analytics.MetricPoint) []analytics.MetricPoint {
+	monthlyData := make(map[string]map[string]float64)
+	for _, point := range daily {
+		date, _ := time.Parse("2006-01-02", point.Date)
+		monthKey := date.Format("2006-01")
+		
+		if monthlyData[monthKey] == nil {
+			monthlyData[monthKey] = make(map[string]float64)
+		}
+		for metric, value := range point.Metrics {
+			monthlyData[monthKey][metric] += value
+		}
+	}
 
-    // Get monthly revenue from payments
-    paymentDb := r.db.Database("payment_db")
-    revenuePipeline := []bson.M{
-        {
-            "$match": bson.M{
-                "facility_name": facilityName,
-                "status": "COMPLETED",
-                "created_at": bson.M{
-                    "$gte": startOfMonth,
-                    "$lt":  endOfMonth,
-                },
-            },
-        },
-        {
-            "$group": bson.M{
-                "_id": bson.M{
-                    "day": bson.M{"$dayOfMonth": "$created_at"},
-                },
-                "revenue": bson.M{"$sum": "$amount"},
-                "transaction_count": bson.M{"$sum": 1},
-            },
-        },
-        {
-            "$sort": bson.M{"_id.day": 1},
-        },
-    }
-
-    revenueCursor, err := paymentDb.Collection("payments").Aggregate(ctx, revenuePipeline)
-    if err != nil {
-        return nil, fmt.Errorf("failed to aggregate revenue: %w", err)
-    }
-    defer revenueCursor.Close(ctx)
-
-    var revenueResults []bson.M
-    if err = revenueCursor.All(ctx, &revenueResults); err != nil {
-        return nil, fmt.Errorf("failed to decode revenue results: %w", err)
-    }
-
-    metrics := &analytics.DashboardMetrics{
-        MonthlyStats: struct {
-            BookingGrowth analytics.TimeSeriesData `json:"booking_growth"`
-            RevenueGrowth analytics.TimeSeriesData `json:"revenue_growth"`
-            FacilityComparison []analytics.FacilityComparison `json:"facility_comparison"`
-        }{
-            BookingGrowth: analytics.TimeSeriesData{
-                Labels: make([]string, len(revenueResults)),
-                Values: make([]float64, len(revenueResults)),
-            },
-            RevenueGrowth: analytics.TimeSeriesData{
-                Labels: make([]string, len(revenueResults)),
-                Values: make([]float64, len(revenueResults)),
-            },
-            FacilityComparison: make([]analytics.FacilityComparison, 0),
-        },
-    }
-
-    // Process revenue data
-    for i, result := range revenueResults {
-        day := result["_id"].(bson.M)["day"].(int32)
-        revenue := result["revenue"].(float64)
-        transactions := result["transaction_count"].(int32)
-
-        dateStr := fmt.Sprintf("%d-%02d-%02d", year, month, day)
-        
-        metrics.MonthlyStats.BookingGrowth.Labels[i] = dateStr
-        metrics.MonthlyStats.BookingGrowth.Values[i] = float64(transactions)
-        
-        metrics.MonthlyStats.RevenueGrowth.Labels[i] = dateStr
-        metrics.MonthlyStats.RevenueGrowth.Values[i] = revenue
-    }
-
-    // Get facility comparison data
-    facilities := []string{"fitness", "swimming", "badminton", "football"}
-    for _, facility := range facilities {
-        revenue, err := r.getRevenueStats(ctx, facility, startOfMonth, endOfMonth)
-        if err != nil {
-            continue
-        }
-
-        metrics.MonthlyStats.FacilityComparison = append(
-            metrics.MonthlyStats.FacilityComparison,
-            analytics.FacilityComparison{
-                FacilityName: facility,
-                Revenue:     revenue,
-                // Other fields can be populated as needed
-            },
-        )
-    }
-
-    return metrics, nil
+	var result []analytics.MetricPoint
+	for date, metrics := range monthlyData {
+		result = append(result, analytics.MetricPoint{Date: date, Metrics: metrics})
+	}
+	return result
 }
 
-func (r *analyticsRepository) GetYearlyStats(ctx context.Context, facilityName string, year int) (*analytics.DashboardMetrics, error) {
-    // Implementation
-    return &analytics.DashboardMetrics{}, nil
+func aggregateToYearly(daily []analytics.MetricPoint) []analytics.MetricPoint {
+	yearlyData := make(map[string]map[string]float64)
+	for _, point := range daily {
+		date, _ := time.Parse("2006-01-02", point.Date)
+		yearKey := date.Format("2006")
+		
+		if yearlyData[yearKey] == nil {
+			yearlyData[yearKey] = make(map[string]float64)
+		}
+		for metric, value := range point.Metrics {
+			yearlyData[yearKey][metric] += value
+		}
+	}
+
+	var result []analytics.MetricPoint
+	for date, metrics := range yearlyData {
+		result = append(result, analytics.MetricPoint{Date: date, Metrics: metrics})
+	}
+	return result
 }
 
-func (r *analyticsRepository) GetUserMetrics(ctx context.Context) (*analytics.UserMetrics, error) {
-    userDb := r.db.Database("user_db")
-    
-    // Get total users
-    totalUsers, err := userDb.Collection("users").CountDocuments(ctx, bson.M{})
-    if err != nil {
-        return nil, fmt.Errorf("failed to count users: %w", err)
-    }
-
-    // Get new users (registered in last 30 days)
-    thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-    newUsers, err := userDb.Collection("users").CountDocuments(ctx, bson.M{
-        "created_at": bson.M{"$gte": thirtyDaysAgo},
-    })
-    if err != nil {
-        return nil, fmt.Errorf("failed to count new users: %w", err)
-    }
-
-    // Get active users (with bookings in last 30 days)
-    bookingDb := r.db.Database("booking_db")
-    activeUsers, err := bookingDb.Collection("booking_transaction").Distinct(ctx, "user_id", bson.M{
-        "created_at": bson.M{"$gte": thirtyDaysAgo},
-    })
-    if err != nil {
-        return nil, fmt.Errorf("failed to count active users: %w", err)
-    }
-
-    return &analytics.UserMetrics{
-        TotalUsers:     int(totalUsers),
-        ActiveUsers:    len(activeUsers),
-        NewUsers:       int(newUsers),
-        UserGrowthRate: float64(newUsers) / float64(totalUsers) * 100,
-    }, nil
+// Add these helper methods
+func (r *analyticsRepository) getFacilityDb(facilityName string) (*mongo.Database, error) {
+	if facilityName == "" {
+		return nil, fmt.Errorf("facility name cannot be empty")
+	}
+	
+	db := r.db.Database(fmt.Sprintf("%s_facility", facilityName))
+	
+	// Verify database exists
+	err := db.RunCommand(context.Background(), bson.D{{"ping", 1}}).Err()
+	if err != nil {
+		return nil, fmt.Errorf("facility database not accessible: %w", err)
+	}
+	
+	return db, nil
 }
 
-// Implement other repository methods... 
+func (r *analyticsRepository) getBookingDb() *mongo.Database {
+	return r.db.Database("booking_db")
+}
+
+func (r *analyticsRepository) getPaymentDb() *mongo.Database {
+	return r.db.Database("payment_db")
+}
+
+// Update getFacilityMetrics to handle facility-specific data
+func (r *analyticsRepository) getFacilityMetrics(ctx context.Context, facilityName string, startDate, endDate time.Time) (*analytics.FacilityMetrics, error) {
+	facilityDb, err := r.getFacilityDb(facilityName)
+	if err != nil {
+		return nil, err
+	}
+	slotsCol := facilityDb.Collection("slots")
+	
+	// Get slot utilization
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": nil,
+				"total_slots": bson.M{"$sum": 1},
+				"total_bookings": bson.M{"$sum": "$current_bookings"},
+				"max_capacity": bson.M{"$sum": "$max_bookings"},
+			},
+		},
+	}
+
+	cursor, err := slotsCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var result struct {
+		 TotalSlots    int `bson:"total_slots"`
+		 TotalBookings int `bson:"total_bookings"`
+		 MaxCapacity   int `bson:"max_capacity"`
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+	}
+
+	// Calculate utilization rate
+	utilizationRate := float64(result.TotalBookings) / float64(result.MaxCapacity) * 100
+
+	// Get peak hours
+	peakHoursPipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"current_bookings": bson.M{"$gt": 0},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": "$start_time",
+				"utilization": bson.M{
+					"$avg": bson.M{
+						"$divide": []interface{}{"$current_bookings", "$max_bookings"},
+					},
+				},
+			},
+		},
+		{
+			"$sort": bson.M{"utilization": -1},
+		},
+		{
+			"$limit": 5,
+		},
+	}
+
+	peakHoursCursor, err := slotsCol.Aggregate(ctx, peakHoursPipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer peakHoursCursor.Close(ctx)
+
+	var peakHours []analytics.PeakHourMetric
+	for peakHoursCursor.Next(ctx) {
+		var peakHour struct {
+			Hour        string  `bson:"_id"`
+			Utilization float64 `bson:"utilization"`
+		}
+		if err := peakHoursCursor.Decode(&peakHour); err != nil {
+			return nil, err
+		}
+		
+		// Convert hour string to int (e.g., "09:00" -> 9)
+		hourInt, _ := strconv.Atoi(strings.Split(peakHour.Hour, ":")[0])
+		peakHours = append(peakHours, analytics.PeakHourMetric{
+			Hour:        hourInt,
+			Utilization: peakHour.Utilization * 100,
+		})
+	}
+
+	return &analytics.FacilityMetrics{
+		FacilityUtilization: map[string]float64{
+			facilityName: utilizationRate,
+		},
+		PeakHours: peakHours,
+	}, nil
+}
+
+// Add payment analytics
+func (r *analyticsRepository) getPaymentMetrics(ctx context.Context, startDate, endDate time.Time) (*analytics.PaymentMetrics, error) {
+	paymentDb := r.getPaymentDb()
+	paymentsCol := paymentDb.Collection("payments")
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": "$facilityname",
+				"total_amount": bson.M{"$sum": "$amount"},
+				"completed_payments": bson.M{
+					"$sum": bson.M{
+						"$cond": bson.A{
+							bson.M{"$eq": bson.A{"$status", "COMPLETED"}},
+							1,
+							0,
+						},
+					},
+				},
+				"pending_payments": bson.M{
+					"$sum": bson.M{
+						"$cond": bson.A{
+							bson.M{"$eq": bson.A{"$status", "PENDING"}},
+							1,
+							0,
+						},
+					},
+				},
+				"total_payments": bson.M{"$sum": 1},
+			},
+		},
+	}
+
+	cursor, err := paymentsCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	revenueByFacility := make(map[string]float64)
+	paymentStats := make(map[string]analytics.PaymentStats)
+
+	for cursor.Next(ctx) {
+		var result struct {
+			FacilityName      string  `bson:"_id"`
+			TotalAmount       float64 `bson:"total_amount"`
+			CompletedPayments int     `bson:"completed_payments"`
+			PendingPayments   int     `bson:"pending_payments"`
+			TotalPayments     int     `bson:"total_payments"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+
+		revenueByFacility[result.FacilityName] = result.TotalAmount
+		successRate := float64(result.CompletedPayments) / float64(result.TotalPayments) * 100
+
+		paymentStats[result.FacilityName] = analytics.PaymentStats{
+			Count:       result.TotalPayments,
+			TotalAmount: result.TotalAmount,
+			SuccessRate: successRate,
+		}
+	}
+
+	var totalPayments int
+	var paymentGrowthRate float64
+
+	// Calculate totals from paymentStats
+	for _, stats := range paymentStats {
+		totalPayments += stats.Count
+	}
+
+	// Calculate growth rate if needed
+	// ... growth rate calculation ...
+
+	return &analytics.PaymentMetrics{
+		TotalPayments:     totalPayments,
+		PaymentGrowthRate: paymentGrowthRate,
+		PaymentMethods:    paymentStats,
+	}, nil
+}
+
+// Add helper function to get facility-specific data
+func (r *analyticsRepository) getFacilitySlotStats(ctx context.Context, facilityName string, startDate, endDate time.Time) (*analytics.FacilityMetrics, error) {
+	facilityDb, err := r.getFacilityDb(facilityName)
+	if err != nil {
+		return nil, err
+	}
+	slotsCol := facilityDb.Collection("slots")
+
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": nil,
+				"total_slots": bson.M{"$sum": 1},
+				"used_slots": bson.M{
+					"$sum": bson.M{
+						"$cond": bson.A{
+							bson.M{"$gt": bson.A{"$current_bookings", 0}},
+							1,
+							0,
+						},
+					},
+				},
+				"total_capacity": bson.M{"$sum": "$max_bookings"},
+				"total_bookings": bson.M{"$sum": "$current_bookings"},
+			},
+		},
+	}
+
+	cursor, err := slotsCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var result struct {
+		TotalSlots    int `bson:"total_slots"`
+		UsedSlots     int `bson:"used_slots"`
+		TotalCapacity int `bson:"total_capacity"`
+		TotalBookings int `bson:"total_bookings"`
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+	}
+
+	utilizationRate := float64(result.TotalBookings) / float64(result.TotalCapacity) * 100
+
+	return &analytics.FacilityMetrics{
+		TotalFacilities: 1,
+		FacilityUtilization: map[string]float64{
+			facilityName: utilizationRate,
+		},
+	}, nil
+}
+
+// Add helper function to aggregate data from all facilities
+func (r *analyticsRepository) getAllFacilitiesStats(ctx context.Context, startDate, endDate time.Time) (*analytics.FacilityMetrics, error) {
+	facilities := []string{"fitness", "swimming", "badminton", "football"}
+	
+	var totalFacilities int
+	facilityUtilization := make(map[string]float64)
+	var popularFacilities []analytics.FacilityUsageMetric
+
+	for _, facilityName := range facilities {
+		stats, err := r.getFacilitySlotStats(ctx, facilityName, startDate, endDate)
+		if err != nil {
+			continue
+		}
+
+		totalFacilities++
+		if utilization, ok := stats.FacilityUtilization[facilityName]; ok {
+			facilityUtilization[facilityName] = utilization
+			popularFacilities = append(popularFacilities, analytics.FacilityUsageMetric{
+				FacilityName: facilityName,
+				UsageRate:    utilization,
+			})
+		}
+	}
+
+	// Sort popular facilities by usage rate
+	sort.Slice(popularFacilities, func(i, j int) bool {
+		return popularFacilities[i].UsageRate > popularFacilities[j].UsageRate
+	})
+
+	return &analytics.FacilityMetrics{
+		TotalFacilities:     totalFacilities,
+		FacilityUtilization: facilityUtilization,
+		PopularFacilities:   popularFacilities,
+	}, nil
+}
+
+// Add validation helper
+func validateTimeRange(startDate, endDate time.Time) error {
+	if endDate.Before(startDate) {
+		return fmt.Errorf("end date must be after start date")
+	}
+	
+	if startDate.After(time.Now()) {
+		return fmt.Errorf("start date cannot be in the future")
+	}
+	
+	return nil
+}
+
+// Implement remaining methods... 
