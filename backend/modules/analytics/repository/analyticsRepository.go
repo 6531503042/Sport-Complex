@@ -22,6 +22,9 @@ type AnalyticsRepositoryService interface {
 	GetFacilityMetrics(ctx context.Context, startDate, endDate time.Time) (*analytics.FacilityMetrics, error)
 	GetTimeSeriesData(ctx context.Context, period string, startDate, endDate time.Time) (*analytics.TimeSeriesData, error)
 	GetDailyStats(ctx context.Context, facilityName string, date time.Time) (*analytics.FacilityUsageStats, error)
+
+    //payment
+    getTotalRevenue(ctx context.Context, startDate, endDate time.Time) (float64, error)
 }
 
 type analyticsRepository struct {
@@ -1126,4 +1129,55 @@ func validateTimeRange(startDate, endDate time.Time) error {
 	return nil
 }
 
-// Implement remaining methods... 
+func (r *analyticsRepository) getTotalRevenue(ctx context.Context, startDate, endDate time.Time) (float64, error) {
+	bookingDb := r.db.Database("booking_db")
+	bookingCol := bookingDb.Collection("booking_transaction")
+	paymentDb := r.db.Database("payment_db")
+	paymentCol := paymentDb.Collection("payments")
+
+	// Aggregate query to calculate total revenue from payments related to bookings
+	pipeline := []bson.M{
+		{
+			"$lookup": bson.M{
+				"from":         "payments",
+				"localField":   "booking_id",
+				"foreignField": "booking_id",
+				"as":           "payment_info",
+			},
+		},
+		{
+			"$unwind": "$payment_info",
+		},
+		{
+			"$match": bson.M{
+				"payment_info.created_at": bson.M{
+					"$gte": startDate,
+					"$lte": endDate,
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": nil,
+				"total_revenue": bson.M{"$sum": "$payment_info.amount"},
+			},
+		},
+	}
+
+	cursor, err := bookingCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return 0, fmt.Errorf("failed to aggregate total revenue: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var result struct {
+		TotalRevenue float64 `bson:"total_revenue"`
+	}
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return 0, fmt.Errorf("failed to decode total revenue result: %w", err)
+		}
+	}
+
+	return result.TotalRevenue, nil
+}
