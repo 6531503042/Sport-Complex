@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Input, Button, Card, Spacer } from '@nextui-org/react';
 import Image from 'next/image';
+import Link from 'next/link';
 import styles from './SignUp.module.css';
+import { motion } from 'framer-motion';
+import { Email, Lock, Person, ArrowForward } from '@mui/icons-material';
 
 const SignUpPage = () => {
   const router = useRouter();
@@ -14,11 +16,15 @@ const SignUpPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isSuccessful, setIsSuccessful] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setIsLoading(true);
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
 
@@ -34,10 +40,13 @@ const SignUpPage = () => {
       if (response.ok) {
         setIsSuccessful(true);
       } else {
-        console.error('Registration failed');
+        setError('Registration failed. Please try again.');
       }
     } catch (error) {
       console.error('An error occurred during registration:', error);
+      setError('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -46,74 +55,176 @@ const SignUpPage = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.left}>
-        <Image className={styles.logo} src="/assets/logo-mfu-v2.png" alt="Logo" width={70} height={70} />
-        <h1 className={styles.header}>WELCOME NEW USER</h1>
-        <p className={styles.underheader}>Welcome to MFU Sport complex.</p>
-        {isSuccessful ? (
-          <Card className={styles.successCard}>
-            <h2 className={styles.successHeader}>Signup Successful</h2>
-            <p className={styles.successText}>Welcome to MFU Sport Complex! Your signup was successful.</p>
-            <Spacer y={1} />
-            <Button className={styles.button} color="primary" onClick={handleLoginRedirect}>
-              OK
-            </Button>
-          </Card>
-        ) : (
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.input}>
-              <Input
-                fullWidth
-                isClearable
-                label="Name"
-                placeholder="Enter your name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className={styles.input}>
-              <Input
-                fullWidth
-                isClearable
-                label="Email"
-                placeholder="Enter your email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className={styles.input}>
-              <Input
-                fullWidth
-                isClearable
-                label="Password"
-                placeholder="********"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className={styles.input}>
-              <Input
-                fullWidth
-                isClearable
-                label="Confirm Password"
-                placeholder="********"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
-            {error && <p className={styles.error}>{error}</p>}
-            <Button type="submit" className={styles.button} color="primary">
-              Sign up
-            </Button>
-          </form>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className={styles.container}
+    >
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className={styles.left}
+      >
+        <motion.div
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="flex justify-center"
+        >
+          <Image 
+            className={styles.logo} 
+            src="/assets/logo-mfu-v2.png" 
+            alt="Logo" 
+            width={70} 
+            height={70} 
+            priority
+          />
+        </motion.div>
+
+        <motion.h1 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className={styles.header}
+        >
+          Create Account
+        </motion.h1>
+
+        <motion.p 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className={styles.underheader}
+        >
+          Join MFU Sport Complex today
+        </motion.p>
+
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={styles.error}
+          >
+            {error}
+          </motion.div>
         )}
-      </div>
-    </div>
+
+        {isSuccessful ? (
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className={styles.successCard}
+          >
+            <h2 className={styles.successHeader}>Registration Successful!</h2>
+            <p className={styles.successText}>
+              Welcome to MFU Sport Complex! You can now log in to your account.
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleLoginRedirect}
+              className={styles.button}
+            >
+              Go to Login
+            </motion.button>
+          </motion.div>
+        ) : (
+          <motion.form 
+            className={styles.form} 
+            onSubmit={handleSubmit}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className={styles.inputGroup}>
+              <div className={styles.inputWrapper}>
+                <Person className={styles.inputIcon} />
+                <input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={styles.input}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className={styles.inputGroup}>
+              <div className={styles.inputWrapper}>
+                <Email className={styles.inputIcon} />
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={styles.input}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className={styles.inputGroup}>
+              <div className={styles.inputWrapper}>
+                <Lock className={styles.inputIcon} />
+                <input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={styles.input}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className={styles.inputGroup}>
+              <div className={styles.inputWrapper}>
+                <Lock className={styles.inputIcon} />
+                <input
+                  type="password"
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={styles.input}
+                  required
+                />
+              </div>
+            </div>
+
+            <motion.button
+              type="submit"
+              className={styles.button}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className={styles.spinner} />
+              ) : (
+                <div className={styles.buttonContent}>
+                  <span>Sign up</span>
+                  <ArrowForward className={styles.buttonIcon} />
+                </div>
+              )}
+            </motion.button>
+
+            <motion.p 
+              className={styles.textCenter}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              Already have an account?{' '}
+              <Link href="/login" className={styles.link}>
+                Sign in here
+              </Link>
+            </motion.p>
+          </motion.form>
+        )}
+      </motion.div>
+    </motion.div>
   );
 };
 
