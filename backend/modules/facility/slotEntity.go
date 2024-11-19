@@ -30,6 +30,7 @@ type (
 		StartTime       string            `bson:"start_time" json:"start_time"`
 		EndTime         string            `bson:"end_time" json:"end_time"`
 		CourtId         primitive.ObjectID `bson:"court_id" json:"court_id"`
+		CourtNumber    int                `bson:"court_number"`
 		Status          int               `bson:"status" json:"status"`
 		MaxBookings     int               `bson:"max_bookings" json:"max_bookings"`
 		CurrentBookings int               `bson:"current_bookings" json:"current_bookings"`

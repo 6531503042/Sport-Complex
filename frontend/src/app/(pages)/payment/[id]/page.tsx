@@ -121,7 +121,7 @@ const Payment = () => {
             <h2 className="text-lg font-semibold text-gray-700">
               {paymentData.facility_name}
             </h2>
-            <p className="text-3xl font-bold text-primary">{`฿${paymentData.amount}.00`}</p>
+            <p className="text-black text-3xl font-bold text-primary">{`฿${paymentData.amount}.00`}</p>
           </div>
         </div>
 
