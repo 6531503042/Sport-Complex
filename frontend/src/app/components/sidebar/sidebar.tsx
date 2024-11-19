@@ -74,45 +74,104 @@ const Sidebar: React.FC<SidebarProps> = ({ setLoading }) => {
   }
 
   const sidebarVariants = {
-    open: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
-    closed: { x: "100%", transition: { type: "spring", stiffness: 300, damping: 30 } },
+    open: {
+      x: 0,
+      boxShadow: "0 0 50px rgba(0, 0, 0, 0.15)",
+      transition: { 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 30,
+        staggerChildren: 0.05 
+      }
+    },
+    closed: {
+      x: "100%",
+      boxShadow: "0 0 0 rgba(0, 0, 0, 0)",
+      transition: { 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 30,
+        staggerChildren: 0.05,
+        staggerDirection: -1 
+      }
+    }
   };
 
   const menuItemVariants = {
     open: {
       x: 0,
       opacity: 1,
-      transition: { type: "spring", stiffness: 300, damping: 30 },
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30
+      }
     },
-    closed: { x: 20, opacity: 0 },
+    closed: {
+      x: 20,
+      opacity: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30
+      }
+    }
+  };
+
+  const overlayVariants = {
+    open: {
+      opacity: 1,
+      transition: { duration: 0.3 }
+    },
+    closed: {
+      opacity: 0,
+      transition: { duration: 0.2 }
+    }
   };
 
   return (
-    <>
+    <div className="sidebar-container" style={{ position: 'relative', zIndex: 9999 }}>
       <button
         onClick={toggleSidebar}
-        className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+        className="relative z-[9999] p-2 rounded-full hover:bg-gray-100 
+          transition-all duration-200 active:scale-95"
+        aria-label="Toggle Sidebar"
       >
         <Menu className="w-6 h-6 text-gray-600" />
       </button>
 
       <AnimatePresence>
         {isSidebarOpen && (
-          <>
+          <div className="fixed inset-0 z-[9999]" style={{ isolation: 'isolate' }}>
+            {/* Overlay */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={overlayVariants}
               onClick={toggleSidebar}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm"
+              style={{ 
+                position: 'fixed',
+                inset: 0,
+                zIndex: 9998,
+              }}
             />
 
+            {/* Sidebar */}
             <motion.div
               initial="closed"
               animate="open"
               exit="closed"
               variants={sidebarVariants}
-              className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50"
+              className="fixed top-0 right-0 h-[100dvh] w-[320px] bg-white shadow-2xl
+                overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 
+                scrollbar-track-transparent"
+              style={{
+                position: 'fixed',
+                zIndex: 9999,
+                isolation: 'isolate',
+              }}
             >
               <div className="p-6">
                 <div className="flex justify-between items-center mb-8">
@@ -174,10 +233,10 @@ const Sidebar: React.FC<SidebarProps> = ({ setLoading }) => {
                 </div>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 };
 
