@@ -10,7 +10,20 @@ import (
 	facilityRepo "main/modules/facility/repository"
 	facilityUsecase "main/modules/facility/usecase"
 	"main/pkg/grpc"
+
+	"github.com/labstack/echo/v4"
 )
+
+// Create middleware functions
+func setTimeRange(timeRange string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			q := c.QueryParams()
+			q.Set("time_range", timeRange)
+			return next(c)
+		}
+	}
+}
 
 func (s *server) facilityService() {
 	repo := facilityRepo.NewFacilityRepository(s.db)
@@ -54,10 +67,24 @@ func (s *server) facilityService() {
 	// Admin routes with analytics
 	adminFacility := s.app.Group("/admin/facility_v1", s.middleware.JwtAuthorizationMiddleware(s.cfg))
 	
-	// Analytics routes
-	adminFacility.GET("/analytics/dashboard", aHttpHandler.GetDashboardMetrics)
-	adminFacility.GET("/analytics/users", aHttpHandler.GetUserAnalytics)
+	// Analytics routes with authentication
+	analytics := s.app.Group("/analytics_v1", s.middleware.JwtAuthorizationMiddleware(s.cfg))
 	
+	// Dashboard overview
+	analytics.GET("/dashboard/overview", aHttpHandler.GetDashboardMetrics)
+	
+	// Facility-specific analytics
+	analytics.GET("/dashboard/facility/:facility_name", aHttpHandler.GetDashboardMetrics)
+	
+	// Time-based analytics
+	analytics.GET("/dashboard/daily", aHttpHandler.GetDashboardMetrics, setTimeRange("daily"))
+	analytics.GET("/dashboard/weekly", aHttpHandler.GetDashboardMetrics, setTimeRange("weekly"))
+	analytics.GET("/dashboard/monthly", aHttpHandler.GetDashboardMetrics, setTimeRange("monthly"))
+	analytics.GET("/dashboard/yearly", aHttpHandler.GetDashboardMetrics, setTimeRange("yearly"))
+	
+	// User analytics
+	analytics.GET("/users/metrics", aHttpHandler.GetUserAnalytics)
+
 	// Facility management routes
 	adminFacility.GET("/facilities", fHttpHandler.FindManyFacility)
 	adminFacility.GET("/facility/:facility_id", fHttpHandler.FindOneFacility)
