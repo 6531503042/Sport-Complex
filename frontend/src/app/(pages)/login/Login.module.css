@@ -1,165 +1,106 @@
 .container {
-  display: flex;
-  height: 100vh;
-  background-color: #f7f7f7;
-  justify-content: center;
-  align-items: center;
+  @apply min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-100
+    flex items-center justify-center p-4;
 }
 
 .left {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem;
-  width: 50%;
+  @apply w-full max-w-md bg-white rounded-2xl shadow-xl p-8 md:p-12;
 }
 
 .logo {
-  margin-bottom: 1rem;
+  @apply w-20 h-20 object-contain mx-auto;
 }
 
 .header {
-  color: black;
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
+  @apply text-4xl md:text-5xl font-bold text-center mt-6
+    bg-gradient-to-r from-red-600 to-red-800
+    text-transparent bg-clip-text;
 }
 
 .underheader {
-  color: #555;
-  font-size: 1rem;
-  text-align: center;
-  margin-bottom: 5rem;
+  @apply text-gray-500 text-lg text-center mt-2 mb-10;
 }
 
 .form {
-  width: 100%;
-  max-width: 400px;
+  @apply space-y-6 w-full;
+}
+
+.inputGroup {
+  @apply mb-6;
+}
+
+.inputWrapper {
+  @apply relative;
 }
 
 .input {
-  margin-bottom: 2.5rem;
+  @apply w-full h-12 pl-12 pr-4 bg-gray-50 rounded-xl
+    border-2 border-gray-200 text-gray-900
+    transition-all duration-200
+    focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/20;
 }
 
-.input input {
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  padding: 0.75rem;
-  width: 100%;
-  outline: none;
-  color: #000; 
+.inputIcon {
+  @apply absolute left-4 top-1/2 -translate-y-1/2
+    text-gray-400 text-xl transition-colors duration-200;
 }
 
-.input label {
-  font-family: 'Arial', sans-serif;
-  color: #000;
-  margin-bottom: 4.5rem; 
-  display: block; 
+.input:focus + .inputIcon {
+  @apply text-red-500;
 }
 
-.checkboxContainer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1;
-  color: #000; 
-}
-
-.checkboxWrapper {
-  display: flex;
-  align-items: center;
-}
-
-.checkboxWrapper span {
-  margin-left: 8px;
-  color: #000;
-}
-
-.checkbox {
-  margin-right: 8px;
-  transform: scale(1.2); 
-}
-
-.checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-}
-
-.checkbox label {
-  color: #000; 
+.forgotPassword {
+  @apply flex justify-end mb-8;
 }
 
 .link {
-  margin-left: 7rem;
-  color: #8b3035; 
+  @apply text-red-600 hover:text-red-700 font-medium
+    transition-colors duration-200;
 }
 
 .button {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #AB3439;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 1rem;
-  font-family: 'Arial', sans-serif;
-  font-weight: bold;
+  @apply w-full h-12 flex items-center justify-center gap-2
+    bg-gradient-to-r from-red-600 to-red-700
+    text-white font-semibold rounded-xl
+    transition-all duration-300
+    hover:shadow-lg hover:shadow-red-500/20
+    disabled:opacity-70 disabled:cursor-not-allowed;
 }
 
-.button:hover {
-  background-color: #8f2c31;
+.buttonContent {
+  @apply flex items-center justify-center gap-2;
+}
+
+.buttonIcon {
+  @apply transition-transform duration-300;
 }
 
 .textCenter {
-  margin-top: 1rem;
-  text-align: center;
-  color: #000; 
+  @apply text-center text-gray-600 mt-8;
 }
 
 .error {
-  color: #8f2c31;
-  margin-top: 1rem;
-  text-align: center;
+  @apply bg-red-50 text-red-600 px-4 py-3
+    rounded-xl text-center font-medium mb-6
+    border border-red-100;
 }
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-    padding: 1rem;
+
+.spinner {
+  @apply w-5 h-5 border-2 border-white/30
+    border-t-white rounded-full animate-spin;
+}
+
+@media (max-width: 640px) {
+  .left {
+    @apply p-6;
   }
 
   .header {
-    font-size: 1.5rem; 
+    @apply text-3xl;
   }
 
-  .underheader {
-    font-size: 0.875rem; 
-  }
-
-  .button {
-    font-size: 1rem; 
-  }
-
-  .bottomImage {
-    width: 50px; 
-  }
-}
-
-@media (max-width: 480px) {
-  .header {
-    font-size: 1.25rem; 
-  }
-
-  .underheader {
-    font-size: 0.75rem; 
-  }
-
-  .button {
-    font-size: 0.875rem; 
-  }
-
-  .bottomImage {
-    width: 40px; 
+  .input, .button {
+    @apply h-11;
   }
 }
  
