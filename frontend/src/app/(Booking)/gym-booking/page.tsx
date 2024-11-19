@@ -269,7 +269,7 @@ const ErrorModal: React.FC<ModalProps> = ({ onClose }) => (
           Booking Failed
         </h2>
         <p className="text-gray-600 mb-6">
-          Something went wrong. Please try again later.
+          User was Booked this time
         </p>
         <motion.button
           whileHover={{ scale: 1.02 }}
@@ -471,26 +471,7 @@ function Gym_Booking({ params }: UserDataParams) {
             </p>
           </motion.div>
 
-          {/* Time Slots Legend */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex justify-center gap-8 mb-10"
-          >
-            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-md">
-              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-gray-600">Available</span>
-            </div>
-            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-md">
-              <div className="w-3 h-3 bg-yellow-400 rounded-full" />
-              <span className="text-gray-600">Limited Spots</span>
-            </div>
-            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-md">
-              <div className="w-3 h-3 bg-red-400 rounded-full" />
-              <span className="text-gray-600">Fully Booked</span>
-            </div>
-          </motion.div>
+         
 
           {/* Slots Grid */}
           <motion.div 
@@ -569,7 +550,7 @@ function Gym_Booking({ params }: UserDataParams) {
                       className="text-red-600 font-bold text-xl border-2 border-red-600 
                                px-6 py-3 rounded-lg bg-white/90 shadow-xl"
                     >
-                      BOOKED
+                      Maximum
                     </motion.span>
                   </motion.div>
                 )}

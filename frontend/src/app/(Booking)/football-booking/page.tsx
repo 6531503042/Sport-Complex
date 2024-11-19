@@ -11,7 +11,9 @@ import { useRouter } from 'next/navigation';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import WarningIcon from '@mui/icons-material/Warning';
 import GroupIcon from '@mui/icons-material/Group';
+import { Tooltip } from "@mui/material";
 
 interface UserData {
   id: string;
@@ -59,7 +61,7 @@ const BookingForm = ({ formData, handleSubmit, onClose, selectedTime }: BookingF
         <div className="mb-6 p-4 bg-green-50 rounded-lg">
           <div className="flex items-center gap-2 text-green-800">
             <AccessTimeIcon className="text-green-600" />
-            <span className="font-medium">{selectedTime}</span>
+            <span className="text-lg font-semibold">{selectedTime}</span>
           </div>
         </div>
       )}
@@ -69,23 +71,42 @@ const BookingForm = ({ formData, handleSubmit, onClose, selectedTime }: BookingF
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Name
           </label>
+          <div className="relative">
           <input
             type="text"
             value={formData.name}
             readOnly
-            className="form-input-enhanced"
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50
+                          focus:ring-2 focus:ring-cyan-500 focus:border-transparent
+                          transition-all duration-200"
           />
+          <Tooltip title="ID cannot be changed" arrow>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <WarningIcon className="text-gray-400" />
+                </div>
+              </Tooltip>
+          </div>
         </div>
-        <div>
+        
+        <div >
           <label className="block text-sm font-medium text-gray-700 mb-2">
             ID Number
           </label>
+          <div className="relative">
           <input
             type="text"
             value={formData.id}
             readOnly
-            className="form-input-enhanced"
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50
+                          focus:ring-2 focus:ring-cyan-500 focus:border-transparent
+                          transition-all duration-200"
           />
+           <Tooltip title="Name cannot be changed" arrow>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <WarningIcon className="text-gray-400" />
+                </div>
+              </Tooltip>
+         </div>
         </div>
         <div className="flex gap-4 pt-4">
           <button
@@ -324,28 +345,14 @@ function Football_Booking({ params }: UserDataParams) {
               <SportsSoccerIcon className="text-green-600 text-4xl" />
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-green-600 to-emerald-600 inline-block text-transparent bg-clip-text">
-              Football Field Booking
+              Football Booking
             </h1>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Reserve your preferred time slot for an amazing football experience
+              Reserve your preferred time slot for an amazing football experience !
             </p>
           </div>
 
-          {/* Time Slots Legend */}
-          <div className="flex justify-center gap-6 mb-8">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-sm text-gray-600">Available</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-yellow-400 rounded-full" />
-              <span className="text-sm text-gray-600">Limited Spots</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-400 rounded-full" />
-              <span className="text-sm text-gray-600">Fully Booked</span>
-            </div>
-          </div>
+         
 
           <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 backdrop-blur-lg bg-opacity-90">
             {slots && slots.length === 0 ? (
@@ -355,7 +362,7 @@ function Football_Booking({ params }: UserDataParams) {
                   No Available Slots
                 </h2>
                 <p className="text-gray-600">
-                  All slots are currently booked. Please check back later.
+                  All slots are Unavailable now.
                 </p>
               </div>
             ) : (
@@ -422,7 +429,7 @@ function Football_Booking({ params }: UserDataParams) {
                       {isSlotFull && (
                         <div className="absolute inset-0 bg-gray-100/50 backdrop-blur-[1px] flex items-center justify-center">
                           <span className="text-red-600 font-bold text-lg border-2 border-red-600 px-4 py-2 rounded bg-white/80 transform -rotate-12">
-                            BOOKED
+                          Reserved
                           </span>
                         </div>
                       )}
