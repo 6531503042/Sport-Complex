@@ -1,0 +1,210 @@
+.sidebarContainer {
+  @apply fixed top-0 left-0 h-screen
+    bg-gradient-to-b from-gray-900 to-gray-800
+    flex flex-col
+    transition-all duration-300 ease-in-out
+    z-50;
+  width: 280px;
+}
+
+.sidebarContent {
+  @apply h-full flex flex-col relative
+    border-r border-gray-700/50;
+}
+
+.collapsed {
+  width: 80px;
+  transform: translateX(0);
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .sidebarContainer {
+    transform: translateX(-100%);
+  }
+
+  .sidebarContainer.collapsed {
+    transform: translateX(-100%);
+  }
+
+  .sidebarContainer.expanded {
+    transform: translateX(0);
+  }
+}
+
+/* Logo Section */
+.logoSection {
+  @apply sticky top-0 bg-gray-900/95 backdrop-blur-sm
+    border-b border-gray-700/50
+    z-20 px-6 py-8
+    flex items-center justify-between;
+}
+
+.logoWrapper {
+  @apply flex items-center gap-4;
+}
+
+.logo {
+  @apply w-10 h-10 object-contain
+    transition-all duration-300
+    filter drop-shadow-lg;
+}
+
+.logoText {
+  @apply flex flex-col;
+}
+
+.logoTitle {
+  @apply flex items-center text-xl font-bold;
+}
+
+.logoTitleMain {
+  @apply bg-gradient-to-r from-white to-gray-300
+    bg-clip-text text-transparent;
+}
+
+.logoTitleSub {
+  @apply text-gray-400;
+}
+
+.logoSubtitle {
+  @apply text-xs text-gray-400 font-medium;
+}
+
+/* Navigation */
+.navigation {
+  @apply flex-1 py-6 px-4 overflow-y-auto;
+}
+
+.navigation::-webkit-scrollbar {
+  @apply w-2;
+}
+
+.navigation::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+.navigation::-webkit-scrollbar-thumb {
+  @apply bg-gray-700 rounded-full hover:bg-gray-600;
+}
+
+/* Menu Items */
+.menuItem {
+  @apply relative mb-2 w-full
+    text-gray-400 hover:text-white
+    transition-colors duration-200;
+}
+
+.menuItemContent {
+  @apply flex items-center gap-4 px-4 py-3
+    rounded-xl relative
+    hover:bg-gray-700/50
+    transition-all duration-200;
+}
+
+.menuIcon {
+  @apply text-2xl min-w-[28px] flex items-center justify-center
+    transition-transform duration-200
+    filter drop-shadow-lg;
+}
+
+.menuDetails {
+  @apply flex flex-col;
+}
+
+.menuLabel {
+  @apply font-medium text-sm;
+}
+
+.menuDescription {
+  @apply text-xs text-gray-500;
+}
+
+.active {
+  @apply text-white;
+}
+
+.active .menuItemContent {
+  @apply bg-gradient-to-r from-red-600 to-red-700
+    shadow-lg shadow-red-500/20;
+}
+
+.activeIndicator {
+  @apply absolute inset-0
+    rounded-xl
+    bg-gradient-to-r from-red-600/20 to-red-700/20
+    -z-10;
+}
+
+/* User Section */
+.userSection {
+  @apply sticky bottom-0 px-4 py-6
+    bg-gray-900/95 backdrop-blur-sm
+    border-t border-gray-700/50
+    z-20;
+}
+
+.userProfile {
+  @apply flex items-center gap-4
+    cursor-pointer
+    rounded-xl p-2
+    hover:bg-gray-700/50
+    transition-all duration-200;
+}
+
+.userAvatar {
+  @apply w-10 h-10 rounded-full
+    bg-gray-700
+    flex items-center justify-center
+    text-xl;
+}
+
+.userInfo {
+  @apply flex flex-col;
+}
+
+.userName {
+  @apply text-white font-medium text-sm;
+}
+
+.userRole {
+  @apply text-xs text-gray-400;
+}
+
+.userMenu {
+  @apply absolute bottom-full left-4 right-4 mb-2
+    bg-gray-800 rounded-xl
+    border border-gray-700
+    overflow-hidden
+    shadow-xl;
+}
+
+.userMenuItem {
+  @apply flex items-center gap-3 w-full
+    px-4 py-3 text-gray-400
+    hover:bg-gray-700 hover:text-white
+    transition-all duration-200;
+}
+
+.logoutButton {
+  @apply text-red-400 hover:text-red-300
+    hover:bg-red-900/20;
+}
+
+/* Collapse Button */
+.collapseButton {
+  @apply absolute -right-4 top-1/2 -translate-y-1/2
+    w-8 h-8 rounded-full
+    bg-gray-800 text-gray-400
+    flex items-center justify-center
+    border border-gray-700
+    hover:bg-gray-700 hover:text-white
+    transition-all duration-200
+    shadow-lg z-30;
+}
+
+@media (max-width: 768px) {
+  .collapseButton {
+    @apply hidden;
+  }
+} 

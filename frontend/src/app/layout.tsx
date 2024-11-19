@@ -1,4 +1,5 @@
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from 'next-themes';
 import '../app/globals.css';
 
 import { ReactNode } from 'react';
@@ -14,9 +15,11 @@ const Layout = ({ children }: LayoutProps) => {
         <title>Sport Complex</title>
       </head>
       <body>
-        <AuthProvider>
-          <main>{children}</main>
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="light">
+          <AuthProvider>
+            <main>{children}</main>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
