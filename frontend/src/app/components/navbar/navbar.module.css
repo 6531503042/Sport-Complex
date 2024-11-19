@@ -1,10 +1,19 @@
 /* Navbar Container */
 .navbarContainer {
-  @apply relative z-50;
+  @apply fixed top-0 left-0 right-0 bg-white;
+  width: 100%;
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+  position: relative;
+  z-index: var(--z-navbar);
 }
 
 .navbarWrapper {
-  @apply bg-white border-b border-gray-100 shadow-sm transition-all duration-300;
+  @apply bg-white border-b border-gray-100 transition-all duration-300;
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.95);
+  position: relative;
+  z-index: 50;
 }
 
 .navbarWrapper.scrolled {
@@ -17,7 +26,11 @@
 }
 
 .headerContent {
-  @apply flex items-center justify-between h-20;
+  @apply flex items-center justify-between;
+  height: var(--navbar-height);
+  padding: 0 clamp(1rem, 5vw, 3rem);
+  max-width: var(--max-content-width);
+  margin: 0 auto;
 }
 
 /* Logo Section */
@@ -111,6 +124,7 @@
 .navigationLink {
   @apply flex gap-2 px-4 py-2 rounded-lg transition-all duration-200
     text-sm md:text-base font-medium;
+  @apply transition-all duration-300 ease-in-out;
 }
 
 .navigationLinkActive {
@@ -176,5 +190,27 @@
 
   .navigationLink {
     @apply px-3 py-1.5;
+  }
+}
+
+@media (min-width: 1921px) {
+  .navbarContainer {
+    @apply shadow-lg;
+  }
+}
+
+@media (max-width: 1360px) {
+  .headerContent {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbarContainer {
+    position: sticky;
+  }
+  
+  .headerContent {
+    height: calc(var(--navbar-height) * 0.8);
   }
 } 
