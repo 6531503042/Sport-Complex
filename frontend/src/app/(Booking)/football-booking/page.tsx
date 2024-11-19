@@ -76,7 +76,7 @@ const BookingForm = ({ formData, handleSubmit, onClose, selectedTime }: BookingF
             type="text"
             value={formData.name}
             readOnly
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50
+            className="text-black w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50
                           focus:ring-2 focus:ring-cyan-500 focus:border-transparent
                           transition-all duration-200"
           />
@@ -97,7 +97,7 @@ const BookingForm = ({ formData, handleSubmit, onClose, selectedTime }: BookingF
             type="text"
             value={formData.id}
             readOnly
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50
+            className="text-black w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50
                           focus:ring-2 focus:ring-cyan-500 focus:border-transparent
                           transition-all duration-200"
           />
