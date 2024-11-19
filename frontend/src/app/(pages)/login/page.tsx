@@ -2,19 +2,23 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Input, Button, Link } from '@nextui-org/react';
 import Image from 'next/image';
+import Link from 'next/link';
 import styles from './Login.module.css';
 import { useAuth } from '../../context/AuthContext';
+import { motion } from 'framer-motion';
+import { Email, Lock, ArrowForward } from '@mui/icons-material';
 
 const LoginPage = () => {
   const router = useRouter();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { setUser } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsLoading(true);
 
     const form = event.currentTarget;
     const email = (form.elements.namedItem('email') as HTMLInputElement).value;
@@ -50,51 +54,140 @@ const LoginPage = () => {
       console.error('Login error:', error);
       setErrorMessage('An error occurred. Please try again.');
       setShowError(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.left}>
-        <Image className={styles.logo} src="/assets/logo-mfu-v2.png" alt="Logo" width={75} height={75} />
-        <h1 className={styles.header}>Welcome Back</h1>
-        <p className={styles.underheader}>Welcome back to MFU Sport complex.</p>
-        {showError && <div className={styles.error}>{errorMessage}</div>}
-        <form className={styles.form} onSubmit={handleLogin}>
-          <div className={styles.input}>
-            <Input
-              fullWidth
-              isClearable
-              label="Email"
-              placeholder="Enter your lamduan email"
-              type="email"
-              name="email"
-            />
-          </div>
-          <div className={styles.input}>
-            <Input
-              fullWidth
-              isClearable
-              label="Password"
-              placeholder="********"
-              type="password"
-              name="password"
-            />
-          </div>
-          <div className={styles.checkboxContainer}>
-            <div className={styles.checkboxWrapper}>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className={styles.container}
+    >
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className={styles.left}
+      >
+        <motion.div
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="flex justify-center"
+        >
+          <Image 
+            className={styles.logo} 
+            src="/assets/logo-mfu-v2.png" 
+            alt="Logo" 
+            width={75} 
+            height={75} 
+            priority
+          />
+        </motion.div>
+        
+        <motion.h1 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className={styles.header}
+        >
+          Welcome Back
+        </motion.h1>
+        
+        <motion.p 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className={styles.underheader}
+        >
+          Welcome back to MFU Sport complex.
+        </motion.p>
+
+        {showError && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={styles.error}
+          >
+            {errorMessage}
+          </motion.div>
+        )}
+
+        <motion.form 
+          className={styles.form} 
+          onSubmit={handleLogin}
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className={styles.inputGroup}>
+            <div className={styles.inputWrapper}>
+              <Email className={styles.inputIcon} />
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your lamduan email"
+                className={styles.input}
+                required
+              />
             </div>
-            <Link href="https://www.facebook.com/mfusportcomplex" className={styles.link}>Forgot password</Link>
           </div>
-          <Button type="submit" className={styles.button} color="primary">
-            Sign in
-          </Button>
-          <p className={`${styles.textCenter} ${styles.signupText}`}>
-            Are you an outsider? <Link href="signup" className={styles.link}>Sign up for free!</Link>
-          </p>
-        </form>
-      </div>
-    </div>
+
+          <div className={styles.inputGroup}>
+            <div className={styles.inputWrapper}>
+              <Lock className={styles.inputIcon} />
+              <input
+                type="password"
+                name="password"
+                placeholder="Enter your password"
+                className={styles.input}
+                required
+              />
+            </div>
+          </div>
+
+          <div className={styles.forgotPassword}>
+            <Link 
+              href="https://www.facebook.com/mfusportcomplex" 
+              className={styles.link}
+            >
+              Forgot password?
+            </Link>
+          </div>
+
+          <motion.button
+            type="submit"
+            className={styles.button}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className={styles.spinner} />
+            ) : (
+              <div className={styles.buttonContent}>
+                <span>Sign in</span>
+                <ArrowForward className={styles.buttonIcon} />
+              </div>
+            )}
+          </motion.button>
+
+          <motion.p 
+            className={styles.textCenter}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+            Are you an outsider?{' '}
+            <Link href="signup" className={styles.link}>
+              Sign up for free!
+            </Link>
+          </motion.p>
+        </motion.form>
+      </motion.div>
+    </motion.div>
   );
 };
 
