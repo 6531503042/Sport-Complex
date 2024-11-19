@@ -2,25 +2,66 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Logo from "../../assets/Logo.png";
-import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
-import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-import LocationCityIcon from "@mui/icons-material/LocationCity";
-import BookmarksIcon from "@mui/icons-material/Bookmarks";
-import PaidIcon from "@mui/icons-material/Paid";
-import ArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
+import styles from './sidebar.module.css';
 
 type SidebarProps = {
   activePage?: string;
+  isCollapsed?: boolean;
+  onCollapse?: (collapsed: boolean) => void;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+const menuItems = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: '📊',
+    href: '/admin_dashboard',
+    description: 'Overview & Analytics'
+  },
+  {
+    id: 'users',
+    label: 'User Management',
+    icon: '👥',
+    href: '/admin_usermanagement',
+    description: 'Manage Users'
+  },
+  {
+    id: 'facilities',
+    label: 'Facility Management',
+    icon: '🏟️',
+    href: '/admin_facility',
+    description: 'Manage Facilities'
+  },
+  {
+    id: 'bookings',
+    label: 'Booking Management',
+    icon: '📅',
+    href: '/admin_booking',
+    description: 'Manage Bookings'
+  },
+  {
+    id: 'payments',
+    label: 'Payment Management',
+    icon: '💰',
+    href: '/admin_payment',
+    description: 'Manage Payments'
+  }
+];
+
+const Sidebar: React.FC<SidebarProps> = ({ 
+  activePage, 
+  isCollapsed = false, 
+  onCollapse 
+}) => {
   const [userName, setUserName] = useState<string | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const router = useRouter();
 
-  // Fetch admin name when the component mounts
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -31,116 +72,146 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
     }
   }, [router]);
 
-  const truncateUserName = (name: string) => (name.length > 10 ? `${name.slice(0, 10)}...` : name);
-
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
-  const getActiveClass = (page: string) => {
-    return activePage === page
-      ? "inline-flex flex-row items-center border border-white text-white font-semibold shadow-gray-800 hover:shadow-black py-3 px-5 shadow-lg hover:shadow-2xl rounded-md hover:scale-105 transition-all duration-700 hover:bg-orange-800"
-      : "inline-flex flex-row items-center hover:scale-110 transition-transform duration-1000 ease-in-out ms-1 hover:shadow-lg py-3 px-5 rounded-md";
-  };
-
   const handleLogout = () => {
-    // Remove user data from localStorage
     localStorage.removeItem("user");
-    // Redirect to login page
+    localStorage.removeItem("access_token");
     router.replace("/login");
   };
 
+  const handleCollapse = () => {
+    onCollapse?.(!isCollapsed);
+  };
+
   return (
-    <div
-      className={`bg-red-900 text-white h-full flex flex-col px-5 py-10 transition-all duration-500 ${isCollapsed ? "w-28 justify-center items-center" : "md:w-72"}`}
+    <motion.div 
+      className={`${styles.sidebarContainer} ${isCollapsed ? styles.collapsed : ''}`}
+      animate={{ width: isCollapsed ? '80px' : '280px' }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
-      {/* Logo Section */}
-      <Link href="/" className="inline-flex flex-row justify-center md:gap-3.5">
-        <img src={Logo.src} alt="Logo" className="w-7 h-min" />
-        {!isCollapsed && (
-          <span className="flex flex-col md:border-l-2 border-l-0 w-max whitespace-nowrap font-bold">
-            <div className="md:ps-1">
-              <span className="flex-row font-semibold text-xl md:ps-1 md:inline-flex hidden">
-                <p className="text-black">SPORT.</p>
-                <p className="text-slate-200">MFU</p>
-              </span>
-              <hr />
-              <span className="text-gray-300 md:ps-1 font-medium text-sm md:block hidden">
-                USER MANAGEMENT
-              </span>
-            </div>
-          </span>
-        )}
-      </Link>
-      <br />
-
-      {/* Sidebar Toggle Button */}
-      <div className="relative justify-center items-center md:inline-flex hidden">
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className={`w-full h-0.5 bg-white ${isCollapsed ? "" : ""}`}></div>
-        </div>
-        <div className="relative z-10 p-2 bg-red-900">
-          <button
-            onClick={toggleSidebar}
-            className="relative z-10 flex bg-yellow-500 p-1 rounded-full hover:opacity-100 transition-all ease-in-out duration-500 hover:scale-110 cursor-pointer"
-          >
-            <ArrowLeftIcon
-              className={`text-white transition-transform duration-500 ${isCollapsed ? "rotate-180" : ""}`}
+      <div className={styles.sidebarContent}>
+        {/* Logo Section */}
+        <div className={styles.logoSection}>
+          <div className={styles.logoWrapper}>
+            <Image 
+              src={Logo} 
+              alt="Logo" 
+              width={40} 
+              height={40}
+              className={styles.logo} 
             />
-          </button>
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.div 
+                  className={styles.logoText}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  <span className={styles.logoTitle}>
+                    <span className={styles.logoTitleMain}>SPORT</span>
+                    <span className={styles.logoTitleSub}>.MFU</span>
+                  </span>
+                  <span className={styles.logoSubtitle}>ADMIN PANEL</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Collapse Button */}
+          <motion.button 
+            className={styles.collapseButton}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={handleCollapse}
+          >
+            {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
+          </motion.button>
+        </div>
+
+        {/* Navigation Menu */}
+        <nav className={styles.navigation}>
+          {menuItems.map((item) => (
+            <Link 
+              key={item.id}
+              href={item.href}
+              className={`${styles.menuItem} ${activePage === item.id ? styles.active : ''}`}
+            >
+              <motion.div 
+                className={styles.menuItemContent}
+                whileHover={{ x: 5 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className={styles.menuIcon}>{item.icon}</span>
+                <AnimatePresence>
+                  {!isCollapsed && (
+                    <motion.div 
+                      className={styles.menuDetails}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                    >
+                      <span className={styles.menuLabel}>{item.label}</span>
+                      <span className={styles.menuDescription}>{item.description}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                {activePage === item.id && (
+                  <motion.div 
+                    className={styles.activeIndicator}
+                    layoutId="activeIndicator"
+                  />
+                )}
+              </motion.div>
+            </Link>
+          ))}
+        </nav>
+
+        {/* User Section */}
+        <div className={styles.userSection}>
+          <motion.div 
+            className={styles.userProfile}
+            onClick={() => setShowUserMenu(!showUserMenu)}
+          >
+            <div className={styles.userAvatar}>
+              👨‍💼
+            </div>
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.div 
+                  className={styles.userInfo}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  <span className={styles.userName}>{userName}</span>
+                  <span className={styles.userRole}>Administrator</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          <AnimatePresence>
+            {showUserMenu && !isCollapsed && (
+              <motion.div 
+                className={styles.userMenu}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <motion.button 
+                  className={`${styles.userMenuItem} ${styles.logoutButton}`}
+                  onClick={handleLogout}
+                  whileHover={{ x: 5 }}
+                >
+                  <span className={styles.menuIcon}>🚪</span>
+                  <span>Logout</span>
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-
-      {/* Sidebar Menu */}
-      <br />
-      <ul className={`inline-flex flex-col px-5 gap-10 ${isCollapsed ? "md:items-start items-center px-5 gap-10" : ""}`}>
-        <li className={getActiveClass("admin_dashboard")} style={{ cursor: "pointer" }}>
-          <Link href="/admin_dashboard" className="inline-flex flex-row items-center cursor-pointer gap-3">
-            <SpaceDashboardIcon />
-            {!isCollapsed && <p className="hidden md:block">Dashboard</p>}
-          </Link>
-        </li>
-        <li className={getActiveClass("admin_usermanagement")} style={{ cursor: "pointer" }}>
-          <Link href="/admin_usermanagement" className="inline-flex flex-row items-center cursor-pointer gap-3">
-            <ManageAccountsIcon />
-            {!isCollapsed && <p className="hidden md:block">User</p>}
-          </Link>
-        </li>
-        <li className={getActiveClass("admin_facility")} style={{ cursor: "pointer" }}>
-          <Link href="/admin_facility" className="inline-flex flex-row items-center cursor-pointer gap-3">
-            <LocationCityIcon />
-            {!isCollapsed && <p className="hidden md:block">Facility</p>}
-          </Link>
-        </li>
-        <li className={getActiveClass("admin_booking")} style={{ cursor: "pointer" }}>
-          <Link href="/admin_booking" className="inline-flex flex-row items-center cursor-pointer gap-3">
-            <BookmarksIcon />
-            {!isCollapsed && <p className="hidden md:block">Booking</p>}
-          </Link>
-        </li>
-        <li className={getActiveClass("admin_payment")} style={{ cursor: "pointer" }}>
-          <Link href="/admin_payment" className="inline-flex flex-row items-center cursor-pointer gap-3">
-            <PaidIcon />
-            {!isCollapsed && <p className="hidden md:block">Payment</p>}
-          </Link>
-        </li>
-      </ul>
-
-      {/* Logout Button */}
-      <div className="flex h-full items-end justify-center">
-        <button
-          onClick={handleLogout}
-          className="inline-flex gap-2 bg-red-600 py-2 px-4 rounded-md shadow-lg hover:shadow-2xl hover:bg-red-700 transition-all duration-300 uppercase"
-        >
-          Log Out
-        </button>
-      </div>
-
-      {/* User Name */}
-      <div className="items-end justify-center h-full flex">
-        {userName ? truncateUserName(userName) : "Loading..."}
-      </div>
-    </div>
+    </motion.div>
   );
 };
 
