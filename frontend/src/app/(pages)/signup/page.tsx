@@ -8,6 +8,14 @@ import styles from './SignUp.module.css';
 import { motion } from 'framer-motion';
 import { Email, Lock, Person, ArrowForward } from '@mui/icons-material';
 
+const shakeAnimation = {
+  initial: { x: 0 },
+  animate: {
+    x: [0, -10, 10, -10, 10, 0],
+    transition: { duration: 0.4 },
+  },
+};
+
 const SignUpPage = () => {
   const router = useRouter();
   const [name, setName] = useState('');
@@ -17,14 +25,36 @@ const SignUpPage = () => {
   const [error, setError] = useState('');
   const [isSuccessful, setIsSuccessful] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [shake, setShake] = useState(false);
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const validateEmail = (email: string) => {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|lamduan\.mfu\.ac\.th)$/;
+    return emailPattern.test(email);
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
 
+    if (!validateEmail(email)) {
+      setError('Invalid email address');
+      setShake(true);
+      setIsLoading(false);
+      setTimeout(() => {
+        setShake(false);
+        setError('');
+      }, 1000);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      setShake(true);
       setIsLoading(false);
+      setTimeout(() => {
+        setShake(false);
+        setError('');
+      }, 1000);
       return;
     }
 
@@ -41,10 +71,20 @@ const SignUpPage = () => {
         setIsSuccessful(true);
       } else {
         setError('Registration failed. Please try again.');
+        setShake(true);
+        setTimeout(() => {
+          setShake(false);
+          setError('');
+        }, 1000);
       }
     } catch (error) {
       console.error('An error occurred during registration:', error);
       setError('An error occurred. Please try again.');
+      setShake(true);
+      setTimeout(() => {
+        setShake(false);
+        setError('');
+      }, 1000);
     } finally {
       setIsLoading(false);
     }
@@ -55,13 +95,13 @@ const SignUpPage = () => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
       className={styles.container}
     >
-      <motion.div 
+      <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
@@ -72,17 +112,17 @@ const SignUpPage = () => {
           whileTap={{ scale: 0.9 }}
           className="flex justify-center"
         >
-          <Image 
-            className={styles.logo} 
-            src="/assets/logo-mfu-v2.png" 
-            alt="Logo" 
-            width={70} 
-            height={70} 
+          <Image
+            className={styles.logo}
+            src="/assets/logo-mfu-v2.png"
+            alt="Logo"
+            width={70}
+            height={70}
             priority
           />
         </motion.div>
 
-        <motion.h1 
+        <motion.h1
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -91,7 +131,7 @@ const SignUpPage = () => {
           Create Account
         </motion.h1>
 
-        <motion.p 
+        <motion.p
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -101,7 +141,7 @@ const SignUpPage = () => {
         </motion.p>
 
         {error && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className={styles.error}
@@ -111,7 +151,7 @@ const SignUpPage = () => {
         )}
 
         {isSuccessful ? (
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className={styles.successCard}
@@ -130,14 +170,18 @@ const SignUpPage = () => {
             </motion.button>
           </motion.div>
         ) : (
-          <motion.form 
-            className={styles.form} 
+          <motion.form
+            className={styles.form}
             onSubmit={handleSubmit}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <div className={styles.inputGroup}>
+            <motion.div
+              className={styles.inputGroup}
+              initial={{ x: 0 }}
+              animate={shake ? shakeAnimation.animate : {}}
+            >
               <div className={styles.inputWrapper}>
                 <Person className={styles.inputIcon} />
                 <input
@@ -149,9 +193,13 @@ const SignUpPage = () => {
                   required
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div className={styles.inputGroup}>
+            <motion.div
+              className={styles.inputGroup}
+              initial={{ x: 0 }}
+              animate={shake ? shakeAnimation.animate : {}}
+            >
               <div className={styles.inputWrapper}>
                 <Email className={styles.inputIcon} />
                 <input
@@ -163,9 +211,13 @@ const SignUpPage = () => {
                   required
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div className={styles.inputGroup}>
+            <motion.div
+              className={styles.inputGroup}
+              initial={{ x: 0 }}
+              animate={shake ? shakeAnimation.animate : {}}
+            >
               <div className={styles.inputWrapper}>
                 <Lock className={styles.inputIcon} />
                 <input
@@ -177,9 +229,13 @@ const SignUpPage = () => {
                   required
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div className={styles.inputGroup}>
+            <motion.div
+              className={styles.inputGroup}
+              initial={{ x: 0 }}
+              animate={shake ? shakeAnimation.animate : {}}
+            >
               <div className={styles.inputWrapper}>
                 <Lock className={styles.inputIcon} />
                 <input
@@ -191,7 +247,7 @@ const SignUpPage = () => {
                   required
                 />
               </div>
-            </div>
+            </motion.div>
 
             <motion.button
               type="submit"
@@ -210,7 +266,7 @@ const SignUpPage = () => {
               )}
             </motion.button>
 
-            <motion.p 
+            <motion.p
               className={styles.textCenter}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

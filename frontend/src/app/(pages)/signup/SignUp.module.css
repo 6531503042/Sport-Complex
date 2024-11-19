@@ -103,6 +103,7 @@
   @apply text-green-600;
 }
 
+
 @media (max-width: 640px) {
   .left {
     @apply p-6;
