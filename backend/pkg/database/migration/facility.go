@@ -251,28 +251,32 @@ func createBadmintonCourts(pctx context.Context, db *mongo.Database) error {
 }
 
 // Create badminton slots from 10:00 to 21:00
+// Create badminton slots from 10:00 to 21:00 with maxBooking set to 1 and multiple courts per time slot
 func createBadmintonSlots(pctx context.Context, db *mongo.Database) error {
-	slotCollection := db.Collection("slots")
-	slots := []facility.BadmintonSlot{}
-	startTime := time.Date(0, 1, 1, 10, 0, 0, 0, time.UTC)
-	endTime := time.Date(0, 1, 1, 21, 0, 0, 0, time.UTC)
+    slotCollection := db.Collection("slots")
+    courts := []int{1, 2, 3, 4} // Court numbers
+    slots := []facility.BadmintonSlot{}
+    startTime := time.Date(0, 1, 1, 10, 0, 0, 0, time.UTC)
+    endTime := time.Date(0, 1, 1, 21, 0, 0, 0, time.UTC)
 
-	for start := startTime; start.Before(endTime); start = start.Add(2 * time.Hour) {
-		for courtNumber := 1; courtNumber <= 4; courtNumber++ {
-			slot := facility.BadmintonSlot{
-				Id:             primitive.NewObjectID(),
-				StartTime:      start.Format("15:04"),
-				EndTime:        start.Add(2 * time.Hour).Format("15:04"),
-				CourtId:        primitive.NewObjectID(), // Replace with actual court ID in a full setup
-				Status:         0,
-				CreatedAt:      time.Now(),
-				UpdatedAt:      time.Now(),
-			}
-			slots = append(slots, slot)
-		}
-	}
+    for start := startTime; start.Before(endTime); start = start.Add(1 * time.Hour) { // 1-hour time slots
+        for _, courtNumber := range courts {
+            slot := facility.BadmintonSlot{
+                Id:             primitive.NewObjectID(),
+                StartTime:      start.Format("15:04"),
+                EndTime:        start.Add(1 * time.Hour).Format("15:04"),
+                CourtId:        primitive.NewObjectID(), // Replace with actual court ID in a full setup
+                CourtNumber:    courtNumber,
+                MaxBookings:    1, // MaxBookings is set to 1 per court per time slot
+                Status:         0,
+                CreatedAt:      time.Now(),
+                UpdatedAt:      time.Now(),
+            }
+            slots = append(slots, slot)
+        }
+    }
 
-	// Insert slots as []interface{}
-	_, err := slotCollection.InsertMany(pctx, convertBadmintonToInterface(slots))
-	return err
+    // Insert slots as []interface{}
+    _, err := slotCollection.InsertMany(pctx, convertBadmintonToInterface(slots))
+    return err
 }
