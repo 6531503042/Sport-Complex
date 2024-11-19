@@ -105,7 +105,7 @@ const BookingForm = ({ formData, handleSubmit, onClose, selectedTime, selectedCo
             type="text"
             value={formData.name}
             readOnly
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50"
+            className="text-black w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50"
           />
           <Tooltip title="Name cannot be changed" arrow>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -123,7 +123,7 @@ const BookingForm = ({ formData, handleSubmit, onClose, selectedTime, selectedCo
             type="text"
             value={formData.id}
             readOnly
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50"
+            className="text-black w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50"
           />
           <Tooltip title="ID cannot be changed" arrow>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
