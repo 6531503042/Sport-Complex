@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "../../../components/ui/button";
-import { Progress } from "../../../components/ui/progress";
 import { Card } from "../../../components/ui/card";
 import { useToast } from "../../../components/ui/use-toast";
-import { CheckCircle, Download } from "lucide-react";
+import { CheckCircle, Download, Timer } from "lucide-react";
 import saveAs from "file-saver";
 
 const Payment = () => {
@@ -108,6 +107,17 @@ const Payment = () => {
     }
   };
 
+  const ProgressBar = ({ progress }: { progress: number }) => {
+    return (
+      <div className="w-full bg-gray-200 rounded-full h-4 flex items-center">
+        <div
+          className="bg-black h-4 rounded-full transition-all"
+          style={{ width: `${progress}%` }}
+        ></div>
+      </div>
+    );
+  };
+
   if (!paymentData) {
     return <p>Loading...</p>;
   }
@@ -121,17 +131,32 @@ const Payment = () => {
             <h2 className="text-lg font-semibold text-gray-700">
               {paymentData.facility_name}
             </h2>
-            <p className="text-black text-3xl font-bold text-primary">{`฿${paymentData.amount}.00`}</p>
+            <p className="text-3xl font-bold text-primary">{`฿${paymentData.amount}.00`}</p>
           </div>
         </div>
 
         <div className="relative">
-          <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
-            <img
-              src={paymentData.qr_code_url}
-              alt="QR Code"
-              className="w-48 h-48"
-            />
+          <div className="aspect-square bg-white pb-10 pt-10 rounded-lg shadow-lg flex items-center justify-center border-2 border-gray-100">
+            <div className="flex flex-col">
+                <img 
+                src="https://cdn.discordapp.com/attachments/1120602456473215047/1308337656614096937/image.png?ex=673d93e5&is=673c4265&hm=a76d9caead20bd30896fe5b21b00a0491cb82fdb7888b1c6f59a8feeca35e7a1&" 
+                alt="Logo" 
+                className="w-auto h-auto mt-3 mb-3 ml-8 mr-8 pr-1"/>
+              <img
+                src={paymentData.qr_code_url}
+                alt="QR Code"
+                className="w-auto h-auto ml-16 mr-16"
+              />
+              <div className="text-2xl text-center mt-8">
+                SCAN WITH ANY UPI APP
+              </div>
+            </div>
+          </div>
+          <div className="absolute -top-2 -right-2">
+            <div className="bg-black text-white text-lg px-4 py-1 rounded-full flex items-center gap-2">
+              <Timer className="w-4 h-4" />
+              <span>{formatTime(timeLeft)}</span>
+            </div>
           </div>
         </div>
 
@@ -140,7 +165,7 @@ const Payment = () => {
             <span>Time remaining</span>
             <span>{formatTime(timeLeft)}</span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <ProgressBar progress={progress} />
         </div>
 
         <div className="space-y-3">
@@ -185,3 +210,4 @@ const Payment = () => {
 };
 
 export default Payment;
+
