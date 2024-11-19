@@ -90,6 +90,27 @@
     border-t-white rounded-full animate-spin;
 }
 
+.errorInputGroup {
+  animation: shake 0.4s;
+}
+
+.errorInput {
+  border-color: rgb(168, 0, 0);
+  color: rgb(150, 0, 0);
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-10px);
+  }
+  40%, 80% {
+    transform: translateX(10px);
+  }
+}
+
 @media (max-width: 640px) {
   .left {
     @apply p-6;

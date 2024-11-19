@@ -9,20 +9,54 @@ import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 import { Email, Lock, ArrowForward } from '@mui/icons-material';
 
+const shakeAnimation = {
+  initial: { x: 0 },
+  animate: {
+    x: [0, -10, 10, -10, 10, 0],
+    transition: { duration: 0.4 },
+  },
+};
+
 const LoginPage = () => {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isEmailValid, setIsEmailValid] = useState(true);
+
+  const validateEmail = (email: string) => {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|lamduan\.mfu\.ac\.th)$/;
+    return emailPattern.test(email);
+  };
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
 
-    const form = event.currentTarget;
-    const email = (form.elements.namedItem('email') as HTMLInputElement).value;
-    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+    // Validate email field
+    if (!email) {
+      setErrorMessage('Email is required');
+      setShowError(true);
+      setIsEmailValid(false);
+      setIsLoading(false);
+      resetEmailValidation();
+      return;
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      setErrorMessage('Email must end with @gmail.com, @hotmail.com, or @lamduan.mfu.ac.th');
+      setShowError(true);
+      setIsEmailValid(false);
+      setIsLoading(false);
+      resetEmailValidation();
+      return;
+    }
+
+    setIsEmailValid(true);
 
     try {
       const response = await fetch('http://localhost:1323/auth_v1/auth/login', {
@@ -57,6 +91,12 @@ const LoginPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const resetEmailValidation = () => {
+    setTimeout(() => {
+      setIsEmailValid(true);
+    }, 400); 
   };
 
   return (
@@ -122,18 +162,24 @@ const LoginPage = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <div className={styles.inputGroup}>
+          <motion.div
+            className={`${styles.inputGroup} ${!isEmailValid ? styles.errorInputGroup : ''}`}
+            initial={isEmailValid ? {} : shakeAnimation.initial}
+            animate={isEmailValid ? {} : shakeAnimation.animate}
+          >
             <div className={styles.inputWrapper}>
               <Email className={styles.inputIcon} />
               <input
                 type="email"
                 name="email"
                 placeholder="Enter your lamduan email"
-                className={styles.input}
+                className={`${styles.input} ${!isEmailValid ? styles.errorInput : ''}`}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-          </div>
+          </motion.div>
 
           <div className={styles.inputGroup}>
             <div className={styles.inputWrapper}>
@@ -143,6 +189,8 @@ const LoginPage = () => {
                 name="password"
                 placeholder="Enter your password"
                 className={styles.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
