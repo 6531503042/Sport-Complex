@@ -67,29 +67,101 @@ The architecture should include the following components:
 Start
 
 ## Contributors
-## Contributors
 
-### Team Members and Contributions
+### Team Members and Statistics
 
-#### 6531503042 - Nimit Tanboontor (@6531503042)
-![Contributions](https://img.shields.io/badge/Commits-702-blue)
-Recent contributions:
-- git commit -m "docs: update README"
-- Update README.md
-- Update README.md
-- Update README.md
-- Update navbar.module.css
-
-#### 6531503024 - Thanaphat Thammasen (@thanaphat43)
+#### [6531503005 - Kritsakorn Sukkasem](https://github.com/Kritsasoft)
 ![Contributions](https://img.shields.io/badge/Commits-0-blue)
-Recent contributions:
+![Pull Requests](https://img.shields.io/badge/PRs-0-green)
+![Issues](https://img.shields.io/badge/Issues-0-red)
+- Role: Frontend Developer
+- Areas: UI/UX, React Components
+```chart
+Type: bar
+Labels: [Commits, PRs, Issues]
+Series:
+  - Data: [0, 0, 0]
+```
 
-
-#### 6531503048 - Peeranat Patarakittisopol (@peeranat45)
+#### [6531503006 - Klavivach Prajong](https://github.com/MABiuS1)
 ![Contributions](https://img.shields.io/badge/Commits-0-blue)
-Recent contributions:
+![Pull Requests](https://img.shields.io/badge/PRs-0-green)
+![Issues](https://img.shields.io/badge/Issues-0-red)
+- Role: Fullstack Developer
+- Areas: Frontend & Backend Integration
+```chart
+Type: bar
+Labels: [Commits, PRs, Issues]
+Series:
+  - Data: [0, 0, 0]
+```
 
+#### [6531503008 - Kongphop Saenphai](https://github.com/kongphop1209)
+![Contributions](https://img.shields.io/badge/Commits-0-blue)
+![Pull Requests](https://img.shields.io/badge/PRs-0-green)
+![Issues](https://img.shields.io/badge/Issues-0-red)
+- Role: Frontend Developer
+- Areas: Component Development
+```chart
+Type: bar
+Labels: [Commits, PRs, Issues]
+Series:
+  - Data: [0, 0, 0]
+```
 
-Last updated: Thu Nov 28 09:13:25 UTC 2024
+#### [6531503042 - Nimit Tanboontor](https://github.com/6531503042)
+![Contributions](https://img.shields.io/badge/Commits-1-blue)
+![Pull Requests](https://img.shields.io/badge/PRs-1-green)
+![Issues](https://img.shields.io/badge/Issues-0-red)
+- Role: Fullstack Developer
+- Areas: Project Architecture, DevOps
+```chart
+Type: bar
+Labels: [Commits, PRs, Issues]
+Series:
+  - Data: [1, 1, 0]
+```
+
+#### [6531503117 - Phumiphat Wongsathit](https://github.com/2547phumiphat)
+![Contributions](https://img.shields.io/badge/Commits-0-blue)
+![Pull Requests](https://img.shields.io/badge/PRs-0-green)
+![Issues](https://img.shields.io/badge/Issues-0-red)
+- Role: Frontend Developer
+- Areas: User Interface
+```chart
+Type: bar
+Labels: [Commits, PRs, Issues]
+Series:
+  - Data: [0, 0, 0]
+```
+
+#### [6531503120 - Ramet Naochomphoo](https://github.com/6531503120)
+![Contributions](https://img.shields.io/badge/Commits-0-blue)
+![Pull Requests](https://img.shields.io/badge/PRs-0-green)
+![Issues](https://img.shields.io/badge/Issues-0-red)
+- Role: Frontend Developer
+- Areas: Component Library
+```chart
+Type: bar
+Labels: [Commits, PRs, Issues]
+Series:
+  - Data: [0, 0, 0]
+```
+
+### Team Contribution Overview
+```chart
+Type: pie
+Labels: [Kritsakorn, Klavivach, Kongphop, Nimit, Phumiphat, Ramet]
+Series:
+  - Data: [0, 0, 0, 1, 0, 0]
+```
+
+### Repository Statistics
+- Total Commits: 1
+- Total Pull Requests: 1
+- Total Issues: 0
+- Active Contributors: 6
 
 View detailed contribution statistics: [Contributors Graph](https://github.com/6531503042/Sport-Complex/graphs/contributors)
+
+Last updated: Manual update (Will be automated by GitHub Actions)
