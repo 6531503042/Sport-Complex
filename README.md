@@ -71,33 +71,6 @@ This project aims to redesign the existing sport complex system to improve its s
 - Analytics and reporting
 - System configuration
 
-### API Integration
-
-#### REST API Endpoints
-```plaintext
-POST   /api/v1/auth/login
-POST   /api/v1/auth/register
-GET    /api/v1/facilities
-POST   /api/v1/bookings
-GET    /api/v1/users/{id}
-PATCH  /api/v1/admin/facilities
-// More endpoints...
-```
-
-#### gRPC Services
-```protobuf
-service BookingService {
-  rpc CreateBooking (CreateBookingRequest) returns (BookingResponse);
-  rpc CancelBooking (CancelBookingRequest) returns (BookingResponse);
-  rpc GetBookingStatus (BookingStatusRequest) returns (StatusResponse);
-}
-
-service FacilityService {
-  rpc UpdateFacility (UpdateFacilityRequest) returns (FacilityResponse);
-  rpc GetAvailability (AvailabilityRequest) returns (AvailabilityResponse);
-}
-```
-
 #### Kafka Topics
 ```plaintext
 booking.created
@@ -108,29 +81,6 @@ notification.send
 user.activity
 ```
 
-### Testing
-- Unit Tests
-- Integration Tests
-- E2E Tests
-- Load Testing
-- Security Testing
-
-### Design System
-```plaintext
-├── Components
-│   ├── Atoms
-│   │   ├── Buttons
-│   │   ├── Inputs
-│   │   └── Typography
-│   ├── Molecules
-│   │   ├── Forms
-│   │   ├── Cards
-│   │   └── Navigation
-│   └── Organisms
-│       ├── Booking Forms
-│       ├── Payment Forms
-│       └── Dashboards
-```
 
 ### Figma Design
 - [UI/UX Design](https://www.figma.com/file/xxxxx)
@@ -140,30 +90,31 @@ user.activity
 ### Functional Requirements
 
 #### User Management
-- User registration and authentication
-- Profile management
-- Role-based access control
-- Activity history
+- User Registration and Authentication: Secure signup and login processes.
+- Profile Management: View and update user details.
+- Role-Based Access Control (RBAC): Define roles such as admin, staff, and customers with tailored permissions.
+- Activity Tracking: Log user activities for security and system monitoring.
 
 #### Booking System
-- Facility selection
-- Time slot booking
-- Cancellation handling
-- Payment processing
-- Notification system
+- Facility Selection: Browse and select available sports facilities.
+- Time Slot Booking: Reserve specific time slots for activities.
+- Cancellation Handling: Allow users to cancel or reschedule bookings based on policies.
+- Payment Integration: Seamless QR-code-based payment after booking.
+- Booking History: Access and track past and upcoming reservations.
+- Notifications: Receive booking confirmations and reminders.
 
 #### Admin Panel
-- User management
-- Facility management
-- Booking oversight
-- Report generation
-- System configuration
+- User Management: Manage users, roles, and permissions.
+- Facility Management: Create, update, and maintain facility slots and details.
+- Booking Oversight: Monitor all bookings and handle conflicts or issues.
+- Analytics and Reporting: Generate detailed usage and revenue reports.
+- System Configuration: Customize system-wide settings and policies.
 
 #### Payment Processing
-- Multiple payment methods
-- Transaction management
-- Refund processing
-- Receipt generation
+- QR-Code Payments: Generate QR codes for secure payment after booking.
+- Transaction History: Monitor and validate all payment transactions.
+- Receipt Management: Issue digital receipts for completed payments.
+- Secure Integration: Built with scalability and security in mind.
 
 ## Architecture
 ![alt text](<assets/Screenshot 2567-09-01 at 21.57.59.png>)
