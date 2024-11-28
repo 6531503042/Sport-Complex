@@ -259,7 +259,6 @@ Start
             </li>
             <li>Slot Management System</li>
             <li>Real-time Slot Refresh</li>
-            <li>Backend API Integration</li>
         </ul>
     </td>
     <td align="center">
