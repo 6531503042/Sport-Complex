@@ -20,35 +20,77 @@ jobs:
       - name: Generate Repository Stats
         id: repo-stats
         run: |
-          # Get total stats
+          # Map of GitHub usernames to student IDs
+          declare -A STUDENT_IDS=(
+            ["6531503042"]="Nimit Tanboontor"
+            ["MABiuS1"]="Klavivach Prajong"
+            ["Kritsasoft"]="Kritsakorn Sukkasem"
+            ["kongphop1209"]="Kongphop Saenphai"
+            ["2547phumiphat"]="Phumiphat Wongsathit"
+          )
+
+          # Get total repository stats
           TOTAL_COMMITS=$(git rev-list --count HEAD)
-          TOTAL_PRS=$(gh pr list --state all --limit 1000 | wc -l)
-          TOTAL_ISSUES=$(gh issue list --state all --limit 1000 | wc -l)
-          
-          # Get individual stats
-          declare -A stats
-          for user in "Kritsasoft" "MABiuS1" "kongphop1209" "6531503042" "2547phumiphat" "6531503120"; do
-            COMMITS=$(git log --author="$user" --oneline | wc -l)
-            PRS=$(gh pr list --author="$user" --state all --limit 1000 | wc -l)
-            ISSUES=$(gh issue list --author="$user" --state all --limit 1000 | wc -l)
-            stats[$user]="$COMMITS $PRS $ISSUES"
+          echo "TOTAL_COMMITS=$TOTAL_COMMITS" >> $GITHUB_ENV
+
+          # Get individual contribution stats
+          for username in "${!STUDENT_IDS[@]}"; do
+            commits=$(git log --author="$username" --oneline | wc -l)
+            prs=$(gh pr list --author="$username" --state all --limit 1000 | wc -l)
+            
+            # Calculate percentage
+            percentage=$(awk "BEGIN {printf \"%.2f\", ($commits/$TOTAL_COMMITS)*100}")
+            
+            # Store in environment variables
+            echo "${username}_COMMITS=$commits" >> $GITHUB_ENV
+            echo "${username}_PRS=$prs" >> $GITHUB_ENV
+            echo "${username}_PERCENTAGE=$percentage" >> $GITHUB_ENV
           done
-          
-          echo "stats=${stats[@]}" >> $GITHUB_OUTPUT
-          echo "total=$TOTAL_COMMITS $TOTAL_PRS $TOTAL_ISSUES" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update README
+      - name: Update README Stats
         run: |
-          # Your existing update logic here, but now including the visualization data
-          # Use ${{ steps.repo-stats.outputs.stats }} and ${{ steps.repo-stats.outputs.total }}
-          # to generate the charts and badges
+          # Read the current README
+          README_CONTENT=$(cat README.md)
+          
+          # Update statistics in the table
+          for username in "${!STUDENT_IDS[@]}"; do
+            commits="${username}_COMMITS"
+            prs="${username}_PRS"
+            percentage="${username}_PERCENTAGE"
+            
+            # Update commit badge
+            README_CONTENT=$(echo "$README_CONTENT" | sed -E "s|<img src=\"https://img.shields.io/badge/Commits-[0-9]+-blue\?style=for-the-badge\"/>|<img src=\"https://img.shields.io/badge/Commits-${!commits}-blue?style=for-the-badge\"/>|g")
+            
+            # Update PR badge
+            README_CONTENT=$(echo "$README_CONTENT" | sed -E "s|<img src=\"https://img.shields.io/badge/PRs-[0-9]+-green\?style=for-the-badge\"/>|<img src=\"https://img.shields.io/badge/PRs-${!prs}-green?style=for-the-badge\"/>|g")
+            
+            # Update percentage
+            README_CONTENT=$(echo "$README_CONTENT" | sed -E "s|<b>[0-9]+% of total contributions</b>|<b>${!percentage}% of total contributions</b>|g")
+          done
+          
+          # Update total repository stats
+          README_CONTENT=$(echo "$README_CONTENT" | sed -E "s|Total Commits: [0-9,]+|Total Commits: $TOTAL_COMMITS|g")
+          
+          # Update last updated timestamp
+          CURRENT_DATE=$(date '+%Y-%m-%d %H:%M:%S UTC')
+          README_CONTENT=$(echo "$README_CONTENT" | sed -E "s|Last updated: .*|Last updated: $CURRENT_DATE|g")
+          
+          # Write back to README
+          echo "$README_CONTENT" > README.md
 
-      - name: Commit and push if changed
+      - name: Commit and Push Changes
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
           git add README.md
-          git commit -m "docs: Update repository statistics" || exit 0
-          git push
+          
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs: Update contributor statistics [skip ci]"
+            git push
+          fi

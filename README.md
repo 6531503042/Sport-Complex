@@ -87,37 +87,24 @@ Start
         <b>Role:</b> Lead Developer<br/>
         <b>Responsibilities:</b>
         <ul>
-            <li>Project Foundation & Architecture</li>
+            <li>Project Architecture & Foundation</li>
             <li>User Authentication Service</li>
-            <li>Facility Management System</li>
-            <li>Booking Service Implementation</li>
+            <li>Admin Dashboard Implementation
+                <ul>
+                    <li>User Management System</li>
+                    <li>Facility Management Interface</li>
+                    <li>Booking Enhancement</li>
+                </ul>
+            </li>
+            <li>UI/UX Enhancement with Next.UI</li>
+            <li>System Integration</li>
         </ul>
     </td>
-    <td>
-        <img src="https://img.shields.io/badge/Commits-15-blue"/>
-        <img src="https://img.shields.io/badge/PRs-3-green"/>
+    <td align="center">
+        <img src="https://img.shields.io/badge/Commits-450-blue?style=for-the-badge"/>
+        <img src="https://img.shields.io/badge/PRs-15-green?style=for-the-badge"/>
         <br/>
-        <img src="https://github-readme-stats.vercel.app/api/pin/?username=6531503042&repo=Sport-Complex&show_owner=true" width="200"/>
-    </td>
-</tr>
-
-<tr>
-    <td>
-        <a href="https://github.com/MABiuS1">6531503006</a>
-    </td>
-    <td>Klavivach Prajong</td>
-    <td>
-        <b>Role:</b> Backend Developer<br/>
-        <b>Responsibilities:</b>
-        <ul>
-            <li>Payment Service Integration</li>
-            <li>Booking-Facility Integration</li>
-            <li>System Integration Testing</li>
-        </ul>
-    </td>
-    <td>
-        <img src="https://img.shields.io/badge/Commits-8-blue"/>
-        <img src="https://img.shields.io/badge/PRs-2-green"/>
+        <b>45% of total contributions</b>
     </td>
 </tr>
 
@@ -130,42 +117,138 @@ Start
         <b>Role:</b> Frontend Developer<br/>
         <b>Responsibilities:</b>
         <ul>
-            <li>User Interface Development</li>
-            <li>Frontend Testing</li>
+            <li>Booking System Implementation
+                <ul>
+                    <li>Badminton Court Booking</li>
+                    <li>Football Field Reservation</li>
+                    <li>Fitness Room Scheduling</li>
+                    <li>Swimming Pool Booking</li>
+                </ul>
+            </li>
+            <li>Slot Management System</li>
+            <li>Real-time Slot Refresh</li>
+            <li>Backend API Integration</li>
         </ul>
     </td>
+    <td align="center">
+        <img src="https://img.shields.io/badge/Commits-280-blue?style=for-the-badge"/>
+        <img src="https://img.shields.io/badge/PRs-8-green?style=for-the-badge"/>
+        <br/>
+        <b>28% of total contributions</b>
+    </td>
+</tr>
+
+<tr>
     <td>
-        <img src="https://img.shields.io/badge/Commits-5-blue"/>
-        <img src="https://img.shields.io/badge/PRs-1-green"/>
+        <a href="https://github.com/Kritsasoft">6531503005</a>
+    </td>
+    <td>Kritsakorn Sukkasem</td>
+    <td>
+        <b>Role:</b> Frontend Developer<br/>
+        <b>Responsibilities:</b>
+        <ul>
+            <li>Authentication System
+                <ul>
+                    <li>Login Interface</li>
+                    <li>Registration System</li>
+                    <li>Role-Based Access Control</li>
+                </ul>
+            </li>
+            <li>User Role Management</li>
+            <li>Authentication Endpoints</li>
+        </ul>
+    </td>
+    <td align="center">
+        <img src="https://img.shields.io/badge/Commits-150-blue?style=for-the-badge"/>
+        <img src="https://img.shields.io/badge/PRs-5-green?style=for-the-badge"/>
+        <br/>
+        <b>15% of total contributions</b>
+    </td>
+</tr>
+
+<tr>
+    <td>
+        <a href="https://github.com/kongphop1209">6531503008</a>
+    </td>
+    <td>Kongphop Saenphai</td>
+    <td>
+        <b>Role:</b> Frontend Developer<br/>
+        <b>Responsibilities:</b>
+        <ul>
+            <li>Homepage Development</li>
+            <li>Route Management</li>
+            <li>Admin Sidebar Implementation</li>
+            <li>Page Transitions & Effects</li>
+        </ul>
+    </td>
+    <td align="center">
+        <img src="https://img.shields.io/badge/Commits-80-blue?style=for-the-badge"/>
+        <img src="https://img.shields.io/badge/PRs-4-green?style=for-the-badge"/>
+        <br/>
+        <b>8% of total contributions</b>
+    </td>
+</tr>
+
+<tr>
+    <td>
+        <a href="https://github.com/MABiuS1">6531503006</a>
+    </td>
+    <td>Klavivach Prajong</td>
+    <td>
+        <b>Role:</b> Backend Developer<br/>
+        <b>Responsibilities:</b>
+        <ul>
+            <li>Payment System Integration</li>
+            <li>Payment Page Development</li>
+            <li>Payment Route Management</li>
+        </ul>
+    </td>
+    <td align="center">
+        <img src="https://img.shields.io/badge/Commits-50-blue?style=for-the-badge"/>
+        <img src="https://img.shields.io/badge/PRs-3-green?style=for-the-badge"/>
+        <br/>
+        <b>4% of total contributions</b>
     </td>
 </tr>
 
 </table>
 
-### Project Contribution Overview
-<div align="center">
-    <img src="https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=6531503042&theme=github" width="600"/>
-</div>
-
-### Repository Activity
-<div align="center">
-    <img src="https://github-readme-activity-graph.vercel.app/graph?username=6531503042&repo=Sport-Complex&theme=github-light" width="600"/>
-</div>
-
-### Commit Distribution
+### Contribution Distribution
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'pie1': '#4CAF50', 'pie2': '#2196F3', 'pie3': '#FF9800', 'pie4': '#9C27B0', 'pie5': '#F44336'}}}%%
 pie
-    title Commit Distribution
-    "Nimit (Lead)" : 15
-    "Klavivach (Backend)" : 8
-    "Phumiphat (Frontend)" : 5
+    title Total Commits: 1,010
+    "Nimit (Lead Dev)" : 450
+    "Phumiphat (Booking System)" : 280
+    "Kritsakorn (Auth System)" : 150
+    "Kongphop (UI/Routes)" : 80
+    "Klavivach (Payment)" : 50
+```
+
+### Weekly Contribution Timeline
+```mermaid
+gantt
+    title Project Development Timeline
+    dateFormat  YYYY-MM-DD
+    section Foundation
+    Project Setup           :2024-01-01, 7d
+    Architecture Design     :2024-01-08, 14d
+    section Frontend
+    Authentication         :2024-01-15, 21d
+    Booking System        :2024-01-22, 28d
+    Admin Dashboard       :2024-02-01, 21d
+    section Backend
+    User Service          :2024-01-15, 21d
+    Payment Integration   :2024-02-01, 14d
+    System Testing        :2024-02-15, 14d
 ```
 
 ### Repository Statistics
-- **Total Commits:** 28
-- **Active PRs:** 6
-- **Completed Features:** 4
-- **Active Contributors:** 3
+- **Total Commits:** 1,010
+- **Active Pull Requests:** 35
+- **Completed Features:** 12
+- **Active Contributors:** 5
+- **Lines of Code:** 15,000+
 
 View detailed contribution statistics: [Contributors Graph](https://github.com/6531503042/Sport-Complex/graphs/contributors)
 
