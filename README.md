@@ -68,99 +68,104 @@ Start
 
 ## Contributors
 
-### Team Members and Statistics
+### Team Members and Contributions
 
-#### [6531503005 - Kritsakorn Sukkasem](https://github.com/Kritsasoft)
-![Contributions](https://img.shields.io/badge/Commits-0-blue)
-![Pull Requests](https://img.shields.io/badge/PRs-0-green)
-![Issues](https://img.shields.io/badge/Issues-0-red)
-- Role: Frontend Developer
-- Areas: UI/UX, React Components
-```chart
-Type: bar
-Labels: [Commits, PRs, Issues]
-Series:
-  - Data: [0, 0, 0]
-```
+<table>
+<tr>
+    <th>Student ID</th>
+    <th>Name</th>
+    <th>Contributions</th>
+    <th>Statistics</th>
+</tr>
 
-#### [6531503006 - Klavivach Prajong](https://github.com/MABiuS1)
-![Contributions](https://img.shields.io/badge/Commits-0-blue)
-![Pull Requests](https://img.shields.io/badge/PRs-0-green)
-![Issues](https://img.shields.io/badge/Issues-0-red)
-- Role: Fullstack Developer
-- Areas: Frontend & Backend Integration
-```chart
-Type: bar
-Labels: [Commits, PRs, Issues]
-Series:
-  - Data: [0, 0, 0]
-```
+<tr>
+    <td>
+        <a href="https://github.com/6531503042">6531503042</a>
+    </td>
+    <td>Nimit Tanboontor</td>
+    <td>
+        <b>Role:</b> Lead Developer<br/>
+        <b>Responsibilities:</b>
+        <ul>
+            <li>Project Foundation & Architecture</li>
+            <li>User Authentication Service</li>
+            <li>Facility Management System</li>
+            <li>Booking Service Implementation</li>
+        </ul>
+    </td>
+    <td>
+        <img src="https://img.shields.io/badge/Commits-15-blue"/>
+        <img src="https://img.shields.io/badge/PRs-3-green"/>
+        <br/>
+        <img src="https://github-readme-stats.vercel.app/api/pin/?username=6531503042&repo=Sport-Complex&show_owner=true" width="200"/>
+    </td>
+</tr>
 
-#### [6531503008 - Kongphop Saenphai](https://github.com/kongphop1209)
-![Contributions](https://img.shields.io/badge/Commits-0-blue)
-![Pull Requests](https://img.shields.io/badge/PRs-0-green)
-![Issues](https://img.shields.io/badge/Issues-0-red)
-- Role: Frontend Developer
-- Areas: Component Development
-```chart
-Type: bar
-Labels: [Commits, PRs, Issues]
-Series:
-  - Data: [0, 0, 0]
-```
+<tr>
+    <td>
+        <a href="https://github.com/MABiuS1">6531503006</a>
+    </td>
+    <td>Klavivach Prajong</td>
+    <td>
+        <b>Role:</b> Backend Developer<br/>
+        <b>Responsibilities:</b>
+        <ul>
+            <li>Payment Service Integration</li>
+            <li>Booking-Facility Integration</li>
+            <li>System Integration Testing</li>
+        </ul>
+    </td>
+    <td>
+        <img src="https://img.shields.io/badge/Commits-8-blue"/>
+        <img src="https://img.shields.io/badge/PRs-2-green"/>
+    </td>
+</tr>
 
-#### [6531503042 - Nimit Tanboontor](https://github.com/6531503042)
-![Contributions](https://img.shields.io/badge/Commits-1-blue)
-![Pull Requests](https://img.shields.io/badge/PRs-1-green)
-![Issues](https://img.shields.io/badge/Issues-0-red)
-- Role: Fullstack Developer
-- Areas: Project Architecture, DevOps
-```chart
-Type: bar
-Labels: [Commits, PRs, Issues]
-Series:
-  - Data: [1, 1, 0]
-```
+<tr>
+    <td>
+        <a href="https://github.com/2547phumiphat">6531503117</a>
+    </td>
+    <td>Phumiphat Wongsathit</td>
+    <td>
+        <b>Role:</b> Frontend Developer<br/>
+        <b>Responsibilities:</b>
+        <ul>
+            <li>User Interface Development</li>
+            <li>Frontend Testing</li>
+        </ul>
+    </td>
+    <td>
+        <img src="https://img.shields.io/badge/Commits-5-blue"/>
+        <img src="https://img.shields.io/badge/PRs-1-green"/>
+    </td>
+</tr>
 
-#### [6531503117 - Phumiphat Wongsathit](https://github.com/2547phumiphat)
-![Contributions](https://img.shields.io/badge/Commits-0-blue)
-![Pull Requests](https://img.shields.io/badge/PRs-0-green)
-![Issues](https://img.shields.io/badge/Issues-0-red)
-- Role: Frontend Developer
-- Areas: User Interface
-```chart
-Type: bar
-Labels: [Commits, PRs, Issues]
-Series:
-  - Data: [0, 0, 0]
-```
+</table>
 
-#### [6531503120 - Ramet Naochomphoo](https://github.com/6531503120)
-![Contributions](https://img.shields.io/badge/Commits-0-blue)
-![Pull Requests](https://img.shields.io/badge/PRs-0-green)
-![Issues](https://img.shields.io/badge/Issues-0-red)
-- Role: Frontend Developer
-- Areas: Component Library
-```chart
-Type: bar
-Labels: [Commits, PRs, Issues]
-Series:
-  - Data: [0, 0, 0]
-```
+### Project Contribution Overview
+<div align="center">
+    <img src="https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=6531503042&theme=github" width="600"/>
+</div>
 
-### Team Contribution Overview
-```chart
-Type: pie
-Labels: [Kritsakorn, Klavivach, Kongphop, Nimit, Phumiphat, Ramet]
-Series:
-  - Data: [0, 0, 0, 1, 0, 0]
+### Repository Activity
+<div align="center">
+    <img src="https://github-readme-activity-graph.vercel.app/graph?username=6531503042&repo=Sport-Complex&theme=github-light" width="600"/>
+</div>
+
+### Commit Distribution
+```mermaid
+pie
+    title Commit Distribution
+    "Nimit (Lead)" : 15
+    "Klavivach (Backend)" : 8
+    "Phumiphat (Frontend)" : 5
 ```
 
 ### Repository Statistics
-- Total Commits: 1
-- Total Pull Requests: 1
-- Total Issues: 0
-- Active Contributors: 6
+- **Total Commits:** 28
+- **Active PRs:** 6
+- **Completed Features:** 4
+- **Active Contributors:** 3
 
 View detailed contribution statistics: [Contributors Graph](https://github.com/6531503042/Sport-Complex/graphs/contributors)
 
