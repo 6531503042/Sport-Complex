@@ -1132,8 +1132,7 @@ func validateTimeRange(startDate, endDate time.Time) error {
 func (r *analyticsRepository) getTotalRevenue(ctx context.Context, startDate, endDate time.Time) (float64, error) {
 	bookingDb := r.db.Database("booking_db")
 	bookingCol := bookingDb.Collection("booking_transaction")
-	paymentDb := r.db.Database("payment_db")
-	paymentCol := paymentDb.Collection("payments")
+
 
 	// Aggregate query to calculate total revenue from payments related to bookings
 	pipeline := []bson.M{

@@ -70,7 +70,18 @@ Start
 
 ### Team Members and Contributions
 
-Each team member's contributions can be viewed in detail through:
-- [Repository Commits](https://github.com/6531503042/Sport-Complex/commits/main)
-- [Pull Requests](https://github.com/6531503042/Sport-Complex/pulls)
-- [Project Issues](https://github.com/6531503042/Sport-Complex/issues)
+#### 6531503042 - Phuwadon Decharam (@6531503042)
+![Contributions](https://img.shields.io/badge/Commits-1-blue)
+- Created initial repository structure
+- Added README.md with project documentation
+- Set up Next.js frontend foundation
+
+#### 6531503024 - Thanaphat Thammasen (@thanaphat43)
+![Contributions](https://img.shields.io/badge/Commits-0-blue)
+- Pending contributions
+
+#### 6531503048 - Peeranat Patarakittisopol (@peeranat45)
+![Contributions](https://img.shields.io/badge/Commits-0-blue)
+- Pending contributions
+
+View detailed contribution statistics: [Contributors Graph](https://github.com/6531503042/Sport-Complex/graphs/contributors)
