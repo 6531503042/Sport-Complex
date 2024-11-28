@@ -67,21 +67,29 @@ The architecture should include the following components:
 Start
 
 ## Contributors
+## Contributors
 
 ### Team Members and Contributions
 
-#### 6531503042 - Phuwadon Decharam (@6531503042)
-![Contributions](https://img.shields.io/badge/Commits-1-blue)
-- Created initial repository structure
-- Added README.md with project documentation
-- Set up Next.js frontend foundation
+#### 6531503042 - Nimit Tanboontor (@6531503042)
+![Contributions](https://img.shields.io/badge/Commits-702-blue)
+Recent contributions:
+- git commit -m "docs: update README"
+- Update README.md
+- Update README.md
+- Update README.md
+- Update navbar.module.css
 
 #### 6531503024 - Thanaphat Thammasen (@thanaphat43)
 ![Contributions](https://img.shields.io/badge/Commits-0-blue)
-- Pending contributions
+Recent contributions:
+
 
 #### 6531503048 - Peeranat Patarakittisopol (@peeranat45)
 ![Contributions](https://img.shields.io/badge/Commits-0-blue)
-- Pending contributions
+Recent contributions:
+
+
+Last updated: Thu Nov 28 09:13:25 UTC 2024
 
 View detailed contribution statistics: [Contributors Graph](https://github.com/6531503042/Sport-Complex/graphs/contributors)
