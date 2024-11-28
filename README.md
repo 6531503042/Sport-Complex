@@ -1,8 +1,28 @@
 # Sport-Complex
+This project is part of 1305308	Platform Development Course.
  ![alt text](assets/image.png)
 ## Overview
 
 This project aims to redesign the existing sport complex system to improve its scalability, performance, and user experience. The primary goals are to handle a larger number of users, enable easy scaling using a Kubernetes cluster, and leverage modern technologies like Golang, Echo, gRPC, and Kafka for efficient communication and interaction.
+
+## Acknowledgements
+
+- [Golang] (https://golang.org/)
+- [Echo] (https://echo.labstack.com/)
+- [gRPC] (https://grpc.io/)
+- [Kafka] (https://kafka.apache.org/)
+- [OOP] (https://www.w3schools.com/java/java_oop.asp)
+- [Mono-Microservice Architecture] (https://microservices.io/patterns/microservices.html)
+- [Kubernetes] (https://kubernetes.io/)
+- [Docker] (https://www.docker.com/)
+- [MongoDB] (https://www.mongodb.com/)
+- [Git] (https://git-scm.com/)
+- [GitHub] (https://github.com/)
+- [JWT] (https://jwt.io/)
+- [Next.js] (https://nextjs.org/)
+- [Next UI] (https://nextui.org/)
+- [Tailwind CSS] (https://tailwindcss.com/)
+- [React] (https://reactjs.org/)
 
 ## Features
 
@@ -12,13 +32,6 @@ This project aims to redesign the existing sport complex system to improve its s
 - **Scalability**: Designed to scale with Kubernetes for handling large numbers of concurrent users.
 - **Real-time Communication**: Utilizes gRPC for fast and efficient communication between services.
 - **Asynchronous Processing**: Employs Kafka for managing and processing asynchronous tasks.
-
-## Technology Stack
-
-- **Backend**: Golang, fiber framework, gRPC
-- **Message Broker**: Apache Kafka
-- **Container Orchestration**: Kubernetes (K8s)
-- **Database**: MongoDB
 
 ## Architecture
 ![alt text](<assets/Screenshot 2567-09-01 at 21.57.59.png>)
@@ -53,16 +66,7 @@ The architecture should include the following components:
 <h2>📃 Start App in Terminal</h2>
 Start
 
-```bash
-SEEZGO
-```
-Stop
+## Contributors
 
-```bash
-SEEZSTOP
-```
-
-Check Status
-```bash
-SEEZSTATUS
-```
+### 6531503042
+![GitHub Stats](https://github-readme-stats.vercel.app/api?username=6531503042&show_icons=true&count_private=true&theme=radical)
