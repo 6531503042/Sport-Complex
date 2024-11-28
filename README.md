@@ -26,12 +26,144 @@ This project aims to redesign the existing sport complex system to improve its s
 
 ## Features
 
-- **User Management**: Register and manage users, including guests and different roles (e.g., campus users, outsiders, guest).
-- **Activity Booking**: Book activities such as gym sessions, swimming, and badminton courts.
-- **Dynamic Pricing**: Support for different pricing based on user roles (insiders, outsiders) and activities.
-- **Scalability**: Designed to scale with Kubernetes for handling large numbers of concurrent users.
-- **Real-time Communication**: Utilizes gRPC for fast and efficient communication between services.
-- **Asynchronous Processing**: Employs Kafka for managing and processing asynchronous tasks.
+### Frontend
+- **User Interface**
+  - Responsive design for all devices
+  - Dark/Light mode support
+  - Accessible UI components
+  - Real-time updates
+  - Interactive booking calendar
+
+### Backend Services
+
+#### Authentication Service
+- JWT-based authentication
+- Role-based access control (RBAC)
+- Session management
+- Password encryption
+- OAuth integration
+
+#### Booking Service
+- Real-time slot availability
+- Concurrent booking handling
+- Booking validation
+- Cancellation management
+- Slot locking mechanism
+
+#### Facility Service
+- Facility status tracking
+- Maintenance scheduling
+- Dynamic pricing
+- Capacity management
+- Resource allocation
+
+#### Payment Service
+- Secure payment processing
+- Transaction history
+- Refund handling
+- Receipt generation
+- Payment verification
+
+#### Admin Service
+- User management dashboard
+- Booking oversight
+- Facility management
+- Analytics and reporting
+- System configuration
+
+### API Integration
+
+#### REST API Endpoints
+```plaintext
+POST   /api/v1/auth/login
+POST   /api/v1/auth/register
+GET    /api/v1/facilities
+POST   /api/v1/bookings
+GET    /api/v1/users/{id}
+PATCH  /api/v1/admin/facilities
+// More endpoints...
+```
+
+#### gRPC Services
+```protobuf
+service BookingService {
+  rpc CreateBooking (CreateBookingRequest) returns (BookingResponse);
+  rpc CancelBooking (CancelBookingRequest) returns (BookingResponse);
+  rpc GetBookingStatus (BookingStatusRequest) returns (StatusResponse);
+}
+
+service FacilityService {
+  rpc UpdateFacility (UpdateFacilityRequest) returns (FacilityResponse);
+  rpc GetAvailability (AvailabilityRequest) returns (AvailabilityResponse);
+}
+```
+
+#### Kafka Topics
+```plaintext
+booking.created
+booking.updated
+payment.processed
+facility.status
+notification.send
+user.activity
+```
+
+### Testing
+- Unit Tests
+- Integration Tests
+- E2E Tests
+- Load Testing
+- Security Testing
+
+### Design System
+```plaintext
+├── Components
+│   ├── Atoms
+│   │   ├── Buttons
+│   │   ├── Inputs
+│   │   └── Typography
+│   ├── Molecules
+│   │   ├── Forms
+│   │   ├── Cards
+│   │   └── Navigation
+│   └── Organisms
+│       ├── Booking Forms
+│       ├── Payment Forms
+│       └── Dashboards
+```
+
+### Figma Design
+- [UI/UX Design](https://www.figma.com/file/xxxxx)
+- [Component Library](https://www.figma.com/file/xxxxx)
+- [Design System](https://www.figma.com/file/xxxxx)
+
+### Functional Requirements
+
+#### User Management
+- User registration and authentication
+- Profile management
+- Role-based access control
+- Activity history
+
+#### Booking System
+- Facility selection
+- Time slot booking
+- Cancellation handling
+- Payment processing
+- Notification system
+
+#### Admin Panel
+- User management
+- Facility management
+- Booking oversight
+- Report generation
+- System configuration
+
+#### Payment Processing
+- Multiple payment methods
+- Transaction management
+- Refund processing
+- Receipt generation
 
 ## Architecture
 ![alt text](<assets/Screenshot 2567-09-01 at 21.57.59.png>)
@@ -217,7 +349,7 @@ Start
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'pie1': '#4CAF50', 'pie2': '#2196F3', 'pie3': '#FF9800', 'pie4': '#9C27B0', 'pie5': '#F44336'}}}%%
 pie
-    title Total Commits: 1013
+    title Total Commits: 1011
     "Nimit (Lead Dev & Full Stack)" : 450
     "Phumiphat (Booking System Frontend)" : 280
     "Kritsakorn (Auth System Frontend)" : 150
@@ -230,19 +362,33 @@ pie
 gantt
     title Project Development Timeline
     dateFormat  YYYY-MM-DD
-    section Foundation
-    Project Setup           :2023-09-01, 7d
-    Architecture Design     :2023-09-08, 14d
-    section Frontend
-    Authentication         :2023-09-15, 21d
-    Booking System        :2023-09-22, 28d
-    Admin Dashboard       :2023-10-01, 21d
-    section Backend
-    User Service          :2023-09-15, 21d
-    Payment Integration   :2023-10-01, 14d
-    System Testing        :2023-10-15, 14d
-    section Development Ongoing
-    Continuous Updates    :2023-11-01, 30d
+    section Project Setup
+    Initial Planning        :2023-09-01, 7d
+    Architecture Design     :2023-09-07, 14d
+    Docker & K8s Setup     :2023-09-14, 10d
+    
+    section Frontend Development
+    UI/UX Design           :2023-09-10, 14d
+    Login/Register         :2023-09-15, 21d
+    Homepage & Navigation  :2023-09-20, 14d
+    Booking System        :2023-09-25, 30d
+    Admin Dashboard       :2023-10-05, 25d
+    Payment Interface     :2023-10-15, 14d
+    
+    section Backend Development
+    Auth Service          :2023-09-15, 21d
+    User Service          :2023-09-20, 21d
+    Facility Service      :2023-09-25, 21d
+    Booking Service       :2023-10-01, 25d
+    Admin Service         :2023-10-10, 20d
+    Payment Service       :2023-10-15, 21d
+    
+    section Integration & Testing
+    API Integration       :2023-10-20, 14d
+    gRPC Implementation   :2023-10-25, 10d
+    Kafka Setup          :2023-10-30, 7d
+    System Testing       :2023-11-01, 21d
+    Bug Fixes           :2023-11-15, 14d
 ```
 
 ### Repository Statistics
@@ -254,4 +400,4 @@ gantt
 
 View detailed contribution statistics: [Contributors Graph](https://github.com/6531503042/Sport-Complex/graphs/contributors)
 
-Last updated: 2024-11-28 13:49:24 UTC
+Last updated: 2024-11-28 13:41:53 UTC
