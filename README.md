@@ -68,15 +68,9 @@ Start
 
 ## Contributors
 
-### 6531503042
-![Repository Stats](https://github-readme-stats.vercel.app/api/pin/?username=6531503042&repo=Sport-Complex)
-![Contribution Stats](https://github-readme-stats.vercel.app/api?username=6531503042&show_icons=true&count_private=true&theme=radical&repo=Sport-Complex)
+### Team Members and Contributions
 
-You can also add specific repository contributions using:
-[![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=6531503042&layout=compact&repo=Sport-Complex)](https://github.com/6531503042/Sport-Complex)
-
-### Team Member 1
-![Contribution Stats](https://github-readme-stats.vercel.app/api?username=member1username&show_icons=true&count_private=true&theme=radical&repo=Sport-Complex)
-
-### Team Member 2
-![Contribution Stats](https://github-readme-stats.vercel.app/api?username=member2username&show_icons=true&count_private=true&theme=radical&repo=Sport-Complex)
+Each team member's contributions can be viewed in detail through:
+- [Repository Commits](https://github.com/6531503042/Sport-Complex/commits/main)
+- [Pull Requests](https://github.com/6531503042/Sport-Complex/pulls)
+- [Project Issues](https://github.com/6531503042/Sport-Complex/issues)
