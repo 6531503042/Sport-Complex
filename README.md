@@ -71,50 +71,12 @@ This project aims to redesign the existing sport complex system to improve its s
 - Analytics and reporting
 - System configuration
 
-#### Kafka Topics
-```plaintext
-booking.created
-booking.updated
-payment.processed
-facility.status
-notification.send
-user.activity
-```
-
 
 ### Figma Design
 - [UI/UX Design](https://www.figma.com/file/xxxxx)
 - [Component Library](https://www.figma.com/file/xxxxx)
 - [Design System](https://www.figma.com/file/xxxxx)
 
-### Functional Requirements
-
-#### User Management
-- User Registration and Authentication: Secure signup and login processes.
-- Profile Management: View and update user details.
-- Role-Based Access Control (RBAC): Define roles such as admin, staff, and customers with tailored permissions.
-- Activity Tracking: Log user activities for security and system monitoring.
-
-#### Booking System
-- Facility Selection: Browse and select available sports facilities.
-- Time Slot Booking: Reserve specific time slots for activities.
-- Cancellation Handling: Allow users to cancel or reschedule bookings based on policies.
-- Payment Integration: Seamless QR-code-based payment after booking.
-- Booking History: Access and track past and upcoming reservations.
-- Notifications: Receive booking confirmations and reminders.
-
-#### Admin Panel
-- User Management: Manage users, roles, and permissions.
-- Facility Management: Create, update, and maintain facility slots and details.
-- Booking Oversight: Monitor all bookings and handle conflicts or issues.
-- Analytics and Reporting: Generate detailed usage and revenue reports.
-- System Configuration: Customize system-wide settings and policies.
-
-#### Payment Processing
-- QR-Code Payments: Generate QR codes for secure payment after booking.
-- Transaction History: Monitor and validate all payment transactions.
-- Receipt Management: Issue digital receipts for completed payments.
-- Secure Integration: Built with scalability and security in mind.
 
 ## Architecture
 ![alt text](<assets/Screenshot 2567-09-01 at 21.57.59.png>)
@@ -127,27 +89,6 @@ The architecture should include the following components:
 - **Payment Service**: Handles payment processing and integration with payment gateways.
 - **Middleware**: Acts as a gateway for incoming requests, routing them to the appropriate services.
 - **Kafka**: Used for asynchronous communication between services, especially for events like booking confirmations and payment updates.
-
-## Setup
-
-### Prerequisites
-
-- Golang 1.23.0
-- Docker
-- Kubernetes (Minikube or a K8s cluster)
-- Apache Kafka
-- MongoDB
-
-### Installation
-
-1. **Clone the Repository:**
-
-   ```bash
-   git clone https://github.com/6531503042/Sport-Complex.git
-   cd sport complex
-
-<h2>📃 Start App in Terminal</h2>
-Start
 
 ## Contributors
 
