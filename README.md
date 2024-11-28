@@ -218,11 +218,11 @@ Start
 %%{init: {'theme': 'base', 'themeVariables': { 'pie1': '#4CAF50', 'pie2': '#2196F3', 'pie3': '#FF9800', 'pie4': '#9C27B0', 'pie5': '#F44336'}}}%%
 pie
     title Total Commits: 1011
-    "Nimit (Lead Dev)" : 450
-    "Phumiphat (Booking System)" : 280
-    "Kritsakorn (Auth System)" : 150
-    "Kongphop (UI/Routes)" : 80
-    "Klavivach (Payment)" : 50
+    "Nimit (Lead Dev & Full Stack)" : 450
+    "Phumiphat (Booking System Frontend)" : 280
+    "Kritsakorn (Auth System Frontend)" : 150
+    "Kongphop (UI/Routes Frontend)" : 80
+    "Klavivach (Payment & Full Stack)" : 50
 ```
 
 ### Weekly Contribution Timeline
@@ -231,16 +231,18 @@ gantt
     title Project Development Timeline
     dateFormat  YYYY-MM-DD
     section Foundation
-    Project Setup           :2024-01-01, 7d
-    Architecture Design     :2024-01-08, 14d
+    Project Setup           :2023-09-01, 7d
+    Architecture Design     :2023-09-08, 14d
     section Frontend
-    Authentication         :2024-01-15, 21d
-    Booking System        :2024-01-22, 28d
-    Admin Dashboard       :2024-02-01, 21d
+    Authentication         :2023-09-15, 21d
+    Booking System        :2023-09-22, 28d
+    Admin Dashboard       :2023-10-01, 21d
     section Backend
-    User Service          :2024-01-15, 21d
-    Payment Integration   :2024-02-01, 14d
-    System Testing        :2024-02-15, 14d
+    User Service          :2023-09-15, 21d
+    Payment Integration   :2023-10-01, 14d
+    System Testing        :2023-10-15, 14d
+    section Development Ongoing
+    Continuous Updates    :2023-11-01, 30d
 ```
 
 ### Repository Statistics
