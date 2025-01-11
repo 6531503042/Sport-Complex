@@ -233,4 +233,3 @@ const PaymentUserPage: React.FC = () => {
 };
 
 export default PaymentUserPage;
-
