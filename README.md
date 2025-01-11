@@ -8,16 +8,16 @@ This project aims to redesign the existing sport complex system to improve its s
 ## 📂 Project Structure
 The frontend is structured into key pages, each serving a specific role in the system:
 
-![alt text] (assets/admin_homepage.png)
+![alt text](assets/admin_homepage.png)
 **Admin Homepage**: The main entry point for user.
 
-![alt text] (assets/admin_booking.png)
+![alt text](assets/admin_booking.png)
 **Booking**: A page for client booking.
 
-![alt text] (assets/admin_payment.png)
+![alt text](assets/admin_payment.png)
 **User Payment History**: A page for user to view payment history.
 
-![alt text] (assets/user_payment.png)
+![alt text](assets/user_payment.png)
 **Payment**: A page for client payment.
 
 
