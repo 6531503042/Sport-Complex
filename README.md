@@ -1,12 +1,26 @@
 # Sport-Complex
 This project is part of 1305308	Platform Development Course.
- ![alt text](assets/admin_homepage.png)
  ![alt text](assets/admin_facility.png)
- ![alt text](assets/admin_booking.png)
- ![alt text](assets/admin_payment.png)
 ## Overview
 
 This project aims to redesign the existing sport complex system to improve its scalability, performance, and user experience. The primary goals are to handle a larger number of users, enable easy scaling using a Kubernetes cluster, and leverage modern technologies like Golang, Echo, gRPC, and Kafka for efficient communication and interaction.
+
+## 📂 Project Structure
+The frontend is structured into key pages, each serving a specific role in the system:
+
+![alt text] (assets/admin_homepage.png)
+**Admin Homepage**: The main entry point for user.
+
+![alt text] (assets/admin_booking.png)
+**Booking**: A page for client booking.
+
+![alt text] (assets/admin_payment.png)
+**User Payment History**: A page for user to view payment history.
+
+![alt text] (assets/user_payment.png)
+**Payment**: A page for client payment.
+
+
 
 ## Acknowledgements
 
