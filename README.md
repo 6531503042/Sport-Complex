@@ -235,7 +235,7 @@ The architecture should include the following components:
     </td>
     <td>Klavivach Prajong</td>
     <td>
-        <b>Role:</b> Backend Developer<br/>
+        <b>Role:</b> Full Stack Developer<br/>
         <b>Responsibilities:</b>
         <ul>
             <li>Payment System Integration</li>
