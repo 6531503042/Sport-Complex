@@ -3,14 +3,22 @@ version: '3.8'
 name: sport-complex-db
 
 services:
-  user-db:
-    image: mongo
-    container_name: user_db
-    ports: 
-      - 27000:27000
+  mongodb:
+    image: mongo:latest
+    container_name: sport-complex-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin123
+    networks:
+      - sport-complex-network
 
-  auth-db:
-    image: mongo
-    container_name: auth_db
-    ports: 
-      - 27001:27001
+volumes:
+  mongodb_data:
+
+networks:
+  sport-complex-network:
+    driver: bridge
