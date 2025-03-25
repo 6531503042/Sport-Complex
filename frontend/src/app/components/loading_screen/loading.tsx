@@ -2,7 +2,7 @@ import React from 'react';
 import { Progress } from "@nextui-org/react";
 import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
-import Logo from "@/app/assets/logo_full.png"
+import Logo from "@/app/assets/transparent.png"
 
 const waveAnimation = keyframes`
   0% { transform: translateY(0); }

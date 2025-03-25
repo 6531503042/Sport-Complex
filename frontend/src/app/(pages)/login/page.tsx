@@ -119,10 +119,10 @@ const LoginPage = () => {
         >
           <Image 
             className={styles.logo} 
-            src="/assets/logo-mfu-v2.png" 
+            src="/assets/transparent.png" 
             alt="Logo" 
-            width={75} 
-            height={75} 
+            width={300} 
+            height={300} 
             priority
           />
         </motion.div>

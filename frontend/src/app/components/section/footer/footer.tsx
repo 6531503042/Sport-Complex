@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import Logo from "../../../assets/Logo.png";
+import Logo from "../../../assets/transparent.png";
 import { motion } from "framer-motion";
 import { 
   Facebook, 

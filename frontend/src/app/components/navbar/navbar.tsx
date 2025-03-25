@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import Logo from "../../assets/Logo.png";
+import Logo from "../../assets/transparent.png";
 import SideBar from "@/app/components/sidebar/sidebar";
 import SearchBar from "../search_bar/search_bar";
 import {

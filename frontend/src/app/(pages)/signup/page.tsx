@@ -114,7 +114,7 @@ const SignUpPage = () => {
         >
           <Image
             className={styles.logo}
-            src="/assets/logo-mfu-v2.png"
+            src="/assets/transparent.png"
             alt="Logo"
             width={70}
             height={70}

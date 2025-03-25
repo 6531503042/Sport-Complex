@@ -138,10 +138,6 @@ const Payment = () => {
         <div className="relative">
           <div className="aspect-square bg-white pb-10 pt-10 rounded-lg shadow-lg flex items-center justify-center border-2 border-gray-100">
             <div className="flex flex-col">
-                <img 
-                src="https://media.discordapp.net/attachments/1120602456473215047/1308337656614096937/image.png?ex=6782caa5&is=67817925&hm=371d94c2ed396b49d7d0fa12d2329fcf7db5d6ec19bcdaf1720745e360f8c1b1&=&format=webp&quality=lossless&width=2160&height=780" 
-                alt="Logo" 
-                className="w-auto h-auto mt-3 mb-3 ml-8 mr-8 pr-1"/>
               <img
                 src={paymentData.qr_code_url}
                 alt="QR Code"

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Logo from "../../assets/Logo.png";
+import Logo from "../../assets/transparent.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
