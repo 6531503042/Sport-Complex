@@ -151,7 +151,7 @@ The architecture should include the following components:
 
 <tr>
     <td>
-        <a href="https://github.com/2547phumiphat">6531503117</a>
+        <a href="https://github.com/frank1nz">6531503117</a>
     </td>
     <td>Phumiphat Wongsathit</td>
     <td>
